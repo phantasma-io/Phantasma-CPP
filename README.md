@@ -159,11 +159,14 @@
 
  Typical linking:
   In one CPP file, before including `phantasma.h`:
+
    `#define PHANTASMA_IMPLEMENTATION`
  
  Inline linking:
   In every CPP file that uses the API, before including `phantasma.h`:
+
    `#define PHANTASMA_IMPLEMENTATION`
+
    `#define PHANTASMA_FUNCTION inline`
 
  Aside from `PHANTASMA_IMPLEMENTATION` / `PHANTASMA_FUNCTION`, you should take 
@@ -181,6 +184,7 @@
  Alternatively, you can customize the exact type that is thrown by defining:
 
  `#define PHANTASMA_EXCEPTION(message)                 throw std::runtime_error(message)`
+
  `#define PHANTASMA_EXCEPTION_MESSAGE(message, string) throw std::runtime_error(string)`
 
 ------------------------------------------------------------------------------
@@ -190,8 +194,11 @@
   including `phantasma.h`:
 
  `#define PHANTASMA_CHAR          wchar_t`
+
  `#define PHANTASMA_LITERAL(x)    L ## x`
+
  `#define PHANTASMA_STRING        std::wstring`
+
  `#define PHANTASMA_STRINGBUILDER std::wstringstream`
 
  Alternatively, if `_UNICODE` is defined, then the above macros will be defined
@@ -226,9 +233,13 @@
 
  It is recommended that you supply another JSON-parsing API, by defining the
   following macros before including `phantasma.h`:
+
   `#define PHANTASMA_JSONVALUE    Your_Json_Value_Type`
+
   `#define PHANTASMA_JSONARRAY    Your_Json_Array_Type`
+
   `#define PHANTASMA_JSONDOCUMENT Your_JSON_Document_Type`
+
   `#define PHANTASMA_JSONBUILDER  Your_Json_Serializer_Type`
 
  **The CPP REST and RapidJSON adaptors implement these macros.**
@@ -275,6 +286,7 @@
 
  To enable the `PhantasmaAPI` class, defining the following macro before 
   including `phantasma.h`:
+  
  `#define PHANTASMA_HTTPCLIENT   Your_HTTP_Client_Type`
 
  **The CPP REST and libcurl adaptors implement this macro.**
