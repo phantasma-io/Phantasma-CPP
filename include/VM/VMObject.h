@@ -26,31 +26,14 @@ typedef PHANTASMA_VECTOR<PHANTASMA_PAIR<VMObject, VMObject>> VMStructure;
 #if __cplusplus >= 201703L
 class VMObject
 {
-	constexpr static VMType s_typelookup[] = { VMType::Bool, VMType::Enum, VMType::Timestamp, VMType::String, VMType::Bytes, VMType::Number, VMType::Struct };
 	typedef std::variant<bool, int, Timestamp, String, ByteArray, BigInteger, VMStructure> Type;
 	VMType type;
 	Type data;
 
 public:
-	VMObject() : type(VMType::None) {}
-	VMObject(const VMObject& o)
-		: type(o.type)
-		, data(o.data)
-	{
-		dbg();
-	}
-	void dbg() const { eiASSERT(type == VMType::None || (data.index() != std::variant_npos && s_typelookup[data.index()] == type));  }
-	VMObject& operator=(const VMObject& o)
-	{
-		dbg();
-		type = o.type;
-		data = o.data;
-		dbg();
-		return *this;
-	}
-	VMType GetType() const { dbg(); return type; }
+	const VMType& GetType() const { return type; }
 	template<class T>
-	const T& Data() const { eiASSERT(type != VMType::None);  dbg(); return std::get<T>(data); }
+	const T& Data() const { return std::get<T>(data); }
 	template<class BinaryReader>
 	bool DeserializeData(BinaryReader& reader)
 	{
@@ -107,9 +90,8 @@ public:
 			while (childCount --> 0)
 			{
 				VMObject key, val;
-				if(!key.DeserializeData(reader)) return false;
-				if(!val.DeserializeData(reader)) return false;
-				eiASSERT(key.data.index() != std::variant_npos);
+				key.DeserializeData(reader);
+				val.DeserializeData(reader);
 				children.push_back({key, val});
 			}
 			data = children;
@@ -128,12 +110,10 @@ public:
 			break;
 		
 		default:
-			// eiASSERT(false);
 			//	throw new Exception($"invalid unserialize: type {this.Type}");
 			return false;
 		}
 		type = t;
-		dbg();
 		return !reader.Error();
 	}
 };
