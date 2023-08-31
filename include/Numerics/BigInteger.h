@@ -440,7 +440,7 @@ public:
 		for (UInt32 i = (UInt32)_data.size(); i --> 0;)
 		{
 			Char buffer[10];
-			sprintf_s(buffer, "%08x", digit);
+			sprintf_s(buffer, "%08x", _data[i]);
 			builder << buffer;
 		}
 
