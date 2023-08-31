@@ -2,8 +2,8 @@
 
 #include "../Numerics/Base16.h"
 #include "../Numerics/BigInteger.h"
-#include "../utils/Serializable.h"
-#include "../utils/TextUtils.h"
+#include "../Utils/Serializable.h"
+#include "../Utils/TextUtils.h"
 #include "SHA.h"
 
 namespace phantasma

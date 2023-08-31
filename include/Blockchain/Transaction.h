@@ -5,8 +5,8 @@
 #include "../Cryptography/Signature.h"
 #include "../Cryptography/KeyPair.h"
 #include "../Utils/Timestamp.h"
-#include "../utils/Serializable.h"
-#include "../utils/BinaryWriter.h"
+#include "../Utils/Serializable.h"
+#include "../Utils/BinaryWriter.h"
 
 namespace phantasma
 {
