@@ -100,23 +100,38 @@ public:
 	static Timestamp Now()
 	{
 		std::time_t now = std::time(0);
-		std::tm time;
-		gmtime_s(&time, &now);
-		std::time_t value = _mkgmtime(&time);
+
+#ifdef _MSC_VER
+		std::tm timeBuffer;
+		gmtime_s(&timeBuffer, &now);
+		const std::tm* dateTime = &timeBuffer;
+		std::time_t value = _mkgmtime(dateTime);
+#else
+		const std::tm* dateTime = std::gmtime(&now);
+		std::time_t value = timegm(dateTime);
+#endif
+
 		return Timestamp((ValueType)value);
 	}
 
 	void GetDateTimeElements(int& out_year, int& out_month, int& out_day, int& out_hour, int& out_minute, int& out_second)
 	{
-		std::tm time;
 		const std::time_t value = Value;
-		gmtime_s(&time, &value);
-		out_year = time.tm_year + 1900;
-		out_month = time.tm_mon + 1;
-		out_day = time.tm_mday;
-		out_hour = time.tm_hour;
-		out_minute = time.tm_min;
-		out_second = time.tm_sec;
+
+#ifdef _MSC_VER
+		std::tm timeBuffer;
+		gmtime_s(&timeBuffer, &value);
+		const std::tm* dateTime = &timeBuffer;
+#else
+		const std::tm* dateTime = std::gmtime(&value);
+#endif
+
+		out_year = dateTime->tm_year + 1900;
+		out_month = dateTime->tm_mon + 1;
+		out_day = dateTime->tm_mday;
+		out_hour = dateTime->tm_hour;
+		out_minute = dateTime->tm_min;
+		out_second = dateTime->tm_sec;
 	}
 
 	static Timestamp FromDateTimeUTC(int year, int month, int day, int hour, int minute, int second)
@@ -137,7 +152,13 @@ public:
 		t.tm_year = year - 1900;
 		t.tm_mon = month - 1;
 		t.tm_mday = day;
+
+#ifdef _MSC_VER
 		std::time_t time = _mkgmtime(&t);
+#else
+		std::time_t time = timegm(&t);
+#endif
+
 		return Timestamp((ValueType)time);
 	}
 
@@ -162,7 +183,13 @@ public:
 		t.tm_sec  = (int)PHANTASMA_STRTOINT(&input[17]);
 		t.tm_isdst = 0;
 		const int millis = inputLength > 20 ? (int)PHANTASMA_STRTOINT(&input[20]) : 0;
+
+#ifdef _MSC_VER
 		std::time_t time = _mkgmtime(&t);
+#else
+		std::time_t time = timegm(&t);
+#endif
+
 		return Timestamp((ValueType)time + (millis >= 500 ? 1 : 0));
 	}
 
