@@ -266,14 +266,14 @@ inline T DecodeCustomEvent( EventKind kind )
 		PHANTASMA_EXCEPTION( "Cannot cast system event" );
 	}
 
-	int intVal = ((int)kind - (int)EventKind.Custom);
+	int intVal = ((int)kind - (int)EventKind::Custom);
 	return (T)intVal;
 }
 
 template<class T, typename std::enable_if<std::is_enum<T>::value>::type* = nullptr>
 inline EventKind EncodeCustomEvent( T kind )
 {
-	return (EventKind)(EventKind::Custom + (int)kind);
+	return (EventKind)((int)EventKind::Custom + (int)kind);
 }
 
 }
