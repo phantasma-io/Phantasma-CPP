@@ -48,7 +48,7 @@ inline uint64_t Ed25519_SignAttached( uint8_t* output, int outputLength, const u
 		((UInt32)privateKeyLength != crypto_sign_ed25519_SECRETKEYBYTES) ||
 		messageLength < 0 )
 		return 0;
-	uint64_t signed_message_len = 0;
+	unsigned long long signed_message_len = 0;
 	crypto_sign_ed25519(output, &signed_message_len, message, messageLength, privateKey);
 	return signed_message_len;
 }
@@ -59,7 +59,7 @@ inline uint64_t Ed25519_SignDetached( uint8_t* output, int outputLength, const u
 		((UInt32)privateKeyLength != crypto_sign_ed25519_SECRETKEYBYTES) ||
 		messageLength < 0)
 		return 0;
-	uint64_t signed_message_len = 0;
+	unsigned long long signed_message_len = 0;
 	crypto_sign_ed25519_detached(output, &signed_message_len, message, messageLength, privateKey);
 	return signed_message_len;
 }
