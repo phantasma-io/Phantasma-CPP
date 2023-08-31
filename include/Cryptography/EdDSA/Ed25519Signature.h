@@ -3,6 +3,7 @@
 #include "Ed25519.h"
 #include "../SignatureKind.h"
 #include "../Address.h"
+#include "../PrivateKey.h"
 
 namespace phantasma {
 
