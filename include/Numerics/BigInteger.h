@@ -47,8 +47,8 @@ private:
 			_sign = 0;
 	}
 public:
-	static const TBigInteger Zero() { return TBigInteger{0LL}; }
-	static const TBigInteger One()  { return TBigInteger{1LL}; }
+	static const TBigInteger Zero() { return TBigInteger{0L}; }
+	static const TBigInteger One()  { return TBigInteger{1L}; }
 
 	TBigInteger() : TBigInteger(0) {}
 
