@@ -202,7 +202,7 @@ public:
 				reader.ReadSignature(m_signatures[i]);
 			}
 		}
-		PHANTASMA_CATCH(...)
+		PHANTASMA_CATCH_ALL()
 		{
 			m_signatures.clear();
 		}

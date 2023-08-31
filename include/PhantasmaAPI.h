@@ -443,7 +443,7 @@
 #endif
 
 #if !defined(PHANTASMA_TRY)
-# if !defined(PHANTASMA_EXCEPTION)
+# if !defined(PHANTASMA_EXCEPTION) && !defined(PHANTASMA_EXCEPTION_ENABLE)
 #  define PHANTASMA_TRY         if(true)
 #  define PHANTASMA_CATCH( x )  else
 #  define PHANTASMA_CATCH_ALL() else
