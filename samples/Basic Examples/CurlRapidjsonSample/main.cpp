@@ -1,8 +1,8 @@
 #define PHANTASMA_IMPLEMENTATION
 #define CURL_STATICLIB
-#include "../../../Libs/Adapters/PhantasmaAPI_rapidjson.h"
-#include "../../../Libs/Adapters/PhantasmaAPI_curl.h"
-#include "../../../Libs/PhantasmaAPI.h"
+#include "../../../include/Adapters/PhantasmaAPI_rapidjson.h"
+#include "../../../include/Adapters/PhantasmaAPI_curl.h"
+#include "../../../include/PhantasmaAPI.h"
 #include <iostream>
 
 using namespace phantasma;

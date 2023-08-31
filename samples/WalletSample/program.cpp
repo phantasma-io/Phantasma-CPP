@@ -2,14 +2,14 @@
 #define PHANTASMA_IMPLEMENTATION
 #define SODIUM_STATIC
 
-#include "../../Libs/Adapters/PhantasmaAPI_cpprest.h"
-#include "../../Libs/PhantasmaAPI.h"
-#include "../../Libs/Adapters/PhantasmaAPI_sodium.h"
-#include "../../Libs/Blockchain/Transaction.h"
-#include "../../Libs/Domain/Event.h"
-#include "../../Libs/Cryptography/KeyPair.h"
-#include "../../Libs/VM/ScriptBuilder.h"
-#include "../../Libs/Utils/RpcUtils.h"
+#include "../../include/Adapters/PhantasmaAPI_cpprest.h"
+#include "../../include/PhantasmaAPI.h"
+#include "../../include/Adapters/PhantasmaAPI_sodium.h"
+#include "../../include/Blockchain/Transaction.h"
+#include "../../include/Domain/Event.h"
+#include "../../include/Cryptography/KeyPair.h"
+#include "../../include/VM/ScriptBuilder.h"
+#include "../../include/Utils/RpcUtils.h"
 
 //Sorry, I haven't actually bundled a compiled version of libSodium with the project.
 //You have to download/build libSodium yourself!
