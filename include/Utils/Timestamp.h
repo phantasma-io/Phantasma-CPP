@@ -107,7 +107,7 @@ public:
 		const std::tm* dateTime = &timeBuffer;
 		std::time_t value = _mkgmtime(dateTime);
 #else
-		const std::tm* dateTime = std::gmtime(&now);
+		std::tm* dateTime = std::gmtime(&now);
 		std::time_t value = timegm(dateTime);
 #endif
 
