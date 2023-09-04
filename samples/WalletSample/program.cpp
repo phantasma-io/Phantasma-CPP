@@ -362,8 +362,8 @@ public:
 		WriteLine("Enter name for address: ");
 		String name = ReadLine();
 		auto script = ScriptBuilder::BeginScript()
-			.AllowGas(_key.Address(), Address(), 1, 9999)
-			.CallContract(U("account"), U("Register"), _key.Address(), name)
+			.AllowGas(_key.Address(), Address(), 100000, 9999)
+			.CallContract(U("account"), U("RegisterName"), _key.Address(), name)
 			.SpendGas(_key.Address())
 			.EndScript();
 
