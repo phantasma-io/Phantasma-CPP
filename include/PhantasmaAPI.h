@@ -1533,7 +1533,7 @@ PHANTASMA_FUNCTION Account PhantasmaJsonAPI::DeserializeAccount(const JSONValue&
 		DeserializeStake(json::LookupValue(value, PHANTASMA_LITERAL("stakes"), jsonErr), jsonErr), 
 		json::LookupString(value, PHANTASMA_LITERAL("stake"), jsonErr), 
 		json::LookupString(value, PHANTASMA_LITERAL("unclaimed"), jsonErr), 
-		json::LookupString(value, PHANTASMA_LITERAL("relay"), jsonErr), 
+		json::HasField(value, PHANTASMA_LITERAL("relay"), jsonErr) ? json::LookupString(value, PHANTASMA_LITERAL("relay"), jsonErr) : "", 
 		json::LookupString(value, PHANTASMA_LITERAL("validator"), jsonErr), 
 		DeserializeStorage(json::LookupValue(value, PHANTASMA_LITERAL("storage"), jsonErr), jsonErr), 
 		balancesVector, 
@@ -1604,7 +1604,7 @@ PHANTASMA_FUNCTION Chain PhantasmaJsonAPI::DeserializeChain(const JSONValue& val
 	return Chain { 
 		json::LookupString(value, PHANTASMA_LITERAL("name"), jsonErr), 
 		json::LookupString(value, PHANTASMA_LITERAL("address"), jsonErr), 
-		json::LookupString(value, PHANTASMA_LITERAL("parent"), jsonErr), 
+		json::HasField(value, PHANTASMA_LITERAL("parent"), jsonErr) ? json::LookupString(value, PHANTASMA_LITERAL("parent"), jsonErr) : "", 
 		json::LookupUInt32(value, PHANTASMA_LITERAL("height"), jsonErr), 
 		json::LookupString(value, PHANTASMA_LITERAL("organization"), jsonErr), 
 		contractsVector, 
@@ -1818,8 +1818,8 @@ PHANTASMA_FUNCTION TokenSeries PhantasmaJsonAPI::DeserializeTokenSeries(const JS
 PHANTASMA_FUNCTION TokenProperty PhantasmaJsonAPI::DeserializeTokenProperty(const JSONValue& value, bool& jsonErr)
 { 	
 	return TokenProperty { 
-		json::LookupString(value, PHANTASMA_LITERAL("Key"), jsonErr), 
-		json::LookupString(value, PHANTASMA_LITERAL("Value"), jsonErr)
+		json::HasField(value, PHANTASMA_LITERAL("Key"), jsonErr) ? json::LookupString(value, PHANTASMA_LITERAL("Key"), jsonErr) : "", 
+		json::HasField(value, PHANTASMA_LITERAL("Value"), jsonErr) ? json::LookupString(value, PHANTASMA_LITERAL("Value"), jsonErr) : ""
 	};
 }
 
@@ -1848,7 +1848,7 @@ PHANTASMA_FUNCTION TokenData PhantasmaJsonAPI::DeserializeTokenData(const JSONVa
 		}
 	}	
 	return TokenData { 
-		json::LookupString(value, PHANTASMA_LITERAL("ID"), jsonErr), 
+		json::HasField(value, PHANTASMA_LITERAL("ID"), jsonErr) ? json::LookupString(value, PHANTASMA_LITERAL("ID"), jsonErr) : "", 
 		json::LookupString(value, PHANTASMA_LITERAL("series"), jsonErr), 
 		json::LookupString(value, PHANTASMA_LITERAL("mint"), jsonErr), 
 		json::LookupString(value, PHANTASMA_LITERAL("chainName"), jsonErr), 
