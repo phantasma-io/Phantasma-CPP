@@ -309,7 +309,7 @@ public:
 		auto bigIntAmount = DecimalConversion(amount, decimals);
 
 		const auto& script = ScriptBuilder::BeginScript()
-			.AllowGas(_key.Address(), Address(), 1, 9999)
+			.AllowGas(_key.Address(), Address(), 100000, 9999)
 			.TransferTokens(tokenSymbol, _key.Address(), destinationAddress, bigIntAmount)
 			.SpendGas(_key.Address())
 			.EndScript();
