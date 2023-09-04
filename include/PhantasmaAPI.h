@@ -1633,8 +1633,8 @@ PHANTASMA_FUNCTION Oracle PhantasmaJsonAPI::DeserializeOracle(const JSONValue& v
 PHANTASMA_FUNCTION Signature PhantasmaJsonAPI::DeserializeSignature(const JSONValue& value, bool& jsonErr)
 { 	
 	return Signature { 
-		json::LookupString(value, PHANTASMA_LITERAL("Kind"), jsonErr), 
-		json::LookupString(value, PHANTASMA_LITERAL("Data"), jsonErr)
+		json::LookupString(value, PHANTASMA_LITERAL("kind"), jsonErr), 
+		json::LookupString(value, PHANTASMA_LITERAL("data"), jsonErr)
 	};
 }
 
@@ -1818,8 +1818,8 @@ PHANTASMA_FUNCTION TokenSeries PhantasmaJsonAPI::DeserializeTokenSeries(const JS
 PHANTASMA_FUNCTION TokenProperty PhantasmaJsonAPI::DeserializeTokenProperty(const JSONValue& value, bool& jsonErr)
 { 	
 	return TokenProperty { 
-		json::HasField(value, PHANTASMA_LITERAL("Key"), jsonErr) ? json::LookupString(value, PHANTASMA_LITERAL("Key"), jsonErr) : "", 
-		json::HasField(value, PHANTASMA_LITERAL("Value"), jsonErr) ? json::LookupString(value, PHANTASMA_LITERAL("Value"), jsonErr) : ""
+		json::LookupString(value, PHANTASMA_LITERAL("key"), jsonErr), 
+		json::LookupString(value, PHANTASMA_LITERAL("value"), jsonErr)
 	};
 }
 
@@ -1848,7 +1848,7 @@ PHANTASMA_FUNCTION TokenData PhantasmaJsonAPI::DeserializeTokenData(const JSONVa
 		}
 	}	
 	return TokenData { 
-		json::HasField(value, PHANTASMA_LITERAL("ID"), jsonErr) ? json::LookupString(value, PHANTASMA_LITERAL("ID"), jsonErr) : "", 
+		json::LookupString(value, PHANTASMA_LITERAL("id"), jsonErr), 
 		json::LookupString(value, PHANTASMA_LITERAL("series"), jsonErr), 
 		json::LookupString(value, PHANTASMA_LITERAL("mint"), jsonErr), 
 		json::LookupString(value, PHANTASMA_LITERAL("chainName"), jsonErr), 
