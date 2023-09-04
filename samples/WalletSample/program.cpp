@@ -108,7 +108,7 @@ public:
 		WriteLine(U("Fetching data..."));
 
 		_chains = _phantasmaApiService.GetChains();
-		_tokens = _phantasmaApiService.GetTokens();
+		_tokens = _phantasmaApiService.GetTokens(false);
 
 		WriteLine(U("Enter your WIF:"));
 
@@ -195,7 +195,7 @@ public:
 		}
 		else
 		{
-			if (_tokens.empty()) _tokens = _phantasmaApiService.GetTokens();
+			if (_tokens.empty()) _tokens = _phantasmaApiService.GetTokens(false);
 			for(const auto& balanceSheet : _account.balances)
 			{
 				WriteLine("********************");
@@ -332,7 +332,7 @@ public:
 		return SignAndSendTx(settleTxScript, destinationChainName);
 	}
 
-	String CrossChainTransferToken(const String& addressTo, const String& chainName, const String& destinationChain, const String& symbol, const String& amount)
+/*	String CrossChainTransferToken(const String& addressTo, const String& chainName, const String& destinationChain, const String& symbol, const String& amount)
 	{
 		String toChain = GetChainAddress(destinationChain, _chains);
 		Address destinationAddress = Address::FromText(addressTo);
@@ -350,7 +350,7 @@ public:
 			.EndScript();
 
 		return SignAndSendTx(script, chainName);
-	}
+	}*/
 
 	void RegisterName()
 	{
