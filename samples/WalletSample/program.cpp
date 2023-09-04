@@ -52,10 +52,10 @@ void WriteLine(T a, Args... b)
 	WriteLine(b...);
 }
 
-String ReadLine()
+string ReadLine()
 {
-	String str;
-	std::wcin >> str;
+	string str;
+	std::cin >> str;
 	return str;
 }
 
