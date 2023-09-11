@@ -8,7 +8,7 @@
 namespace phantasma {
 namespace Base58 {
 
-constexpr Char Alphabet[] = "123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz";
+constexpr Char Alphabet[] = PHANTASMA_LITERAL("123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz");
 inline int AlphabetIndexOf( Char in )
 {
 	for( const Char* c = Alphabet; *c; ++c )

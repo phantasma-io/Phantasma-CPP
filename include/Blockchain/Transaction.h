@@ -103,7 +103,7 @@ public:
 		if(payload && payloadLength != 0)
 		{
 			if(payloadLength < 0)
-				payloadLength = (int)PHANTASMA_STRLEN((char*)payload);
+				payloadLength = (int)PHANTASMA_STRLEN((Char*)payload);
 			m_payload.resize(payloadLength);
 			PHANTASMA_COPY( payload, payload+payloadLength, m_payload.begin() );
 		}

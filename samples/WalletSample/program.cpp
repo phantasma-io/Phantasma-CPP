@@ -52,12 +52,21 @@ void WriteLine(T a, Args... b)
 	WriteLine(b...);
 }
 
+#ifdef _UNICODE
+String ReadLine()
+{
+	String str;
+	std::wcin >> str;
+	return str;
+}
+#else
 string ReadLine()
 {
 	string str;
 	std::cin >> str;
 	return str;
 }
+#endif
 
 
 static int GetTokenDecimals(const String& tokenSymbol, const vector<rpc::Token>& tokens)

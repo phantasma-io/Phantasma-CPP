@@ -9,7 +9,7 @@
 namespace phantasma {
 namespace Base16 {
 
-constexpr Char Alphabet[] = "0123456789ABCDEF";
+constexpr Char Alphabet[] = PHANTASMA_LITERAL("0123456789ABCDEF");
 inline int AlphabetIndexOf( Char in )
 {
 	for( const Char* c = Alphabet; *c; ++c )
@@ -211,7 +211,7 @@ inline String Encode(const Byte* input, int length, bool lowercase=false)
 
 	if(lowercase)
 	{
-		for( char* i = &c.front(); *i != '\0'; ++i )
+		for( Char* i = &c.front(); *i != '\0'; ++i )
 			*i = tolower(*i);
 	}
 

@@ -104,7 +104,7 @@ public:
 #ifdef _MSC_VER
 		std::tm timeBuffer;
 		gmtime_s(&timeBuffer, &now);
-		const std::tm* dateTime = &timeBuffer;
+		std::tm* dateTime = &timeBuffer;
 		std::time_t value = _mkgmtime(dateTime);
 #else
 		std::tm* dateTime = std::gmtime(&now);
