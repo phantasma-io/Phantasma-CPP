@@ -100,11 +100,11 @@ class Program
 	vector<rpc::Token> _tokens;
 	String _nexus;
 public:
-	Program(const String& host)
+	Program(const String& nexus, const String& host)
 		: _host(host.c_str())
 		, _http(_host)
 		, _phantasmaApiService(_http)
-		, _nexus(U("simnet"))
+		, _nexus(nexus)
 	{
 		WriteLine(U("Welcome to Phantasma Wallet sample."));
 		WriteLine(U("Initializing..."));
@@ -400,8 +400,35 @@ int main()
 	{
 		try
 		{
-			String host = U("http://localhost:7077/");
-			Program program(host);
+			WriteLine("Please select your network");
+			WriteLine("1 - local simnet");
+			WriteLine("2 - testnet");
+			WriteLine("3 - mainnet");
+			String strOption = ReadLine();
+			int option = std::stoi(strOption);
+			WriteLine();
+
+			String nexus;
+			String host;
+			switch (option)
+			{
+			case 1:
+				nexus = U("simnet");
+				host = U("http://localhost:7077/");
+				break;
+			case 2:
+				nexus = U("testnet");
+				host = U("http://testnet.phantasma.io:5101");
+				break;
+			case 3:
+				nexus = U("mainnet");
+				host = U("http://pharpc1.phantasma.io:7078");
+				break;
+			}
+
+			WriteLine(U("Selected " + nexus + " nexus with " + host + " RPC"));
+
+			Program program(nexus, host);
 			program.RunConsole();
 			return 0;
 		}
