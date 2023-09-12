@@ -179,7 +179,7 @@ private:
 class SecureByteWriter
 {
 public:
-	SecureByteWriter( SecureByteWriter& other )
+	SecureByteWriter( SecureByteWriter&& other )
 		: data( other.data )
 		, owner( other.owner )
 		, size( other.size )
