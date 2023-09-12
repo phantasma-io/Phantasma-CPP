@@ -54,7 +54,7 @@ const Byte* GetUTF8Bytes( const String& string, ByteArray& temp, int& out_numByt
 	temp.resize(requiredSize+1);
 	Byte* result = &temp.front();
 	wcsrtombs_s( &requiredSize, (char*)result, requiredSize, &wide, requiredSize, &state);
-    out_numBytes = (int)requiredSize - 1;
+	out_numBytes = (int)requiredSize - 1;
 #else
 	std::mbstate_t state = {};
 	size_t requiredSize = 1 + std::wcsrtombs(0, &wide, 0, &state);
@@ -63,7 +63,7 @@ const Byte* GetUTF8Bytes( const String& string, ByteArray& temp, int& out_numByt
 	temp.resize(requiredSize);
 	Byte* result = &temp.front();
 	std::wcsrtombs((char*)result, &wide, requiredSize, &state);
-    out_numBytes = (int)requiredSize - 1;
+	out_numBytes = (int)requiredSize - 1;
 #endif
 	return result;
 }
