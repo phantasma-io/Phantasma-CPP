@@ -431,7 +431,7 @@ int main()
 				break;
 			}
 
-			WriteLine(U("Selected " + nexus + " nexus with " + host + " RPC"));
+			WriteLine(U("Selected ") + nexus + U(" nexus with ") + host + U(" RPC"));
 
 			Program program(nexus, host);
 			program.RunConsole();
