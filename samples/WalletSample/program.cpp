@@ -395,7 +395,12 @@ public:
 
 int main()
 {
-	sodium_init();
+	if (sodium_init() == -1)
+	{
+		WriteLine("Could not initialize sodium library");
+		return 1;
+	}
+
 	for(;;)
 	{
 		try
