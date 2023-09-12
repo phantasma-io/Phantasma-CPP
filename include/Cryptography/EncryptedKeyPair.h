@@ -99,7 +99,7 @@ public:
 			return false;
 
 		output = { decrypted.bytes, PrivateKey::Length };
-		if( output.Address() != m_address )
+		if( output.GetAddress() != m_address )
 		{
 			if( out_tamperWarning )
 				*out_tamperWarning = true;

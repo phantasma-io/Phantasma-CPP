@@ -91,7 +91,7 @@ public:
 		}
 		PinnedBytes<64> expandedPrivateKey;
 		{
-			SecureByteReader read = keypair.PrivateKey().Read();
+			SecureByteReader read = keypair.GetPrivateKey().Read();
 			Ed25519::ExpandedPrivateKeyFromSeed( expandedPrivateKey.bytes, 64, read.Bytes(), PrivateKey::Length );
 		}
 		ByteArray sign = Ed25519::Sign( message, messageLength, expandedPrivateKey.bytes, 64 );

@@ -152,7 +152,7 @@ public:
 			switch (option)
 			{
 			case 1:
-				WriteLine(_key.Address().ToString());
+				WriteLine(_key.GetAddress().ToString());
 				break;
 			case 2:
 				ShowBalance();
@@ -178,7 +178,7 @@ public:
 
 	void ListTransactions()
 	{
-		auto txs = _phantasmaApiService.GetAddressTransactions(_key.Address().ToString().c_str(), 1, 10);
+		auto txs = _phantasmaApiService.GetAddressTransactions(_key.GetAddress().ToString().c_str(), 1, 10);
 		for(const auto& tx : txs.txs)
 		{
 			WriteLine(GetTxDescription(tx, _chains, _tokens).c_str());
@@ -187,7 +187,7 @@ public:
 
 	void ShowBalance()
 	{
-		_account = _phantasmaApiService.GetAccount(_key.Address().ToString().c_str());
+		_account = _phantasmaApiService.GetAccount(_key.GetAddress().ToString().c_str());
 		const auto& name = _account.name;
 		WriteLine();
 		WriteLine("Address Name: ", name.c_str());
@@ -227,7 +227,7 @@ public:
 	void CrossChainTransfer()
 	{
 		if (_account.address.empty())
-			_account = _phantasmaApiService.GetAccount(_key.Address().ToString().c_str());
+			_account = _phantasmaApiService.GetAccount(_key.GetAddress().ToString().c_str());
 		if (!HaveTokenBalanceToTransfer())
 		{
 			WriteLine("No tokens to tranfer");
@@ -312,9 +312,9 @@ public:
 		auto bigIntAmount = DecimalConversion(amount, decimals);
 
 		const auto& script = ScriptBuilder::BeginScript()
-			.AllowGas(_key.Address(), Address(), 100000, 9999)
-			.TransferTokens(tokenSymbol, _key.Address(), destinationAddress, bigIntAmount)
-			.SpendGas(_key.Address())
+			.AllowGas(_key.GetAddress(), Address(), 100000, 9999)
+			.TransferTokens(tokenSymbol, _key.GetAddress(), destinationAddress, bigIntAmount)
+			.SpendGas(_key.GetAddress())
 			.EndScript();
 
 		SignAndSendTx(script, chain);
@@ -329,8 +329,8 @@ public:
 
 		auto settleTxScript = ScriptBuilder::BeginScript()
 			.CallContract(U("token"), U("SettleBlock"), sourceChain, block)
-			.AllowGas(_key.Address(), Address(), 1, 9999)
-			.SpendGas(_key.Address())
+			.AllowGas(_key.GetAddress(), Address(), 1, 9999)
+			.SpendGas(_key.GetAddress())
 			.EndScript();
 		return SignAndSendTx(settleTxScript, destinationChainName);
 	}
@@ -365,9 +365,9 @@ public:
 		WriteLine("Enter name for address: ");
 		String name = ReadLine();
 		auto script = ScriptBuilder::BeginScript()
-			.AllowGas(_key.Address(), Address(), 100000, 9999)
-			.CallContract(U("account"), U("RegisterName"), _key.Address(), name)
-			.SpendGas(_key.Address())
+			.AllowGas(_key.GetAddress(), Address(), 100000, 9999)
+			.CallContract(U("account"), U("RegisterName"), _key.GetAddress(), name)
+			.SpendGas(_key.GetAddress())
 			.EndScript();
 
 		SignAndSendTx(script, U("main"));
