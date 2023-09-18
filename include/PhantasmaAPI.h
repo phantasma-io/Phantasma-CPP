@@ -1533,7 +1533,7 @@ PHANTASMA_FUNCTION Account PhantasmaJsonAPI::DeserializeAccount(const JSONValue&
 		DeserializeStake(json::LookupValue(value, PHANTASMA_LITERAL("stakes"), jsonErr), jsonErr), 
 		json::LookupString(value, PHANTASMA_LITERAL("stake"), jsonErr), 
 		json::LookupString(value, PHANTASMA_LITERAL("unclaimed"), jsonErr), 
-		json::HasField(value, PHANTASMA_LITERAL("relay"), jsonErr) ? json::LookupString(value, PHANTASMA_LITERAL("relay"), jsonErr) : PHANTASMA_LITERAL(""),
+		json::HasField(value, PHANTASMA_LITERAL("relay"), jsonErr) ? json::LookupString(value, PHANTASMA_LITERAL("relay"), jsonErr) : json::String(PHANTASMA_LITERAL("")),
 		json::LookupString(value, PHANTASMA_LITERAL("validator"), jsonErr), 
 		DeserializeStorage(json::LookupValue(value, PHANTASMA_LITERAL("storage"), jsonErr), jsonErr), 
 		balancesVector, 
@@ -1604,7 +1604,7 @@ PHANTASMA_FUNCTION Chain PhantasmaJsonAPI::DeserializeChain(const JSONValue& val
 	return Chain { 
 		json::LookupString(value, PHANTASMA_LITERAL("name"), jsonErr), 
 		json::LookupString(value, PHANTASMA_LITERAL("address"), jsonErr), 
-		json::HasField(value, PHANTASMA_LITERAL("parent"), jsonErr) ? json::LookupString(value, PHANTASMA_LITERAL("parent"), jsonErr) : PHANTASMA_LITERAL(""),
+		json::HasField(value, PHANTASMA_LITERAL("parent"), jsonErr) ? json::LookupString(value, PHANTASMA_LITERAL("parent"), jsonErr) : json::String(PHANTASMA_LITERAL("")),
 		json::LookupUInt32(value, PHANTASMA_LITERAL("height"), jsonErr), 
 		json::LookupString(value, PHANTASMA_LITERAL("organization"), jsonErr), 
 		contractsVector, 

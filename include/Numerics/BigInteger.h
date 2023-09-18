@@ -166,7 +166,7 @@ public:
 		}
 	}
 	template<class Byte>
-	TBigInteger(const std::vector<Byte> &bytes)
+	TBigInteger(const PHANTASMA_VECTOR<Byte> &bytes)
 	{
 		using std::empty;
 		if (empty(bytes))
