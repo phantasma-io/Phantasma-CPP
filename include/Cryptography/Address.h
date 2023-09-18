@@ -1,7 +1,7 @@
 ﻿#pragma once
 
-#include "../utils/Serializable.h"
-#include "../utils/TextUtils.h"
+#include "../Utils/Serializable.h"
+#include "../Utils/TextUtils.h"
 #include "../Numerics/Base58.h"
 #include "../Security/SecureString.h"
 #include "EdDSA/Ed25519.h"

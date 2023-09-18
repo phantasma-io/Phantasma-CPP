@@ -2,14 +2,14 @@
 #define PHANTASMA_IMPLEMENTATION
 #define SODIUM_STATIC
 
-#include "../../Libs/Adapters/PhantasmaAPI_cpprest.h"
-#include "../../Libs/PhantasmaAPI.h"
-#include "../../Libs/Adapters/PhantasmaAPI_sodium.h"
-#include "../../Libs/Blockchain/Transaction.h"
-#include "../../Libs/Domain/Event.h"
-#include "../../Libs/Cryptography/KeyPair.h"
-#include "../../Libs/VM/ScriptBuilder.h"
-#include "../../Libs/Utils/RpcUtils.h"
+#include "../../include/Adapters/PhantasmaAPI_cpprest.h"
+#include "../../include/PhantasmaAPI.h"
+#include "../../include/Adapters/PhantasmaAPI_sodium.h"
+#include "../../include/Blockchain/Transaction.h"
+#include "../../include/Domain/Event.h"
+#include "../../include/Cryptography/KeyPair.h"
+#include "../../include/VM/ScriptBuilder.h"
+#include "../../include/Utils/RpcUtils.h"
 
 //Sorry, I haven't actually bundled a compiled version of libSodium with the project.
 //You have to download/build libSodium yourself!
@@ -55,10 +55,13 @@ void WriteLine(T a, Args... b)
 String ReadLine()
 {
 	String str;
+#ifdef _UNICODE
 	std::wcin >> str;
+#else
+	std::cin >> str;
+#endif
 	return str;
 }
-
 
 static int GetTokenDecimals(const String& tokenSymbol, const vector<rpc::Token>& tokens)
 {
@@ -97,18 +100,18 @@ class Program
 	vector<rpc::Token> _tokens;
 	String _nexus;
 public:
-	Program(const String& host)
+	Program(const String& nexus, const String& host)
 		: _host(host.c_str())
 		, _http(_host)
 		, _phantasmaApiService(_http)
-		, _nexus(U("simnet"))
+		, _nexus(nexus)
 	{
 		WriteLine(U("Welcome to Phantasma Wallet sample."));
 		WriteLine(U("Initializing..."));
 		WriteLine(U("Fetching data..."));
 
 		_chains = _phantasmaApiService.GetChains();
-		_tokens = _phantasmaApiService.GetTokens();
+		_tokens = _phantasmaApiService.GetTokens(false);
 
 		WriteLine(U("Enter your WIF:"));
 
@@ -149,7 +152,7 @@ public:
 			switch (option)
 			{
 			case 1:
-				WriteLine(_key.Address().ToString());
+				WriteLine(_key.GetAddress().ToString());
 				break;
 			case 2:
 				ShowBalance();
@@ -175,7 +178,7 @@ public:
 
 	void ListTransactions()
 	{
-		auto txs = _phantasmaApiService.GetAddressTransactions(_key.Address().ToString().c_str(), 1, 10);
+		auto txs = _phantasmaApiService.GetAddressTransactions(_key.GetAddress().ToString().c_str(), 1, 10);
 		for(const auto& tx : txs.txs)
 		{
 			WriteLine(GetTxDescription(tx, _chains, _tokens).c_str());
@@ -184,7 +187,7 @@ public:
 
 	void ShowBalance()
 	{
-		_account = _phantasmaApiService.GetAccount(_key.Address().ToString().c_str());
+		_account = _phantasmaApiService.GetAccount(_key.GetAddress().ToString().c_str());
 		const auto& name = _account.name;
 		WriteLine();
 		WriteLine("Address Name: ", name.c_str());
@@ -195,7 +198,7 @@ public:
 		}
 		else
 		{
-			if (_tokens.empty()) _tokens = _phantasmaApiService.GetTokens();
+			if (_tokens.empty()) _tokens = _phantasmaApiService.GetTokens(false);
 			for(const auto& balanceSheet : _account.balances)
 			{
 				WriteLine("********************");
@@ -224,7 +227,7 @@ public:
 	void CrossChainTransfer()
 	{
 		if (_account.address.empty())
-			_account = _phantasmaApiService.GetAccount(_key.Address().ToString().c_str());
+			_account = _phantasmaApiService.GetAccount(_key.GetAddress().ToString().c_str());
 		if (!HaveTokenBalanceToTransfer())
 		{
 			WriteLine("No tokens to tranfer");
@@ -309,9 +312,9 @@ public:
 		auto bigIntAmount = DecimalConversion(amount, decimals);
 
 		const auto& script = ScriptBuilder::BeginScript()
-			.AllowGas(_key.Address(), Address(), 1, 9999)
-			.TransferTokens(tokenSymbol, _key.Address(), destinationAddress, bigIntAmount)
-			.SpendGas(_key.Address())
+			.AllowGas(_key.GetAddress(), Address(), 100000, 9999)
+			.TransferTokens(tokenSymbol, _key.GetAddress(), destinationAddress, bigIntAmount)
+			.SpendGas(_key.GetAddress())
 			.EndScript();
 
 		SignAndSendTx(script, chain);
@@ -326,13 +329,13 @@ public:
 
 		auto settleTxScript = ScriptBuilder::BeginScript()
 			.CallContract(U("token"), U("SettleBlock"), sourceChain, block)
-			.AllowGas(_key.Address(), Address(), 1, 9999)
-			.SpendGas(_key.Address())
+			.AllowGas(_key.GetAddress(), Address(), 1, 9999)
+			.SpendGas(_key.GetAddress())
 			.EndScript();
 		return SignAndSendTx(settleTxScript, destinationChainName);
 	}
 
-	String CrossChainTransferToken(const String& addressTo, const String& chainName, const String& destinationChain, const String& symbol, const String& amount)
+/*	String CrossChainTransferToken(const String& addressTo, const String& chainName, const String& destinationChain, const String& symbol, const String& amount)
 	{
 		String toChain = GetChainAddress(destinationChain, _chains);
 		Address destinationAddress = Address::FromText(addressTo);
@@ -350,7 +353,7 @@ public:
 			.EndScript();
 
 		return SignAndSendTx(script, chainName);
-	}
+	}*/
 
 	void RegisterName()
 	{
@@ -362,9 +365,9 @@ public:
 		WriteLine("Enter name for address: ");
 		String name = ReadLine();
 		auto script = ScriptBuilder::BeginScript()
-			.AllowGas(_key.Address(), Address(), 1, 9999)
-			.CallContract(U("account"), U("Register"), _key.Address(), name)
-			.SpendGas(_key.Address())
+			.AllowGas(_key.GetAddress(), Address(), 100000, 9999)
+			.CallContract(U("account"), U("RegisterName"), _key.GetAddress(), name)
+			.SpendGas(_key.GetAddress())
 			.EndScript();
 
 		SignAndSendTx(script, U("main"));
@@ -392,13 +395,45 @@ public:
 
 int main()
 {
-	sodium_init();
+	if (sodium_init() == -1)
+	{
+		WriteLine("Could not initialize sodium library");
+		return 1;
+	}
+
 	for(;;)
 	{
 		try
 		{
-			String host = U("http://localhost:7077/");
-			Program program(host);
+			WriteLine("Please select your network");
+			WriteLine("1 - local simnet");
+			WriteLine("2 - testnet");
+			WriteLine("3 - mainnet");
+			String strOption = ReadLine();
+			int option = std::stoi(strOption);
+			WriteLine();
+
+			String nexus;
+			String host;
+			switch (option)
+			{
+			case 1:
+				nexus = U("simnet");
+				host = U("http://localhost:7077/");
+				break;
+			case 2:
+				nexus = U("testnet");
+				host = U("http://testnet.phantasma.io:5101");
+				break;
+			case 3:
+				nexus = U("mainnet");
+				host = U("http://pharpc1.phantasma.io:7078");
+				break;
+			}
+
+			WriteLine(U("Selected ") + nexus + U(" nexus with ") + host + U(" RPC"));
+
+			Program program(nexus, host);
 			program.RunConsole();
 			return 0;
 		}

@@ -1,7 +1,7 @@
 #pragma once
 
 #include "EdDSA/Ed25519Signature.h"
-#include "../utils/Serializable.h"
+#include "../Utils/Serializable.h"
 
 namespace phantasma {
 

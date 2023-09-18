@@ -443,7 +443,7 @@
 #endif
 
 #if !defined(PHANTASMA_TRY)
-# if !defined(PHANTASMA_EXCEPTION)
+# if !defined(PHANTASMA_EXCEPTION) && !defined(PHANTASMA_EXCEPTION_ENABLE)
 #  define PHANTASMA_TRY         if(true)
 #  define PHANTASMA_CATCH( x )  else
 #  define PHANTASMA_CATCH_ALL() else
@@ -1533,7 +1533,7 @@ PHANTASMA_FUNCTION Account PhantasmaJsonAPI::DeserializeAccount(const JSONValue&
 		DeserializeStake(json::LookupValue(value, PHANTASMA_LITERAL("stakes"), jsonErr), jsonErr), 
 		json::LookupString(value, PHANTASMA_LITERAL("stake"), jsonErr), 
 		json::LookupString(value, PHANTASMA_LITERAL("unclaimed"), jsonErr), 
-		json::LookupString(value, PHANTASMA_LITERAL("relay"), jsonErr), 
+		json::HasField(value, PHANTASMA_LITERAL("relay"), jsonErr) ? json::LookupString(value, PHANTASMA_LITERAL("relay"), jsonErr) : PHANTASMA_LITERAL(""),
 		json::LookupString(value, PHANTASMA_LITERAL("validator"), jsonErr), 
 		DeserializeStorage(json::LookupValue(value, PHANTASMA_LITERAL("storage"), jsonErr), jsonErr), 
 		balancesVector, 
@@ -1604,7 +1604,7 @@ PHANTASMA_FUNCTION Chain PhantasmaJsonAPI::DeserializeChain(const JSONValue& val
 	return Chain { 
 		json::LookupString(value, PHANTASMA_LITERAL("name"), jsonErr), 
 		json::LookupString(value, PHANTASMA_LITERAL("address"), jsonErr), 
-		json::LookupString(value, PHANTASMA_LITERAL("parent"), jsonErr), 
+		json::HasField(value, PHANTASMA_LITERAL("parent"), jsonErr) ? json::LookupString(value, PHANTASMA_LITERAL("parent"), jsonErr) : PHANTASMA_LITERAL(""),
 		json::LookupUInt32(value, PHANTASMA_LITERAL("height"), jsonErr), 
 		json::LookupString(value, PHANTASMA_LITERAL("organization"), jsonErr), 
 		contractsVector, 
@@ -1633,8 +1633,8 @@ PHANTASMA_FUNCTION Oracle PhantasmaJsonAPI::DeserializeOracle(const JSONValue& v
 PHANTASMA_FUNCTION Signature PhantasmaJsonAPI::DeserializeSignature(const JSONValue& value, bool& jsonErr)
 { 	
 	return Signature { 
-		json::LookupString(value, PHANTASMA_LITERAL("Kind"), jsonErr), 
-		json::LookupString(value, PHANTASMA_LITERAL("Data"), jsonErr)
+		json::LookupString(value, PHANTASMA_LITERAL("kind"), jsonErr), 
+		json::LookupString(value, PHANTASMA_LITERAL("data"), jsonErr)
 	};
 }
 
@@ -1818,8 +1818,8 @@ PHANTASMA_FUNCTION TokenSeries PhantasmaJsonAPI::DeserializeTokenSeries(const JS
 PHANTASMA_FUNCTION TokenProperty PhantasmaJsonAPI::DeserializeTokenProperty(const JSONValue& value, bool& jsonErr)
 { 	
 	return TokenProperty { 
-		json::LookupString(value, PHANTASMA_LITERAL("Key"), jsonErr), 
-		json::LookupString(value, PHANTASMA_LITERAL("Value"), jsonErr)
+		json::LookupString(value, PHANTASMA_LITERAL("key"), jsonErr), 
+		json::LookupString(value, PHANTASMA_LITERAL("value"), jsonErr)
 	};
 }
 
@@ -1848,7 +1848,7 @@ PHANTASMA_FUNCTION TokenData PhantasmaJsonAPI::DeserializeTokenData(const JSONVa
 		}
 	}	
 	return TokenData { 
-		json::LookupString(value, PHANTASMA_LITERAL("ID"), jsonErr), 
+		json::LookupString(value, PHANTASMA_LITERAL("id"), jsonErr), 
 		json::LookupString(value, PHANTASMA_LITERAL("series"), jsonErr), 
 		json::LookupString(value, PHANTASMA_LITERAL("mint"), jsonErr), 
 		json::LookupString(value, PHANTASMA_LITERAL("chainName"), jsonErr), 
@@ -3466,17 +3466,17 @@ PHANTASMA_FUNCTION Transaction PhantasmaAPI::GetTransaction(const Char* hashText
 		if( PhantasmaJsonAPI::ParseGetTransactionResponse(json::Parse(response), output, out_error) )
 		{
 			// Backwards compatability hack:
-			if(0!=output.state.compare("Halt"))
+			if(0!=output.state.compare(PHANTASMA_LITERAL("Halt")))
 			{
 				if(!out_error)
 					return {};
 				out_error->code = -1;
-				if(0==output.state.compare("Fault"))
-					out_error->message = "rejected: Fault";
-				else if(0==output.state.compare("Break"))
-					out_error->message = "rejected: Break";
+				if(0==output.state.compare(PHANTASMA_LITERAL("Fault")))
+					out_error->message = PHANTASMA_LITERAL("rejected: Fault");
+				else if(0==output.state.compare(PHANTASMA_LITERAL("Break")))
+					out_error->message = PHANTASMA_LITERAL("rejected: Break");
 				else
-					out_error->message = "pending";
+					out_error->message = PHANTASMA_LITERAL("pending");
 			}
 		}
 	}

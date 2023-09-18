@@ -47,8 +47,8 @@ private:
 			_sign = 0;
 	}
 public:
-	static const TBigInteger Zero() { return TBigInteger{0LL}; }
-	static const TBigInteger One()  { return TBigInteger{1LL}; }
+	static const TBigInteger Zero() { return TBigInteger{0L}; }
+	static const TBigInteger One()  { return TBigInteger{1L}; }
 
 	TBigInteger() : TBigInteger(0) {}
 
@@ -125,11 +125,12 @@ public:
 		return BigInteger(temp);
 	}
 
-    //this constructor assumes that the byte array is in Two's complement notation
-	template<class Bytes>
-	TBigInteger(const Bytes& bytes)
+    //following constructors assume that the byte array is in Two's complement notation
+	template<class Byte, size_t N>
+	TBigInteger(const Byte (&bytes)[N])
 	{
-		if( bytes.empty() )
+		using std::empty;
+		if( empty(bytes) )
 		{
 			_sign = 0;
 			_data.push_back(0);
@@ -155,6 +156,84 @@ public:
 				break;
         }
 		
+		if (sign == -1)
+		{
+			*this = TBigInteger(ApplyTwosComplement(bytes), sign);
+		}
+		else
+		{
+			*this = TBigInteger(bytes, sign);
+		}
+	}
+	template<class Byte>
+	TBigInteger(const std::vector<Byte> &bytes)
+	{
+		using std::empty;
+		if (empty(bytes))
+		{
+			_sign = 0;
+			_data.push_back(0);
+			return;
+		}
+
+		Byte msb = bytes[bytes.size() - 1];
+
+		int sign = 0;
+
+		switch (msb)
+		{
+		case 0xFF:
+			sign = -1;
+			break;
+
+		case 0x00:
+			sign = 1;
+			break;
+
+		default:
+			PHANTASMA_EXCEPTION("unexpected sign byte value");
+			break;
+		}
+
+		if (sign == -1)
+		{
+			*this = TBigInteger(ApplyTwosComplement(bytes), sign);
+		}
+		else
+		{
+			*this = TBigInteger(bytes, sign);
+		}
+	}
+	template<class Byte>
+	TBigInteger(const phantasma::SecureVector<Byte> &bytes)
+	{
+		using std::empty;
+		if (empty(bytes))
+		{
+			_sign = 0;
+			_data.push_back(0);
+			return;
+		}
+
+		Byte msb = bytes[bytes.size() - 1];
+
+		int sign = 0;
+
+		switch (msb)
+		{
+		case 0xFF:
+			sign = -1;
+			break;
+
+		case 0x00:
+			sign = 1;
+			break;
+
+		default:
+			PHANTASMA_EXCEPTION("unexpected sign byte value");
+			break;
+		}
+
 		if (sign == -1)
 		{
 			*this = TBigInteger(ApplyTwosComplement(bytes), sign);
@@ -440,7 +519,7 @@ public:
 		for (UInt32 i = (UInt32)_data.size(); i --> 0;)
 		{
 			Char buffer[10];
-			sprintf_s(buffer, "%08x", digit);
+			sprintf_s(buffer, "%08x", _data[i]);
 			builder << buffer;
 		}
 

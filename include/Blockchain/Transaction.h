@@ -5,8 +5,8 @@
 #include "../Cryptography/Signature.h"
 #include "../Cryptography/KeyPair.h"
 #include "../Utils/Timestamp.h"
-#include "../utils/Serializable.h"
-#include "../utils/BinaryWriter.h"
+#include "../Utils/Serializable.h"
+#include "../Utils/BinaryWriter.h"
 
 namespace phantasma
 {
@@ -103,7 +103,7 @@ public:
 		if(payload && payloadLength != 0)
 		{
 			if(payloadLength < 0)
-				payloadLength = (int)PHANTASMA_STRLEN((char*)payload);
+				payloadLength = (int)PHANTASMA_STRLEN((Char*)payload);
 			m_payload.resize(payloadLength);
 			PHANTASMA_COPY( payload, payload+payloadLength, m_payload.begin() );
 		}
@@ -202,7 +202,7 @@ public:
 				reader.ReadSignature(m_signatures[i]);
 			}
 		}
-		PHANTASMA_CATCH(...)
+		PHANTASMA_CATCH_ALL()
 		{
 			m_signatures.clear();
 		}

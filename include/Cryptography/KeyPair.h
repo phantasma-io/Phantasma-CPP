@@ -2,48 +2,11 @@
 
 #include "Address.h"
 #include "Entropy.h"
+#include "PrivateKey.h"
 #include "EdDSA/Ed25519Signature.h"
 #include "../Security/SecureMemory.h"
 
 namespace phantasma {
-
-class PrivateKey
-{
-public:
-	constexpr static int Length = 32;
-
-	PrivateKey()
-		: m_data(Length, 0)
-		, m_isNull(true)
-	{
-	}
-	PrivateKey( const Byte* privateKey, int privateKeyLength )
-		: m_data(Length, privateKeyLength == Length ? privateKey : 0)
-	{
-		m_isNull = true;
-		if(privateKeyLength != Length)
-		{
-			PHANTASMA_EXCEPTION("privateKey should have length 32");
-			return;
-		}
-
-		for(int i=0; i!= Length; ++i)
-		{
-			if(privateKey[i] != 0)
-			{
-				m_isNull = false;
-				break;
-			}
-		}
-	}
-
-	SecureByteReader Read() const { return m_data.Read(); }
-	SecureByteWriter Write()      { return m_data.Write(); }
-	bool IsNull() const { return m_isNull; }
-private:
-	SecureByteArray m_data;
-	bool m_isNull;
-};
 
 class PhantasmaKeys
 {
@@ -51,9 +14,16 @@ class PhantasmaKeys
 	ByteArray  publicKey;
 	Address    address;
 public:
+	[[deprecated]]
 	const PrivateKey& PrivateKey() const { return privateKey; }
+	[[deprecated]]
 	const ByteArray&  PublicKey()  const { return publicKey; }
+	[[deprecated]]
 	const Address&    Address()    const { return address; }
+
+	const class PrivateKey& GetPrivateKey() const { return privateKey; }
+	const ByteArray&        GetPublicKey()  const { return publicKey; }
+	const class Address&    GetAddress()    const { return address; }
 
 	const Byte*  PublicKeyBytes()  const { return publicKey.size() ? &publicKey.front() : 0; }
 	int          PublicKeyLength() const { return (int)publicKey.size(); }
@@ -147,7 +117,7 @@ public:
 
 inline Address Address::FromWIF(const Char* wif, int wifStringLength)
 {
-	return PhantasmaKeys::FromWIF(wif, wifStringLength).Address();
+	return PhantasmaKeys::FromWIF(wif, wifStringLength).GetAddress();
 }
 
 }

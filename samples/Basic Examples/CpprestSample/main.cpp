@@ -1,7 +1,7 @@
 
 #define PHANTASMA_IMPLEMENTATION
-#include "../../../Libs/Adapters/PhantasmaAPI_cpprest.h"
-#include "../../../Libs/PhantasmaAPI.h"
+#include "../../../include/Adapters/PhantasmaAPI_cpprest.h"
+#include "../../../include/PhantasmaAPI.h"
 
 using namespace phantasma::rpc;
 

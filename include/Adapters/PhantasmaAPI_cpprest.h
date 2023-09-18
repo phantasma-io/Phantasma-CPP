@@ -58,6 +58,7 @@ inline void AddString(web::json::value& root, const Char* key, const Char* value
 inline void AddValues(int idx, web::json::value& ar)                                    {}
 inline void AddValues(int idx, web::json::value& ar, const Char* arg)                   { ar[idx] = web::json::value::string(arg); }
 template<class T> void AddValues(int idx, web::json::value& ar, T arg)                  { ar[idx] = web::json::value::number(arg); }
+template<> void AddValues<bool>(int idx, web::json::value& ar, bool arg)                { ar[idx] = web::json::value::boolean(arg); }
 template<class T, class... Args> void AddValues(int idx, web::json::value& ar, T arg0, Args... args) 
 {
 	AddValues(idx, ar, arg0);

@@ -7,7 +7,7 @@ namespace phantasma {
 
 const static BigInteger MinimumGasFee = 100000;
 constexpr static int PaginationMaxResults = 50;
-static const Char* PlatformName = "phantasma";
+static const Char* PlatformName = PHANTASMA_LITERAL("phantasma");
 typedef void(FnCallback)(void);
 
 enum class TransactionState

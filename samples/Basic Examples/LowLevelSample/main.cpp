@@ -5,7 +5,7 @@
 //------------------------------------------------------------------------------
 
 #define PHANTASMA_IMPLEMENTATION
-#include "../../../Libs/PhantasmaAPI.h"
+#include "../../../include/PhantasmaAPI.h"
 #include <iostream>
 
 using namespace phantasma;
