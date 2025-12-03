@@ -14,12 +14,19 @@ class PhantasmaKeys
 	ByteArray  publicKey;
 	Address    address;
 public:
+#if defined(__GNUG__)
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wchanges-meaning"
+#endif
 	[[deprecated]]
 	const PrivateKey& PrivateKey() const { return privateKey; }
 	[[deprecated]]
 	const ByteArray&  PublicKey()  const { return publicKey; }
 	[[deprecated]]
 	const Address&    Address()    const { return address; }
+#if defined(__GNUG__)
+#pragma GCC diagnostic pop
+#endif
 
 	const class PrivateKey& GetPrivateKey() const { return privateKey; }
 	const ByteArray&        GetPublicKey()  const { return publicKey; }
