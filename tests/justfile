@@ -1,0 +1,10 @@
+b:
+    g++ -std=c++17 -I../include carbon_tests.cpp -lcrypto -o carbon_tests
+
+c:
+    rm --force carbon_tests
+
+r:
+    just c
+    just b
+    ./carbon_tests

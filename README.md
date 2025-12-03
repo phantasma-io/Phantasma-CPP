@@ -29,6 +29,8 @@
      bool PhantasmaJsonAPI::ParseGetAddressTransactionCountResponse(JSONValue, Int32);
      void PhantasmaJsonAPI::MakeSendRawTransactionRequest(JSONBuilder, txData);
      bool PhantasmaJsonAPI::ParseSendRawTransactionResponse(JSONValue, String);
+     void PhantasmaJsonAPI::MakeSendCarbonTransactionRequest(JSONBuilder, txData);
+     bool PhantasmaJsonAPI::ParseSendCarbonTransactionResponse(JSONValue, String);
      void PhantasmaJsonAPI::MakeInvokeRawScriptRequest(JSONBuilder, chainInput, scriptData);
      bool PhantasmaJsonAPI::ParseInvokeRawScriptResponse(JSONValue, Script);
      void PhantasmaJsonAPI::MakeGetTransactionRequest(JSONBuilder, hashText);
@@ -90,6 +92,7 @@
      AccountTransactions = phantasmaAPI.GetAddressTransactions(addressText, page, pageSize, error);
      Int32 = phantasmaAPI.GetAddressTransactionCount(addressText, chainInput, error);
      String = phantasmaAPI.SendRawTransaction(txData, error);
+     String = phantasmaAPI.SendCarbonTransaction(txData, error);
      Script = phantasmaAPI.InvokeRawScript(chainInput, scriptData, error);
      Transaction = phantasmaAPI.GetTransaction(hashText, error);
      String = phantasmaAPI.CancelTransaction(hashText, error);
@@ -351,5 +354,4 @@
   |`PHANTASMA_Ed25519_PrivateKeyFromSeed` | Generate a 64 byte public key from a 32 byte seed.            |
   |`PHANTASMA_Ed25519_SignDetached`       | Generate a 64 byte signature from a message and a private key.|
   |`PHANTASMA_Ed25519_ValidateDetached`   | Validate a 64 byte signature using a public key.              |
-
 

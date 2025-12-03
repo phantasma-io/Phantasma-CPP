@@ -1,0 +1,15 @@
+set shell := ["bash", "-c"]
+
+# Build WalletSample (Linux)
+b:
+	just c
+	make
+
+# Build WalletSample (Linux)
+c:
+	make clean
+
+# Run built wallet sample
+r:
+	just b
+	./wallet

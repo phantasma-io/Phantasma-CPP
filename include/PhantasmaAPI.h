@@ -2,6 +2,7 @@
 #pragma once
 #ifndef PHANTASMA_API_INCLUDED
 #define PHANTASMA_API_INCLUDED
+#include <memory>
 //------------------------------------------------------------------------------
 // Low-level API
 //------------------------------------------------------------------------------
@@ -33,6 +34,8 @@
 //     bool PhantasmaJsonAPI::ParseGetAddressTransactionCountResponse(JSONValue, Int32);
 //     void PhantasmaJsonAPI::MakeSendRawTransactionRequest(JSONBuilder, txData);
 //     bool PhantasmaJsonAPI::ParseSendRawTransactionResponse(JSONValue, String);
+//     void PhantasmaJsonAPI::MakeSendCarbonTransactionRequest(JSONBuilder, txData);
+//     bool PhantasmaJsonAPI::ParseSendCarbonTransactionResponse(JSONValue, String);
 //     void PhantasmaJsonAPI::MakeInvokeRawScriptRequest(JSONBuilder, chainInput, scriptData);
 //     bool PhantasmaJsonAPI::ParseInvokeRawScriptResponse(JSONValue, Script);
 //     void PhantasmaJsonAPI::MakeGetTransactionRequest(JSONBuilder, hashText);
@@ -108,6 +111,7 @@
 //     AccountTransactions = phantasmaAPI.GetAddressTransactions(account, page, pageSize, error);
 //     Int32 = phantasmaAPI.GetAddressTransactionCount(account, chainInput, error);
 //     String = phantasmaAPI.SendRawTransaction(txData, error);
+//     String = phantasmaAPI.SendCarbonTransaction(txData, error);
 //     Script = phantasmaAPI.InvokeRawScript(chainInput, scriptData, error);
 //     Transaction = phantasmaAPI.GetTransaction(hashText, error);
 //     String = phantasmaAPI.CancelTransaction(hashText, error);
@@ -676,6 +680,32 @@ struct Interop
 	String external;//
 };
 
+struct VmStructSchemaResult;
+struct VmVariableSchemaResult
+{
+	String type;//
+	std::shared_ptr<VmStructSchemaResult> schema;//
+};
+
+struct VmNamedVariableSchemaResult
+{
+	String name;//
+	VmVariableSchemaResult schema;//
+};
+
+struct VmStructSchemaResult
+{
+	PHANTASMA_VECTOR<VmNamedVariableSchemaResult> fields;//
+	Int32 flags;//
+};
+
+struct TokenSchemas
+{
+	VmStructSchemaResult seriesMetadata;//
+	VmStructSchemaResult rom;//
+	VmStructSchemaResult ram;//
+};
+
 struct Platform
 {
 	String platform;//
@@ -865,14 +895,24 @@ struct ABIMethod
 	PHANTASMA_VECTOR<ABIParameter> parameters;//
 };
 
+struct TokenProperty
+{
+	String Key;//
+	String Value;//
+};
+
 struct TokenSeries
 {
 	UInt32 seriesID;//
 	String currentSupply;//
 	String maxSupply;//
+	String burnedSupply;//
 	TokenSeriesMode mode;//
+	String carbonTokenId;//
+	String carbonSeriesId;//
 	String script;//
 	PHANTASMA_VECTOR<ABIMethod> methods;//
+	PHANTASMA_VECTOR<TokenProperty> metadata;//
 };
 
 struct Token
@@ -882,17 +922,15 @@ struct Token
 	Int32 decimals;//
 	String currentSupply;//
 	String maxSupply;//
+	String carbonId;//
+	String burnedSupply;//
 	String address;//
 	String owner;//
 	String flags;//
 	String script;//
 	PHANTASMA_VECTOR<TokenSeries> series;//
-};
-
-struct TokenProperty
-{
-	String Key;//
-	String Value;//
+	PHANTASMA_VECTOR<TokenProperty> metadata;//
+	TokenSchemas tokenSchemas;//
 };
 
 struct TokenData
@@ -911,6 +949,12 @@ struct TokenData
 };
 
 struct SendRawTx
+{
+	String hash;//
+	String error;//
+};
+
+struct SendCarbonTx
 {
 	String hash;//
 	String error;//
@@ -1071,6 +1115,9 @@ public:
 	// Allows to broadcast a signed operation on the network, but it&apos;s required to build it manually. 
 	static void MakeSendRawTransactionRequest(JSONBuilder&, const Char* txData);
 	static bool ParseSendRawTransactionResponse(const JSONValue&, String& out, PhantasmaError* err=0);
+	// Allows to broadcast a signed Carbon transaction on the network. 
+	static void MakeSendCarbonTransactionRequest(JSONBuilder&, const Char* txData);
+	static bool ParseSendCarbonTransactionResponse(const JSONValue&, String& out, PhantasmaError* err=0);
 	// Allows to invoke script based on network state, without state changes. 
 	static void MakeInvokeRawScriptRequest(JSONBuilder&, const Char* chainInput, const Char* scriptData);
 	static bool ParseInvokeRawScriptResponse(const JSONValue&, Script& out, PhantasmaError* err=0);
@@ -1177,12 +1224,17 @@ public:
 	static Transaction DeserializeTransaction(const JSONValue& json, bool& jsonError);
 	static AccountTransactions DeserializeAccountTransactions(const JSONValue& json, bool& jsonError);
 	static Paginated DeserializePaginated(const JSONValue& json, bool& jsonError);
+	static VmVariableSchemaResult DeserializeVmVariableSchemaResult(const JSONValue& json, bool& jsonError);
+	static VmNamedVariableSchemaResult DeserializeVmNamedVariableSchemaResult(const JSONValue& json, bool& jsonError);
+	static VmStructSchemaResult DeserializeVmStructSchemaResult(const JSONValue& json, bool& jsonError);
 	static Block DeserializeBlock(const JSONValue& json, bool& jsonError);
 	static Token DeserializeToken(const JSONValue& json, bool& jsonError);
 	static TokenSeries DeserializeTokenSeries(const JSONValue& json, bool& jsonError);
 	static TokenProperty DeserializeTokenProperty(const JSONValue& json, bool& jsonError);
 	static TokenData DeserializeTokenData(const JSONValue& json, bool& jsonError);
+	static TokenSchemas DeserializeTokenSchemas(const JSONValue& json, bool& jsonError);
 	static SendRawTx DeserializeSendRawTx(const JSONValue& json, bool& jsonError);
+	static SendCarbonTx DeserializeSendCarbonTx(const JSONValue& json, bool& jsonError);
 	static Auction DeserializeAuction(const JSONValue& json, bool& jsonError);
 	static Script DeserializeScript(const JSONValue& json, bool& jsonError);
 	static Archive DeserializeArchive(const JSONValue& json, bool& jsonError);
@@ -1235,6 +1287,8 @@ public:
 	Int32 GetAddressTransactionCount(const Char* account, const Char* chainInput, PhantasmaError* out_error = nullptr);
 	// Allows to broadcast a signed operation on the network, but it&apos;s required to build it manually. 
 	String SendRawTransaction(const Char* txData, PhantasmaError* out_error = nullptr);
+	// Allows to broadcast a signed Carbon transaction. 
+	String SendCarbonTransaction(const Char* txData, PhantasmaError* out_error = nullptr);
 	// Allows to invoke script based on network state, without state changes. 
 	Script InvokeRawScript(const Char* chainInput, const Char* scriptData, PhantasmaError* out_error = nullptr);
 	// Returns information about a transaction by hash. 
@@ -1715,6 +1769,45 @@ PHANTASMA_FUNCTION Paginated PhantasmaJsonAPI::DeserializePaginated(const JSONVa
 	};
 }
 
+PHANTASMA_FUNCTION VmVariableSchemaResult PhantasmaJsonAPI::DeserializeVmVariableSchemaResult(const JSONValue& value, bool& jsonErr)
+{ 	
+	VmVariableSchemaResult variableSchema;
+	variableSchema.type = json::LookupString(value, PHANTASMA_LITERAL("type"), jsonErr);
+	if(json::HasField(value, PHANTASMA_LITERAL("schema"), jsonErr))
+	{
+		variableSchema.schema = std::make_shared<VmStructSchemaResult>(
+			DeserializeVmStructSchemaResult(json::LookupValue(value, PHANTASMA_LITERAL("schema"), jsonErr), jsonErr));
+	}
+	return variableSchema;
+}
+
+PHANTASMA_FUNCTION VmNamedVariableSchemaResult PhantasmaJsonAPI::DeserializeVmNamedVariableSchemaResult(const JSONValue& value, bool& jsonErr)
+{ 	
+	return VmNamedVariableSchemaResult { 
+		json::LookupString(value, PHANTASMA_LITERAL("name"), jsonErr), 
+		DeserializeVmVariableSchemaResult(json::LookupValue(value, PHANTASMA_LITERAL("schema"), jsonErr), jsonErr)
+	};
+}
+
+PHANTASMA_FUNCTION VmStructSchemaResult PhantasmaJsonAPI::DeserializeVmStructSchemaResult(const JSONValue& value, bool& jsonErr)
+{ 
+	PHANTASMA_VECTOR<VmNamedVariableSchemaResult> fieldsVector;
+	if(json::HasArrayField(value, PHANTASMA_LITERAL("fields"), jsonErr))
+	{
+		const JSONArray& fieldsJsonArray = json::LookupArray(value, PHANTASMA_LITERAL("fields"), jsonErr);
+		int size = json::ArraySize(fieldsJsonArray, jsonErr);
+		fieldsVector.reserve(size);
+		for(int i = 0; i < size; ++i)
+		{
+			fieldsVector.push_back(DeserializeVmNamedVariableSchemaResult(json::IndexArray(fieldsJsonArray, i, jsonErr), jsonErr));
+		}
+	}
+	return VmStructSchemaResult { 
+		fieldsVector, 
+		json::LookupInt32(value, PHANTASMA_LITERAL("flags"), jsonErr)
+	};
+}
+
 PHANTASMA_FUNCTION Block PhantasmaJsonAPI::DeserializeBlock(const JSONValue& value, bool& jsonErr)
 { 
 	PHANTASMA_VECTOR<Transaction> txsVector;
@@ -1778,17 +1871,37 @@ PHANTASMA_FUNCTION Token PhantasmaJsonAPI::DeserializeToken(const JSONValue& val
 			seriesVector.push_back(DeserializeTokenSeries(json::IndexArray(seriesJsonArray, i, jsonErr), jsonErr));
 		}
 	}	
+	PHANTASMA_VECTOR<TokenProperty> metadataVector;
+	if(json::HasArrayField(value, PHANTASMA_LITERAL("metadata"), jsonErr))
+	{
+		const JSONArray& metadataJsonArray = json::LookupArray(value, PHANTASMA_LITERAL("metadata"), jsonErr);
+		int size = json::ArraySize(metadataJsonArray, jsonErr);
+		metadataVector.reserve(size);
+		for(int i = 0; i < size; ++i)
+		{
+			metadataVector.push_back(DeserializeTokenProperty(json::IndexArray(metadataJsonArray, i, jsonErr), jsonErr));
+		}
+	}
+	TokenSchemas tokenSchemas;
+	if(json::HasField(value, PHANTASMA_LITERAL("tokenSchemas"), jsonErr))
+	{
+		tokenSchemas = DeserializeTokenSchemas(json::LookupValue(value, PHANTASMA_LITERAL("tokenSchemas"), jsonErr), jsonErr);
+	}
 	return Token { 
 		json::LookupString(value, PHANTASMA_LITERAL("symbol"), jsonErr), 
 		json::LookupString(value, PHANTASMA_LITERAL("name"), jsonErr), 
 		json::LookupInt32(value, PHANTASMA_LITERAL("decimals"), jsonErr), 
 		json::LookupString(value, PHANTASMA_LITERAL("currentSupply"), jsonErr), 
 		json::LookupString(value, PHANTASMA_LITERAL("maxSupply"), jsonErr), 
+		json::LookupString(value, PHANTASMA_LITERAL("carbonId"), jsonErr), 
+		json::LookupString(value, PHANTASMA_LITERAL("burnedSupply"), jsonErr), 
 		json::LookupString(value, PHANTASMA_LITERAL("address"), jsonErr), 
 		json::LookupString(value, PHANTASMA_LITERAL("owner"), jsonErr), 
 		json::LookupString(value, PHANTASMA_LITERAL("flags"), jsonErr), 
 		json::LookupString(value, PHANTASMA_LITERAL("script"), jsonErr), 
-		seriesVector
+		seriesVector,
+		metadataVector,
+		tokenSchemas
 	};
 }
 
@@ -1805,13 +1918,37 @@ PHANTASMA_FUNCTION TokenSeries PhantasmaJsonAPI::DeserializeTokenSeries(const JS
 			methodsVector.push_back(DeserializeABIMethod(json::IndexArray(methodsJsonArray, i, jsonErr), jsonErr));
 		}
 	}	
+	PHANTASMA_VECTOR<TokenProperty> metadataVector;
+	if(json::HasArrayField(value, PHANTASMA_LITERAL("metadata"), jsonErr))
+	{
+		const JSONArray& metadataJsonArray = json::LookupArray(value, PHANTASMA_LITERAL("metadata"), jsonErr);
+		int size = json::ArraySize(metadataJsonArray, jsonErr);
+		metadataVector.reserve(size);
+		for(int i = 0; i < size; ++i)
+		{
+			metadataVector.push_back(DeserializeTokenProperty(json::IndexArray(metadataJsonArray, i, jsonErr), jsonErr));
+		}
+	}	
 	return TokenSeries { 
 		json::LookupUInt32(value, PHANTASMA_LITERAL("seriesID"), jsonErr), 
 		json::LookupString(value, PHANTASMA_LITERAL("currentSupply"), jsonErr), 
 		json::LookupString(value, PHANTASMA_LITERAL("maxSupply"), jsonErr), 
+		json::LookupString(value, PHANTASMA_LITERAL("burnedSupply"), jsonErr), 
 		DeserializeTokenSeriesMode(json::LookupValue(value, PHANTASMA_LITERAL("mode"), jsonErr), jsonErr), 
+		json::LookupString(value, PHANTASMA_LITERAL("carbonTokenId"), jsonErr), 
+		json::LookupString(value, PHANTASMA_LITERAL("carbonSeriesId"), jsonErr), 
 		json::LookupString(value, PHANTASMA_LITERAL("script"), jsonErr), 
-		methodsVector
+		methodsVector,
+		metadataVector
+	};
+}
+
+PHANTASMA_FUNCTION TokenSchemas PhantasmaJsonAPI::DeserializeTokenSchemas(const JSONValue& value, bool& jsonErr)
+{ 	
+	return TokenSchemas { 
+		DeserializeVmStructSchemaResult(json::LookupValue(value, PHANTASMA_LITERAL("seriesMetadata"), jsonErr), jsonErr), 
+		DeserializeVmStructSchemaResult(json::LookupValue(value, PHANTASMA_LITERAL("rom"), jsonErr), jsonErr), 
+		DeserializeVmStructSchemaResult(json::LookupValue(value, PHANTASMA_LITERAL("ram"), jsonErr), jsonErr)
 	};
 }
 
@@ -1865,6 +2002,14 @@ PHANTASMA_FUNCTION TokenData PhantasmaJsonAPI::DeserializeTokenData(const JSONVa
 PHANTASMA_FUNCTION SendRawTx PhantasmaJsonAPI::DeserializeSendRawTx(const JSONValue& value, bool& jsonErr)
 { 	
 	return SendRawTx { 
+		json::LookupString(value, PHANTASMA_LITERAL("hash"), jsonErr), 
+		json::LookupString(value, PHANTASMA_LITERAL("error"), jsonErr)
+	};
+}
+
+PHANTASMA_FUNCTION SendCarbonTx PhantasmaJsonAPI::DeserializeSendCarbonTx(const JSONValue& value, bool& jsonErr)
+{ 	
+	return SendCarbonTx { 
 		json::LookupString(value, PHANTASMA_LITERAL("hash"), jsonErr), 
 		json::LookupString(value, PHANTASMA_LITERAL("error"), jsonErr)
 	};
@@ -2461,6 +2606,31 @@ PHANTASMA_FUNCTION void PhantasmaJsonAPI::MakeSendRawTransactionRequest(JSONBuil
 }
 
 PHANTASMA_FUNCTION bool PhantasmaJsonAPI::ParseSendRawTransactionResponse(const JSONValue& _jsonResponse, String& output, PhantasmaError* pout_err)
+{
+	PhantasmaError err_dummy;
+	PhantasmaError& out_error = pout_err ? *pout_err : err_dummy;
+	JSONValue jsonResponse = PhantasmaJsonAPI::CheckResponse(_jsonResponse, out_error);
+	if( out_error.code )
+		return false;
+	bool jsonErr = false;
+	output = json::AsString(jsonResponse, jsonErr);
+	if( !out_error.code && jsonErr )
+		out_error.code = PhantasmaError::InvalidJSON;
+	return out_error.code == 0;
+}
+
+// Allows to broadcast a signed Carbon transaction on the network. 
+PHANTASMA_FUNCTION void PhantasmaJsonAPI::MakeSendCarbonTransactionRequest(JSONBuilder& request, const Char* txData)
+{
+	json::BeginObject(request);
+	json::AddString(request, PHANTASMA_LITERAL("jsonrpc"), PHANTASMA_LITERAL("2.0"));
+	json::AddString(request, PHANTASMA_LITERAL("method"), PHANTASMA_LITERAL("sendCarbonTransaction"));
+	json::AddString(request, PHANTASMA_LITERAL("id"), PHANTASMA_LITERAL("1"));
+	json::AddArray(request, PHANTASMA_LITERAL("params"), txData);
+	json::EndObject(request);
+}
+
+PHANTASMA_FUNCTION bool PhantasmaJsonAPI::ParseSendCarbonTransactionResponse(const JSONValue& _jsonResponse, String& output, PhantasmaError* pout_err)
 {
 	PhantasmaError err_dummy;
 	PhantasmaError& out_error = pout_err ? *pout_err : err_dummy;
@@ -3441,6 +3611,17 @@ PHANTASMA_FUNCTION String PhantasmaAPI::SendRawTransaction(const Char* txData, P
 	String output;
 	if( !out_error || out_error->code == 0 )
 		PhantasmaJsonAPI::ParseSendRawTransactionResponse(json::Parse(response), output, out_error);
+	return output;
+}
+
+PHANTASMA_FUNCTION String PhantasmaAPI::SendCarbonTransaction(const Char* txData, PhantasmaError* out_error)
+{
+	JSONBuilder request;
+	PhantasmaJsonAPI::MakeSendCarbonTransactionRequest(request, txData);
+	const JSONDocument& response = HttpPost(m_httpClient, PhantasmaJsonAPI::Uri(), request, out_error);
+	String output;
+	if( !out_error || out_error->code == 0 )
+		PhantasmaJsonAPI::ParseSendCarbonTransactionResponse(json::Parse(response), output, out_error);
 	return output;
 }
 
