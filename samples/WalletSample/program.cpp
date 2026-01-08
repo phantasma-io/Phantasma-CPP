@@ -24,6 +24,8 @@
 #endif
 
 #include "../../include/Carbon/Carbon.h"
+#include "../../include/Carbon/DataBlockchain.h"
+#include "../../include/Carbon/Tx.h"
 #include "../../include/Blockchain/Transaction.h"
 #include "../../include/Domain/Event.h"
 #include "../../include/Cryptography/KeyPair.h"

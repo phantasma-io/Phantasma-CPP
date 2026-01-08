@@ -85,6 +85,12 @@ struct TxMsgCall_Multi
 	TxMsgCall* calls = nullptr;
 };
 
+struct TxMsgSpecialResolution
+{
+	uint64_t resolutionId = 0;
+	TxMsgCall_Multi calls{};
+};
+
 struct TxMsgTransferFungible
 {
 	Bytes32 to;
@@ -381,6 +387,11 @@ inline bool Read(TxMsgCall_Multi& out, ReadView& reader, Allocator& alloc)
 	return ReadArray(out.numCalls, out.calls, reader, alloc, [&](TxMsgCall& call, ReadView& r) { return Read(call, r, alloc); });
 }
 
+inline bool Read(TxMsgSpecialResolution& out, ReadView& reader, Allocator& alloc)
+{
+	return Read(out.resolutionId, reader) && Read(out.calls, reader, alloc);
+}
+
 inline void Write(const TxMsgCall& in, WriteView& w)
 {
 	Write4((int32_t)in.moduleId, w);
@@ -421,6 +432,12 @@ inline void Write(const TxMsgCall_Multi& in, WriteView& w)
 	{
 		Write(in.calls[i], w);
 	}
+}
+
+inline void Write(const TxMsgSpecialResolution& in, WriteView& w)
+{
+	Write(in.resolutionId, w);
+	Write(in.calls, w);
 }
 
 inline void Write(const TxMsgTransferFungible& in, WriteView& w)
