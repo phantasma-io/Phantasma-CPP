@@ -204,7 +204,7 @@ class Allocator
 public:
 	explicit Allocator(const char* tag = "?") CARBON_MEMORY_DBG(:tag(tag)) { Clear(); }
 	~Allocator() { Clear(); }
-	Allocator(Allocator&& o) : m_head(std::move(o.m_head)) CARBON_MEMORY_DBGC(tag(o.tag)) {}
+	Allocator(Allocator&& o) CARBON_MEMORY_DBG(:tag(o.tag)), m_head(std::move(o.m_head)) {}
 	void Swap(Allocator& o) { m_head.swap(o.m_head); CARBON_MEMORY_DBG(std::swap(tag, o.tag)); }
 	void Clear();
 
@@ -732,6 +732,9 @@ inline void LogAlloc(size_t size, const char* tag, const void* owner)
 	pair.peak = Max(pair.peak, pair.usage);
 #ifdef DEV
 	CarbonAssert(s.owners.insert({owner, {size, str}}).second);
+#else
+	// no-op: silence unused parameter warnings when DEV tracking is off
+	(void)owner;
 #endif
 }
 inline void LogMove(size_t size, const char* tag, const void* ownerOld, const void* ownerNew)
@@ -747,6 +750,7 @@ inline void LogMove(size_t size, const char* tag, const void* ownerOld, const vo
 	s.owners.erase(f);
 	CarbonAssert(s.owners.insert({ownerNew, {size, str}}).second);
 #else
+	// no-op: silence unused parameter warnings when DEV tracking is off
 	(void)size; (void)tag; (void)ownerOld; (void)ownerNew;
 #endif
 }
@@ -766,6 +770,9 @@ inline void LogFree(size_t size, const char* tag, const void* owner)
 	CarbonAssert(f->second.size == size);
 	CarbonAssert(f->second.tag == str);
 	s.owners.erase(f);
+#else
+	// no-op: silence unused parameter warnings when DEV tracking is off
+	(void)owner;
 #endif
 }
 inline bool LogLeaks()

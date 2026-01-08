@@ -360,7 +360,6 @@ inline void Write(const SmallString& s, WriteView& w)
 inline bool Read(SmallString& s, ReadView& r)
 {
 	const uint8_t len = Read1(r);
-	Throw::If(len > 255, "SmallString was too long");
 	s.length = len;
 	if (len)
 	{

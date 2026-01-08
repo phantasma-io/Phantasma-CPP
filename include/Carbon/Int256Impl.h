@@ -282,9 +282,25 @@ inline uint256::uint256(const uint256& o)
 {
 	bignum_assign(THIS, B(o));
 }
+inline uint256& uint256::operator=(const uint256& o)
+{
+	if (this != &o)
+	{
+		bignum_assign(THIS, B(o));
+	}
+	return *this;
+}
 inline int256::int256(const uint256& o)
 {
 	bignum_assign(THIS, B(o));
+}
+inline int256& int256::operator=(const int256& o)
+{
+	if (this != &o)
+	{
+		bignum_assign(THIS, B(o));
+	}
+	return *this;
 }
 inline uint256::uint256(uint64_t i)
 {
@@ -749,9 +765,10 @@ inline uint256 uint256::FromBytes(const ByteView& data)
 		return uint256(0);
 	CarbonAssert(data.length <= 32 || (data.length == 33 && data.bytes[32] == 0x00));
 	uint256 i;
+	uint8_t* dst = (uint8_t*)&i;
 	if (data.length < 32)
-		memset(&i, 0, 32);
-	memcpy(&i, data.bytes, data.length);
+		memset(dst, 0, 32);
+	memcpy(dst, data.bytes, data.length);
 	return i;
 }
 inline int256 int256::FromBytes(const ByteView& data)
@@ -761,9 +778,10 @@ inline int256 int256::FromBytes(const ByteView& data)
 	CarbonAssert(data.length <= 32 || (data.length == 33 && ((data.bytes[32] == 0x00 && !(data.bytes[31] & 0x80)) || (data.bytes[32] == 0xFF && (data.bytes[31] & 0x80)))));
 	uint8_t fill = (data.bytes[data.length - 1] & 0x80) ? 0xFF : 0;
 	int256 i;
+	uint8_t* dst = (uint8_t*)&i;
 	if (data.length < 32)
-		memset(&i, fill, 32);
-	memcpy(&i, data.bytes, data.length);
+		memset(dst, fill, 32);
+	memcpy(dst, data.bytes, data.length);
 	return i;
 }
 inline intx intx::FromBytes(const ByteView& data, bool isSigned)
@@ -787,7 +805,8 @@ inline intx intx::FromBytes(const ByteView& data, bool isSigned)
 	{
 		CarbonAssert(false);
 		int256 i;
-		memset(&i, 0xFF, 32);
+		uint8_t* dst = (uint8_t*)&i;
+		memset(dst, 0xFF, 32);
 		return i;
 	}
 }

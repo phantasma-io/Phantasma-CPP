@@ -30,6 +30,7 @@ struct uint256
 {
 	uint256() = default;
 	uint256(const uint256&);
+	uint256& operator=(const uint256&);
 	explicit uint256(const int256&);
 	explicit uint256(uint64_t);
 
@@ -92,6 +93,7 @@ struct int256
 {
 	int256() = default;
 	int256(const int256&);
+	int256& operator=(const int256&);
 	explicit int256(const uint256&);
 	explicit int256(int64_t);
 
@@ -157,7 +159,33 @@ struct intx_pod;
 struct intx
 {
 	intx() = default;
-	intx(const intx& o) { memcpy(this, &o, sizeof(intx)); }
+	intx(const intx& o) : isBig(o.isBig)
+	{
+		if (isBig)
+		{
+			big = o.big;
+		}
+		else
+		{
+			normal = o.normal;
+		}
+	}
+	intx& operator=(const intx& o)
+	{
+		if (this != &o)
+		{
+			isBig = o.isBig;
+			if (isBig)
+			{
+				big = o.big;
+			}
+			else
+			{
+				normal = o.normal;
+			}
+		}
+		return *this;
+	}
 	intx(const int256& o) : isBig(true) { big = o.Unsigned(); }
 	intx(const uint256& o) : isBig(true) { big = o; }
 	intx(     int o) : isBig(false) { normal = (uint64_t)(int64_t)o; }

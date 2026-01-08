@@ -107,6 +107,8 @@ struct CreateTokenFeeOptions : public FeeOptions
 	{
 	}
 
+	using FeeOptions::CalculateMaxGas;
+
 	uint64_t CalculateMaxGas(const SmallString& symbol) const
 	{
 		const size_t len = symbol.length;

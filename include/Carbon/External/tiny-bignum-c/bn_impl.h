@@ -467,7 +467,9 @@ inline void bignum_pow(struct bn* a, struct bn* b, struct bn* c, uint32_t maxIte
 
     bignum_dec(&bcopy);
 
+#ifdef _DEBUG
     uint32_t iterations = 0;
+#endif
     while (!bignum_is_zero(&bcopy))
     {
 #ifdef _DEBUG
@@ -593,4 +595,3 @@ static inline void _rshift_one_bit(struct bn* a)
   }
   a->array[BN_ARRAY_SIZE - 1] >>= 1;
 }
-

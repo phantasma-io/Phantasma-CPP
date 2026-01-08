@@ -630,8 +630,7 @@ inline bool Write(const VmDynamicStruct& in, const VmStructSchema& schema, Write
 		}
 		else
 		{
-			VmDynamicVariable defaultValue;
-			memset(&defaultValue, 0, sizeof(defaultValue));
+			VmDynamicVariable defaultValue{};
 			defaultValue.type = schema.fields[i].schema.type;
 			Write(defaultValue, schema.fields[i].schema, writer);
 			ok = false;
@@ -682,7 +681,7 @@ inline const VmNamedVariableSchema* VmStructSchema::operator[](const SmallString
 {
 	if (flags & Flag_IsSorted)
 	{
-		VmNamedVariableSchema dummy{ name };
+		VmNamedVariableSchema dummy{ name, VmVariableSchema{} };
 		auto it = std::lower_bound(fields, fields + numFields, dummy, NameLessThan<VmNamedVariableSchema>{});
 		if (it != fields + numFields && it->name == name)
 		{
@@ -729,7 +728,7 @@ inline VmStructSchema VmStructSchema::Sort(uint32_t num, VmNamedVariableSchema* 
 
 inline const VmDynamicVariable* VmDynamicStruct::operator[](const SmallString& name) const
 {
-	VmNamedDynamicVariable dummy{ name };
+	VmNamedDynamicVariable dummy{ name, VmDynamicVariable{} };
 	const VmNamedDynamicVariable* lower = std::lower_bound(fields, fields + numFields, dummy, NameLessThan<VmNamedDynamicVariable>{});
 	if (lower != fields + numFields && lower->name == name)
 	{
@@ -739,7 +738,7 @@ inline const VmDynamicVariable* VmDynamicStruct::operator[](const SmallString& n
 }
 inline VmDynamicVariable* VmDynamicStruct::operator[](const SmallString& name)
 {
-	VmNamedDynamicVariable dummy{ name };
+	VmNamedDynamicVariable dummy{ name, VmDynamicVariable{} };
 	VmNamedDynamicVariable* lower = std::lower_bound(fields, fields + numFields, dummy, NameLessThan<VmNamedDynamicVariable>{});
 	if (lower != fields + numFields && lower->name == name)
 	{
@@ -806,15 +805,50 @@ inline VmDynamicStruct VmDynamicStruct::Merge(const VmDynamicStruct& old, const 
 	return VmDynamicStruct::Sort(numFields, fields);
 }
 
-inline VmDynamicVariable::VmDynamicVariable(const VmDynamicVariable& o)
+inline void CopyVmDynamicData(VmDynamicVariable& dst, const VmDynamicVariable& src)
 {
-	memcpy(this, &o, sizeof(VmDynamicVariable));
+	switch (src.type)
+	{
+	case VmType::Dynamic: dst.data.dynamic = src.data.dynamic; break;
+	case VmType::Bytes: dst.data.bytes = src.data.bytes; break;
+	case VmType::Struct: dst.data.structure = src.data.structure; break;
+	case VmType::Int8: dst.data.int8 = src.data.int8; break;
+	case VmType::Int16: dst.data.int16 = src.data.int16; break;
+	case VmType::Int32: dst.data.int32 = src.data.int32; break;
+	case VmType::Int64: dst.data.int64 = src.data.int64; break;
+	case VmType::Int256: dst.data.int256 = src.data.int256; break;
+	case VmType::Bytes16: dst.data.bytes16 = src.data.bytes16; break;
+	case VmType::Bytes32: dst.data.bytes32 = src.data.bytes32; break;
+	case VmType::Bytes64: dst.data.bytes64 = src.data.bytes64; break;
+	case VmType::String: dst.data.string = src.data.string; break;
+	case VmType::Array_Bytes: dst.data.bytesArray = src.data.bytesArray; break;
+	case VmType::Array_Struct: dst.data.structureArray = src.data.structureArray; break;
+	case VmType::Array_Int8: dst.data.int8Array = src.data.int8Array; break;
+	case VmType::Array_Int16: dst.data.int16Array = src.data.int16Array; break;
+	case VmType::Array_Int32: dst.data.int32Array = src.data.int32Array; break;
+	case VmType::Array_Int64: dst.data.int64Array = src.data.int64Array; break;
+	case VmType::Array_Int256: dst.data.int256Array = src.data.int256Array; break;
+	case VmType::Array_Bytes16: dst.data.bytes16Array = src.data.bytes16Array; break;
+	case VmType::Array_Bytes32: dst.data.bytes32Array = src.data.bytes32Array; break;
+	case VmType::Array_Bytes64: dst.data.bytes64Array = src.data.bytes64Array; break;
+	case VmType::Array_String: dst.data.stringArray = src.data.stringArray; break;
+	default: dst.data.dynamic = src.data.dynamic; break;
+	}
+}
+
+inline VmDynamicVariable::VmDynamicVariable(const VmDynamicVariable& o)
+	: type(o.type)
+	, arrayLength(o.arrayLength)
+{
+	CopyVmDynamicData(*this, o);
 }
 inline VmDynamicVariable& VmDynamicVariable::operator=(const VmDynamicVariable& o)
 {
 	if (this != &o)
 	{
-		memcpy(this, &o, sizeof(VmDynamicVariable));
+		type = o.type;
+		arrayLength = o.arrayLength;
+		CopyVmDynamicData(*this, o);
 	}
 	return *this;
 }
@@ -945,8 +979,7 @@ inline bool Write(VmType type, const VmDynamicVariable& in, const VmStructSchema
 {
 	if (in.type != type)
 	{
-		VmDynamicVariable error;
-		memset(&error, 0, sizeof(VmDynamicVariable));
+		VmDynamicVariable error{};
 		error.type = type;
 		Write(type, error, schema, writer);
 		return false;
@@ -1097,7 +1130,7 @@ inline bool Read(VmDynamicStruct& out, const VmStructSchema& schema, ReadView& r
 		return true;
 	}
 	VmNamedDynamicVariable* combined = alloc.Alloc<VmNamedDynamicVariable>(schema.numFields + extrasLength);
-	memcpy(combined, out.fields, sizeof(VmNamedDynamicVariable) * schema.numFields);
+	std::copy(out.fields, out.fields + schema.numFields, combined);
 	for (uint32_t i = 0; i != extrasLength; ++i)
 	{
 		if (!Read(combined[schema.numFields + i], reader, alloc))
