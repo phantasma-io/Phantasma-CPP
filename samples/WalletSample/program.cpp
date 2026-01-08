@@ -400,18 +400,19 @@ public:
 
 		WriteLine("Select token and chain: ");
 
-		for (int i = 0; i < _account.balances.size(); i++)
+		for (size_t i = 0; i < _account.balances.size(); ++i)
 		{
 			WriteLine(i + 1, " - ", _account.balances[i].symbol, " in ", _account.balances[i].chain, " chain");
 		}
 
-		int selectedTokenOption = std::stoi(ReadLine());
-		if( selectedTokenOption < 1 || selectedTokenOption > _account.balances.size() )
+		const int selectedTokenOption = std::stoi(ReadLine());
+		if (selectedTokenOption < 1 || static_cast<size_t>(selectedTokenOption) > _account.balances.size())
 		{
 			WriteLine("Invalid selection");
 			return;
 		}
-		const auto& token = _account.balances[selectedTokenOption - 1];
+		const size_t selectedTokenIndex = static_cast<size_t>(selectedTokenOption - 1);
+		const auto& token = _account.balances[selectedTokenIndex];
 
 		// WriteLine("Select destination chain:");
 
@@ -457,18 +458,19 @@ public:
 		}
 
 		WriteLine("Select token for Carbon transfer: ");
-		for (int i = 0; i < _account.balances.size(); i++)
+		for (size_t i = 0; i < _account.balances.size(); ++i)
 		{
 			WriteLine(i + 1, " - ", _account.balances[i].symbol, " in ", _account.balances[i].chain, " chain");
 		}
 
-		int selectedTokenOption = std::stoi(ReadLine());
-		if (selectedTokenOption < 1 || selectedTokenOption > _account.balances.size())
+		const int selectedTokenOption = std::stoi(ReadLine());
+		if (selectedTokenOption < 1 || static_cast<size_t>(selectedTokenOption) > _account.balances.size())
 		{
 			WriteLine("Invalid selection");
 			return;
 		}
-		const auto& token = _account.balances[selectedTokenOption - 1];
+		const size_t selectedTokenIndex = static_cast<size_t>(selectedTokenOption - 1);
+		const auto& token = _account.balances[selectedTokenIndex];
 
 		uint64_t carbonTokenId = 0;
 		if (!TryGetCarbonTokenId(token.symbol, carbonTokenId))

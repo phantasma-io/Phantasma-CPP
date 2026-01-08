@@ -480,8 +480,9 @@
 #   define PHANTASMA_EXCEPTION_MESSAGE(literal, string) throw std::runtime_error(string)
 #  endif
 # else
-#   define PHANTASMA_EXCEPTION(literal)                
-#   define PHANTASMA_EXCEPTION_MESSAGE(literal, string)
+// No-op when exceptions are disabled; keep arguments referenced to avoid warnings.
+#   define PHANTASMA_EXCEPTION(literal)                 do { (void)sizeof(literal); } while(0)
+#   define PHANTASMA_EXCEPTION_MESSAGE(literal, string) do { (void)sizeof(literal); (void)sizeof(string); } while(0)
 # endif
 #endif
 

@@ -135,10 +135,12 @@ static rapidjson::Document& HttpPost(CurlClient& client, const json::Char* uri, 
 	const char* request = data.buf.GetString();
 	CURLcode code = client.Post(request, strlen(request), uri);
 	client.result.append("\0", 1);
-	if(err && code != CURLE_OK)
+	if (err && code != CURLE_OK)
+	{
 		rpc::OnHttpError(*err, curl_easy_strerror(code));
-		return client.doc.template ParseInsitu<rapidjson::kParseDefaultFlags>(client.result.begin());
 	}
+	return client.doc.template ParseInsitu<rapidjson::kParseDefaultFlags>(client.result.begin());
+}
 #else
 template<class CurlClient>
 static PHANTASMA_STRING HttpPost(CurlClient& client, const PHANTASMA_CHAR* uri, const PHANTASMA_STRINGBUILDER& data, rpc::PhantasmaError* err)

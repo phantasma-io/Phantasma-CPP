@@ -43,7 +43,7 @@ inline int DecodeTriByte( Byte* output, const Char* input )//read 4 Chars, write
 	}
 	if( padding < 1 ) output[2] = (Byte)(  triByte        & 0xFFU );
 	if( padding < 2 ) output[1] = (Byte)( (triByte >> 8 ) & 0xFFU );
-	                  output[0] = (Byte)( (triByte >> 16) & 0xFFU );
+	output[0] = (Byte)( (triByte >> 16) & 0xFFU );
 	return 3 - padding;
 }
 
