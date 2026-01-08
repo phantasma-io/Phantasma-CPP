@@ -11,6 +11,8 @@
 #include <cpprest/json.h>
 #include <cstdint>
 
+#define PHANTASMA_CPPREST_JSON
+
 namespace phantasma { 
 
 #ifndef PHANTASMA_STRING
@@ -37,6 +39,8 @@ inline web::json::value Parse(const web::json::value& d) { return d; }
 inline bool             LookupBool(   const web::json::value& v, const Char* field, bool& out_error) { return v.at(field).as_bool(); }
 inline int32_t          LookupInt32(  const web::json::value& v, const Char* field, bool& out_error) { return v.at(field).as_integer(); }
 inline uint32_t         LookupUInt32( const web::json::value& v, const Char* field, bool& out_error) { return (uint32_t)v.at(field).as_integer(); }
+inline int64_t          LookupInt64(  const web::json::value& v, const Char* field, bool& out_error) { return v.at(field).is_string() ? std::stoll(v.at(field).as_string()) : v.at(field).as_number().to_int64(); }
+inline uint64_t         LookupUInt64( const web::json::value& v, const Char* field, bool& out_error) { return v.at(field).is_string() ? std::stoull(v.at(field).as_string()) : v.at(field).as_number().to_uint64(); }
 inline String           LookupString( const web::json::value& v, const Char* field, bool& out_error) { return v.at(field).as_string(); }
 inline web::json::value LookupValue(  const web::json::value& v, const Char* field, bool& out_error) { return v.at(field); }
 inline web::json::array LookupArray(  const web::json::value& v, const Char* field, bool& out_error) { return v.at(field).as_array(); }
@@ -45,6 +49,8 @@ inline bool             HasArrayField(const web::json::value& v, const Char* fie
 inline bool             AsBool(       const web::json::value& v,                    bool& out_error) { return v.as_bool(); }
 inline int32_t          AsInt32(      const web::json::value& v,                    bool& out_error) { return v.as_integer(); }
 inline uint32_t         AsUInt32(     const web::json::value& v,                    bool& out_error) { return (uint32_t)v.as_integer(); }
+inline int64_t          AsInt64(      const web::json::value& v,                    bool& out_error) { return v.is_string() ? std::stoll(v.as_string()) : v.as_number().to_int64(); }
+inline uint64_t         AsUInt64(     const web::json::value& v,                    bool& out_error) { return v.is_string() ? std::stoull(v.as_string()) : v.as_number().to_uint64(); }
 inline String           AsString(     const web::json::value& v,                    bool& out_error) { return v.as_string(); }
 inline web::json::array AsArray(      const web::json::value& v,                    bool& out_error) { return v.as_array(); }
 inline bool             IsArray(      const web::json::value& v,                    bool& out_error) { return v.is_array(); }

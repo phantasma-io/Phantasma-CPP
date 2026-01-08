@@ -59,7 +59,27 @@ enum class EventKind
 	AddressMigration = 46,
 	ContractUpgrade = 47,
 	Log = 48,
+	Inflation = 49,
+	OwnerAdded = 50,
+	OwnerRemoved = 51,
+	DomainCreate = 52,
+	DomainDelete = 53,
+	TaskStart = 54,
+	TaskStop = 55,
+	CrownRewards = 56,
+	Infusion = 57,
+	Crowdsale = 58,
+	OrderBid = 59,
+	ContractKill = 60,
+	OrganizationKill = 61,
+	MasterClaim = 62,
+	ExecutionFailure = 63,
 	Custom = 64,
+	Custom_V2 = 65,
+	GovernanceSetGasConfig = 66,
+	GovernanceSetChainConfig = 67,
+	TokenSeriesCreate = 68,
+	SpecialResolution = 69,
 };
 
 inline const Char* EventKindToString(EventKind k)
@@ -115,6 +135,26 @@ inline const Char* EventKindToString(EventKind k)
 	case EventKind::AddressMigration:	 return PHANTASMA_LITERAL("AddressMigration");
 	case EventKind::ContractUpgrade:	 return PHANTASMA_LITERAL("ContractUpgrade");
 	case EventKind::Log:				 return PHANTASMA_LITERAL("Log");
+	case EventKind::Inflation:			 return PHANTASMA_LITERAL("Inflation");
+	case EventKind::OwnerAdded:		 return PHANTASMA_LITERAL("OwnerAdded");
+	case EventKind::OwnerRemoved:		 return PHANTASMA_LITERAL("OwnerRemoved");
+	case EventKind::DomainCreate:		 return PHANTASMA_LITERAL("DomainCreate");
+	case EventKind::DomainDelete:		 return PHANTASMA_LITERAL("DomainDelete");
+	case EventKind::TaskStart:			 return PHANTASMA_LITERAL("TaskStart");
+	case EventKind::TaskStop:			 return PHANTASMA_LITERAL("TaskStop");
+	case EventKind::CrownRewards:		 return PHANTASMA_LITERAL("CrownRewards");
+	case EventKind::Infusion:			 return PHANTASMA_LITERAL("Infusion");
+	case EventKind::Crowdsale:			 return PHANTASMA_LITERAL("Crowdsale");
+	case EventKind::OrderBid:			 return PHANTASMA_LITERAL("OrderBid");
+	case EventKind::ContractKill:		 return PHANTASMA_LITERAL("ContractKill");
+	case EventKind::OrganizationKill:	 return PHANTASMA_LITERAL("OrganizationKill");
+	case EventKind::MasterClaim:		 return PHANTASMA_LITERAL("MasterClaim");
+	case EventKind::ExecutionFailure:	 return PHANTASMA_LITERAL("ExecutionFailure");
+	case EventKind::Custom_V2:			 return PHANTASMA_LITERAL("Custom_V2");
+	case EventKind::GovernanceSetGasConfig:	 return PHANTASMA_LITERAL("GovernanceSetGasConfig");
+	case EventKind::GovernanceSetChainConfig: return PHANTASMA_LITERAL("GovernanceSetChainConfig");
+	case EventKind::TokenSeriesCreate:	 return PHANTASMA_LITERAL("TokenSeriesCreate");
+	case EventKind::SpecialResolution:	 return PHANTASMA_LITERAL("SpecialResolution");
 	default:
 	case EventKind::Custom:				 return PHANTASMA_LITERAL("Custom");
 	}
@@ -122,7 +162,7 @@ inline const Char* EventKindToString(EventKind k)
 
 inline EventKind StringToEventKind(const String& k)
 {
-	for( int i=0; i<=(int)EventKind::Custom; ++i )
+	for( int i=0; i<=(int)EventKind::SpecialResolution; ++i )
 	{
 		if( 0 == k.compare(EventKindToString((EventKind)i)) )
 			return (EventKind)i;
@@ -201,20 +241,23 @@ public:
 	const EventKind kind;
 	const Address address;
 	const String contract;
+	const String name;
 	const ByteArray data;
 
-	Event( EventKind kind, const Address& address, const String& contract, const ByteArray& data )
+	Event( EventKind kind, const Address& address, const String& contract, const ByteArray& data, const String& name = String{} )
 		: kind( kind )
 		, address( address )
 		, contract( contract )
+		, name( name )
 		, data( data )
 	{
 	}
 
-	Event( const String& kind, const String& address, const String& contract, const String& data )
+	Event( const String& kind, const String& address, const String& contract, const String& data, const String& name = String{} )
 		: kind( StringToEventKind(kind) )
 		, address( Address::FromText(address) )
 		, contract( contract )
+		, name( name )
 		, data( data.empty() ? ByteArray() : Base16::Decode(data) )
 	{
 	}
@@ -245,6 +288,8 @@ public:
 		writer.WriteAddress( address );
 		writer.WriteVarString(contract);
 		writer.WriteByteArray( data );
+		if (kind == EventKind::Custom_V2)
+			writer.WriteVarString(name);
 	}
 
 	template<class BinaryReader>
@@ -254,7 +299,11 @@ public:
 		Address address = reader.ReadAddress();
 		String contract = reader.ReadVarString();
 		ByteArray data = reader.ReadByteArray();
-		return Event( kind, address, contract, data );
+		String name;
+		// Custom_V2 appends a name string after the data payload.
+		if (kind == EventKind::Custom_V2)
+			reader.ReadVarString(name);
+		return Event( kind, address, contract, data, name );
 	}
 };
 

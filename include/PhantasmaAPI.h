@@ -393,6 +393,7 @@
 
 #if !defined(PHANTASMA_STRING) || !defined(PHANTASMA_JSONDOCUMENT) || !defined(PHANTASMA_JSONVALUE)
 # include <string>
+# include <cstdlib>
 #endif
 
 #if !defined(PHANTASMA_JSONVALUE) && __cplusplus > 201402L
@@ -637,6 +638,8 @@ namespace json
 	bool LookupBool(const JSONValue&, const Char* field, bool& out_error);
 	Int32 LookupInt32(const JSONValue&, const Char* field, bool& out_error);
 	UInt32 LookupUInt32(const JSONValue&, const Char* field, bool& out_error);
+	Int64 LookupInt64(const JSONValue&, const Char* field, bool& out_error);
+	UInt64 LookupUInt64(const JSONValue&, const Char* field, bool& out_error);
 	String LookupString(const JSONValue&, const Char* field, bool& out_error);
 	JSONValue LookupValue(const JSONValue&, const Char* field, bool& out_error);
 	JSONArray LookupArray(const JSONValue&, const Char* field, bool& out_error);
@@ -645,6 +648,8 @@ namespace json
 	bool   AsBool(const JSONValue&, bool& out_error);
 	Int32  AsInt32(const JSONValue&, bool& out_error);
 	UInt32 AsUInt32(const JSONValue&, bool& out_error);
+	Int64  AsInt64(const JSONValue&, bool& out_error);
+	UInt64 AsUInt64(const JSONValue&, bool& out_error);
 	String AsString(const JSONValue&, bool& out_error);
 	JSONArray AsArray(const JSONValue&, bool& out_error);
 	bool IsArray(const JSONValue&, bool& out_error);
@@ -826,7 +831,100 @@ struct Event
 	String address;//
 	String contract;//
 	String kind;//
+	String name;//
 	String data;//
+};
+
+enum class ExtendedEventType
+{
+	Unknown,
+	TokenCreate,
+	TokenSeriesCreate,
+	TokenMint,
+	MarketOrder,
+	SpecialResolution
+};
+
+struct TokenCreateData
+{
+	String symbol;//
+	String maxSupply;//
+	UInt32 decimals;//
+	bool isNonFungible;//
+	UInt64 carbonTokenId;//
+	PHANTASMA_MAP<String, String> metadata;//
+};
+
+struct TokenSeriesCreateData
+{
+	String symbol;//
+	String seriesId;//
+	UInt32 maxMint;//
+	UInt32 maxSupply;//
+	String owner;//
+	UInt64 carbonTokenId;//
+	UInt32 carbonSeriesId;//
+	PHANTASMA_MAP<String, String> metadata;//
+};
+
+struct TokenMintData
+{
+	String symbol;//
+	String tokenId;//
+	String seriesId;//
+	UInt32 mintNumber;//
+	UInt64 carbonTokenId;//
+	UInt32 carbonSeriesId;//
+	UInt64 carbonInstanceId;//
+	String owner;//
+	PHANTASMA_MAP<String, String> metadata;//
+};
+
+struct MarketOrderData
+{
+	String baseSymbol;//
+	String quoteSymbol;//
+	String tokenId;//
+	UInt64 carbonBaseTokenId;//
+	UInt64 carbonQuoteTokenId;//
+	UInt64 carbonInstanceId;//
+	String seller;//
+	String buyer;//
+	String price;//
+	String endPrice;//
+	Int64 startDate;//
+	Int64 endDate;//
+	String type;//
+};
+
+struct SpecialResolutionCall
+{
+	UInt32 moduleId;//
+	String module;//
+	UInt32 methodId;//
+	String method;//
+	PHANTASMA_MAP<String, String> arguments;//
+	PHANTASMA_VECTOR<SpecialResolutionCall> calls;//
+};
+
+struct SpecialResolutionData
+{
+	UInt64 resolutionId;//
+	String description;//
+	PHANTASMA_VECTOR<SpecialResolutionCall> calls;//
+};
+
+struct EventExtended
+{
+	String address;//
+	String contract;//
+	String kind;//
+	ExtendedEventType type;//
+	TokenCreateData tokenCreate;//
+	TokenSeriesCreateData tokenSeriesCreate;//
+	TokenMintData tokenMint;//
+	MarketOrderData marketOrder;//
+	SpecialResolutionData specialResolution;//
 };
 
 struct Oracle
@@ -851,6 +949,7 @@ struct Transaction
 	String script;//
 	String payload;//
 	PHANTASMA_VECTOR<Event> events;//
+	PHANTASMA_VECTOR<EventExtended> extendedEvents;//
 	String result;//
 	String debugComment;//
 	String fee;//
@@ -1248,6 +1347,14 @@ public:
 	static Dapp DeserializeDapp(const JSONValue& json, bool& jsonError);
 	static Chain DeserializeChain(const JSONValue& json, bool& jsonError);
 	static Event DeserializeEvent(const JSONValue& json, bool& jsonError);
+	static EventExtended DeserializeEventExtended(const JSONValue& json, bool& jsonError);
+	static TokenCreateData DeserializeTokenCreateData(const JSONValue& json, bool& jsonError);
+	static TokenSeriesCreateData DeserializeTokenSeriesCreateData(const JSONValue& json, bool& jsonError);
+	static TokenMintData DeserializeTokenMintData(const JSONValue& json, bool& jsonError);
+	static MarketOrderData DeserializeMarketOrderData(const JSONValue& json, bool& jsonError);
+	static SpecialResolutionCall DeserializeSpecialResolutionCall(const JSONValue& json, bool& jsonError);
+	static SpecialResolutionData DeserializeSpecialResolutionData(const JSONValue& json, bool& jsonError);
+	static PHANTASMA_MAP<String, String> DeserializeStringMap(const JSONValue& json, bool& jsonError);
 	static Oracle DeserializeOracle(const JSONValue& json, bool& jsonError);
 	static Signature DeserializeSignature(const JSONValue& json, bool& jsonError);
 	static Transaction DeserializeTransaction(const JSONValue& json, bool& jsonError);
@@ -1707,12 +1814,232 @@ PHANTASMA_FUNCTION Chain PhantasmaJsonAPI::DeserializeChain(const JSONValue& val
 
 PHANTASMA_FUNCTION Event PhantasmaJsonAPI::DeserializeEvent(const JSONValue& value, bool& jsonErr)
 { 	
+	String name;
+	if (json::HasField(value, PHANTASMA_LITERAL("name"), jsonErr))
+	{
+		name = json::LookupString(value, PHANTASMA_LITERAL("name"), jsonErr);
+	}
 	return Event { 
 		json::LookupString(value, PHANTASMA_LITERAL("address"), jsonErr), 
 		json::LookupString(value, PHANTASMA_LITERAL("contract"), jsonErr), 
 		json::LookupString(value, PHANTASMA_LITERAL("kind"), jsonErr), 
+		name,
 		json::LookupString(value, PHANTASMA_LITERAL("data"), jsonErr)
 	};
+}
+
+PHANTASMA_FUNCTION PHANTASMA_MAP<String, String> PhantasmaJsonAPI::DeserializeStringMap(const JSONValue& value, bool& jsonErr)
+{
+	PHANTASMA_MAP<String, String> output;
+#if defined(PHANTASMA_RAPIDJSON)
+	if (!value.IsObject())
+	{
+		jsonErr = true;
+		return output;
+	}
+	for (auto it = value.MemberBegin(); it != value.MemberEnd(); ++it)
+	{
+		if (!it->name.IsString())
+			continue;
+		String key = it->name.GetString();
+		const auto& entry = it->value;
+		if (entry.IsString())
+			output[key] = entry.GetString();
+		else if (entry.IsBool())
+			output[key] = entry.GetBool() ? PHANTASMA_LITERAL("true") : PHANTASMA_LITERAL("false");
+		else if (entry.IsInt64())
+			output[key] = std::to_string(entry.GetInt64());
+		else if (entry.IsUint64())
+			output[key] = std::to_string(entry.GetUint64());
+		else if (entry.IsDouble())
+			output[key] = std::to_string(entry.GetDouble());
+		else if (entry.IsNull())
+			output[key] = String{};
+	}
+#elif defined(PHANTASMA_CPPREST_JSON)
+	if (!value.is_object())
+	{
+		jsonErr = true;
+		return output;
+	}
+	auto obj = value.as_object();
+	for (auto const& entry : obj)
+	{
+		String key = entry.first;
+		const auto& val = entry.second;
+		if (val.is_string())
+			output[key] = val.as_string();
+		else if (val.is_boolean())
+			output[key] = val.as_bool() ? PHANTASMA_LITERAL("true") : PHANTASMA_LITERAL("false");
+		else if (val.is_number())
+			output[key] = std::to_string(val.as_number().to_int64());
+		else if (val.is_null())
+			output[key] = String{};
+	}
+#else
+	(void)value;
+	(void)jsonErr;
+#endif
+	return output;
+}
+
+PHANTASMA_FUNCTION TokenCreateData PhantasmaJsonAPI::DeserializeTokenCreateData(const JSONValue& value, bool& jsonErr)
+{
+	TokenCreateData output{};
+	output.symbol = json::LookupString(value, PHANTASMA_LITERAL("symbol"), jsonErr);
+	output.maxSupply = json::LookupString(value, PHANTASMA_LITERAL("maxSupply"), jsonErr);
+	output.decimals = json::LookupUInt32(value, PHANTASMA_LITERAL("decimals"), jsonErr);
+	output.isNonFungible = json::LookupBool(value, PHANTASMA_LITERAL("isNonFungible"), jsonErr);
+	output.carbonTokenId = json::LookupUInt64(value, PHANTASMA_LITERAL("carbonTokenId"), jsonErr);
+	if (json::HasField(value, PHANTASMA_LITERAL("metadata"), jsonErr))
+	{
+		output.metadata = DeserializeStringMap(json::LookupValue(value, PHANTASMA_LITERAL("metadata"), jsonErr), jsonErr);
+	}
+	return output;
+}
+
+PHANTASMA_FUNCTION TokenSeriesCreateData PhantasmaJsonAPI::DeserializeTokenSeriesCreateData(const JSONValue& value, bool& jsonErr)
+{
+	TokenSeriesCreateData output{};
+	output.symbol = json::LookupString(value, PHANTASMA_LITERAL("symbol"), jsonErr);
+	output.seriesId = json::LookupString(value, PHANTASMA_LITERAL("seriesId"), jsonErr);
+	output.maxMint = json::LookupUInt32(value, PHANTASMA_LITERAL("maxMint"), jsonErr);
+	output.maxSupply = json::LookupUInt32(value, PHANTASMA_LITERAL("maxSupply"), jsonErr);
+	output.owner = json::LookupString(value, PHANTASMA_LITERAL("owner"), jsonErr);
+	output.carbonTokenId = json::LookupUInt64(value, PHANTASMA_LITERAL("carbonTokenId"), jsonErr);
+	output.carbonSeriesId = json::LookupUInt32(value, PHANTASMA_LITERAL("carbonSeriesId"), jsonErr);
+	if (json::HasField(value, PHANTASMA_LITERAL("metadata"), jsonErr))
+	{
+		output.metadata = DeserializeStringMap(json::LookupValue(value, PHANTASMA_LITERAL("metadata"), jsonErr), jsonErr);
+	}
+	return output;
+}
+
+PHANTASMA_FUNCTION TokenMintData PhantasmaJsonAPI::DeserializeTokenMintData(const JSONValue& value, bool& jsonErr)
+{
+	TokenMintData output{};
+	output.symbol = json::LookupString(value, PHANTASMA_LITERAL("symbol"), jsonErr);
+	output.tokenId = json::LookupString(value, PHANTASMA_LITERAL("tokenId"), jsonErr);
+	output.seriesId = json::LookupString(value, PHANTASMA_LITERAL("seriesId"), jsonErr);
+	output.mintNumber = json::LookupUInt32(value, PHANTASMA_LITERAL("mintNumber"), jsonErr);
+	output.carbonTokenId = json::LookupUInt64(value, PHANTASMA_LITERAL("carbonTokenId"), jsonErr);
+	output.carbonSeriesId = json::LookupUInt32(value, PHANTASMA_LITERAL("carbonSeriesId"), jsonErr);
+	output.carbonInstanceId = json::LookupUInt64(value, PHANTASMA_LITERAL("carbonInstanceId"), jsonErr);
+	output.owner = json::LookupString(value, PHANTASMA_LITERAL("owner"), jsonErr);
+	if (json::HasField(value, PHANTASMA_LITERAL("metadata"), jsonErr))
+	{
+		output.metadata = DeserializeStringMap(json::LookupValue(value, PHANTASMA_LITERAL("metadata"), jsonErr), jsonErr);
+	}
+	return output;
+}
+
+PHANTASMA_FUNCTION MarketOrderData PhantasmaJsonAPI::DeserializeMarketOrderData(const JSONValue& value, bool& jsonErr)
+{
+	MarketOrderData output{};
+	output.baseSymbol = json::LookupString(value, PHANTASMA_LITERAL("baseSymbol"), jsonErr);
+	output.quoteSymbol = json::LookupString(value, PHANTASMA_LITERAL("quoteSymbol"), jsonErr);
+	output.tokenId = json::LookupString(value, PHANTASMA_LITERAL("tokenId"), jsonErr);
+	output.carbonBaseTokenId = json::LookupUInt64(value, PHANTASMA_LITERAL("carbonBaseTokenId"), jsonErr);
+	output.carbonQuoteTokenId = json::LookupUInt64(value, PHANTASMA_LITERAL("carbonQuoteTokenId"), jsonErr);
+	output.carbonInstanceId = json::LookupUInt64(value, PHANTASMA_LITERAL("carbonInstanceId"), jsonErr);
+	output.seller = json::LookupString(value, PHANTASMA_LITERAL("seller"), jsonErr);
+	output.buyer = json::LookupString(value, PHANTASMA_LITERAL("buyer"), jsonErr);
+	output.price = json::LookupString(value, PHANTASMA_LITERAL("price"), jsonErr);
+	output.endPrice = json::LookupString(value, PHANTASMA_LITERAL("endPrice"), jsonErr);
+	output.startDate = json::LookupInt64(value, PHANTASMA_LITERAL("startDate"), jsonErr);
+	output.endDate = json::LookupInt64(value, PHANTASMA_LITERAL("endDate"), jsonErr);
+	output.type = json::LookupString(value, PHANTASMA_LITERAL("type"), jsonErr);
+	return output;
+}
+
+PHANTASMA_FUNCTION SpecialResolutionCall PhantasmaJsonAPI::DeserializeSpecialResolutionCall(const JSONValue& value, bool& jsonErr)
+{
+	SpecialResolutionCall output{};
+	output.moduleId = json::LookupUInt32(value, PHANTASMA_LITERAL("moduleId"), jsonErr);
+	output.module = json::LookupString(value, PHANTASMA_LITERAL("module"), jsonErr);
+	output.methodId = json::LookupUInt32(value, PHANTASMA_LITERAL("methodId"), jsonErr);
+	output.method = json::LookupString(value, PHANTASMA_LITERAL("method"), jsonErr);
+	if (json::HasField(value, PHANTASMA_LITERAL("arguments"), jsonErr))
+	{
+		const JSONValue& argsValue = json::LookupValue(value, PHANTASMA_LITERAL("arguments"), jsonErr);
+		if (json::IsObject(argsValue, jsonErr))
+		{
+			output.arguments = DeserializeStringMap(argsValue, jsonErr);
+		}
+	}
+	if (json::HasArrayField(value, PHANTASMA_LITERAL("calls"), jsonErr))
+	{
+		const JSONArray& callsJsonArray = json::LookupArray(value, PHANTASMA_LITERAL("calls"), jsonErr);
+		int size = json::ArraySize(callsJsonArray, jsonErr);
+		output.calls.reserve(size);
+		for (int i = 0; i < size; ++i)
+		{
+			output.calls.push_back(DeserializeSpecialResolutionCall(json::IndexArray(callsJsonArray, i, jsonErr), jsonErr));
+		}
+	}
+	return output;
+}
+
+PHANTASMA_FUNCTION SpecialResolutionData PhantasmaJsonAPI::DeserializeSpecialResolutionData(const JSONValue& value, bool& jsonErr)
+{
+	SpecialResolutionData output{};
+	output.resolutionId = json::LookupUInt64(value, PHANTASMA_LITERAL("resolutionId"), jsonErr);
+	if (json::HasField(value, PHANTASMA_LITERAL("description"), jsonErr))
+	{
+		output.description = json::LookupString(value, PHANTASMA_LITERAL("description"), jsonErr);
+	}
+	if (json::HasArrayField(value, PHANTASMA_LITERAL("calls"), jsonErr))
+	{
+		const JSONArray& callsJsonArray = json::LookupArray(value, PHANTASMA_LITERAL("calls"), jsonErr);
+		int size = json::ArraySize(callsJsonArray, jsonErr);
+		output.calls.reserve(size);
+		for (int i = 0; i < size; ++i)
+		{
+			output.calls.push_back(DeserializeSpecialResolutionCall(json::IndexArray(callsJsonArray, i, jsonErr), jsonErr));
+		}
+	}
+	return output;
+}
+
+PHANTASMA_FUNCTION EventExtended PhantasmaJsonAPI::DeserializeEventExtended(const JSONValue& value, bool& jsonErr)
+{
+	EventExtended output{};
+	output.address = json::LookupString(value, PHANTASMA_LITERAL("address"), jsonErr);
+	output.contract = json::LookupString(value, PHANTASMA_LITERAL("contract"), jsonErr);
+	output.kind = json::LookupString(value, PHANTASMA_LITERAL("kind"), jsonErr);
+	output.type = ExtendedEventType::Unknown;
+	if (json::HasField(value, PHANTASMA_LITERAL("data"), jsonErr))
+	{
+		const JSONValue& data = json::LookupValue(value, PHANTASMA_LITERAL("data"), jsonErr);
+		if (output.kind == PHANTASMA_LITERAL("TokenCreate"))
+		{
+			output.type = ExtendedEventType::TokenCreate;
+			output.tokenCreate = DeserializeTokenCreateData(data, jsonErr);
+		}
+		else if (output.kind == PHANTASMA_LITERAL("TokenSeriesCreate"))
+		{
+			output.type = ExtendedEventType::TokenSeriesCreate;
+			output.tokenSeriesCreate = DeserializeTokenSeriesCreateData(data, jsonErr);
+		}
+		else if (output.kind == PHANTASMA_LITERAL("TokenMint"))
+		{
+			output.type = ExtendedEventType::TokenMint;
+			output.tokenMint = DeserializeTokenMintData(data, jsonErr);
+		}
+		else if (output.kind == PHANTASMA_LITERAL("OrderCreated")
+			|| output.kind == PHANTASMA_LITERAL("OrderCancelled")
+			|| output.kind == PHANTASMA_LITERAL("OrderFilled"))
+		{
+			output.type = ExtendedEventType::MarketOrder;
+			output.marketOrder = DeserializeMarketOrderData(data, jsonErr);
+		}
+		else if (output.kind == PHANTASMA_LITERAL("SpecialResolution"))
+		{
+			output.type = ExtendedEventType::SpecialResolution;
+			output.specialResolution = DeserializeSpecialResolutionData(data, jsonErr);
+		}
+	}
+	return output;
 }
 
 PHANTASMA_FUNCTION Oracle PhantasmaJsonAPI::DeserializeOracle(const JSONValue& value, bool& jsonErr)
@@ -1744,6 +2071,17 @@ PHANTASMA_FUNCTION Transaction PhantasmaJsonAPI::DeserializeTransaction(const JS
 			eventsVector.push_back(DeserializeEvent(json::IndexArray(eventsJsonArray, i, jsonErr), jsonErr));
 		}
 	}
+	PHANTASMA_VECTOR<EventExtended> extendedEventsVector;
+	if(json::HasArrayField(value, PHANTASMA_LITERAL("extendedEvents"), jsonErr))
+	{
+		const JSONArray& extendedEventsJsonArray = json::LookupArray(value, PHANTASMA_LITERAL("extendedEvents"), jsonErr);
+		int size = json::ArraySize(extendedEventsJsonArray, jsonErr);
+		extendedEventsVector.reserve(size);
+		for(int i = 0; i < size; ++i)
+		{
+			extendedEventsVector.push_back(DeserializeEventExtended(json::IndexArray(extendedEventsJsonArray, i, jsonErr), jsonErr));
+		}
+	}
 	PHANTASMA_VECTOR<Signature> signaturesVector;
 	if(json::HasArrayField(value, PHANTASMA_LITERAL("signatures"), jsonErr))
 	{
@@ -1769,6 +2107,7 @@ PHANTASMA_FUNCTION Transaction PhantasmaJsonAPI::DeserializeTransaction(const JS
 		json::LookupString(value, PHANTASMA_LITERAL("script"), jsonErr), 
 		json::LookupString(value, PHANTASMA_LITERAL("payload"), jsonErr), 
 		eventsVector, 
+		extendedEventsVector,
 		json::LookupString(value, PHANTASMA_LITERAL("result"), jsonErr), 
 		debugComment,
 		json::LookupString(value, PHANTASMA_LITERAL("fee"), jsonErr), 
@@ -4316,6 +4655,8 @@ namespace json
 	PHANTASMA_FUNCTION bool LookupBool(const JSONValue& v, const Char* field, bool& out_error)       { return AsBool( LookupValue(v, field, out_error), out_error); }
 	PHANTASMA_FUNCTION Int32 LookupInt32(const JSONValue& v, const Char* field, bool& out_error)     { return AsInt32( LookupValue(v, field, out_error), out_error); }
 	PHANTASMA_FUNCTION UInt32 LookupUInt32(const JSONValue& v, const Char* field, bool& out_error)   { return AsUInt32(LookupValue(v, field, out_error), out_error); }
+	PHANTASMA_FUNCTION Int64 LookupInt64(const JSONValue& v, const Char* field, bool& out_error)     { return AsInt64( LookupValue(v, field, out_error), out_error); }
+	PHANTASMA_FUNCTION UInt64 LookupUInt64(const JSONValue& v, const Char* field, bool& out_error)   { return AsUInt64(LookupValue(v, field, out_error), out_error); }
 	PHANTASMA_FUNCTION String LookupString(const JSONValue& v, const Char* field, bool& out_error)   { return AsString(LookupValue(v, field, out_error), out_error); }
 	PHANTASMA_FUNCTION JSONArray LookupArray(const JSONValue& v, const Char* field, bool& out_error) { return AsArray(LookupValue(v, field, out_error), out_error); }
 	PHANTASMA_FUNCTION bool HasField(const JSONValue& v, const Char* field, bool& out_error)         { return JSONValue() != LookupValue(v, field, out_error); }
@@ -4370,6 +4711,26 @@ namespace json
 		return (Int32)PHANTASMA_STRTOINT(n.data());
 	}
 	PHANTASMA_FUNCTION UInt32 AsUInt32(const JSONValue& v, bool& out_error) { return (UInt32)AsInt32(v, out_error); }
+	PHANTASMA_FUNCTION Int64  AsInt64(const JSONValue& v, bool& out_error)
+	{
+		const Char* numeric = PHANTASMA_LITERAL("-0123456789");
+		size_t begin = v.find_first_of(numeric, 0);
+		if( begin != 0 ) { PHANTASMA_EXCEPTION("Invalid number"); out_error = true; return 0; }
+		size_t pos = v.find_first_not_of(numeric, 0);
+		if( pos == 0 ) { PHANTASMA_EXCEPTION("Invalid number"); out_error = true; return 0; }
+		JSONValue n = pos == JSONValue::npos ? v : v.substr(0, pos);
+		return (Int64)PHANTASMA_STRTOINT(n.data());
+	}
+	PHANTASMA_FUNCTION UInt64 AsUInt64(const JSONValue& v, bool& out_error)
+	{
+		const Char* numeric = PHANTASMA_LITERAL("-0123456789");
+		size_t begin = v.find_first_of(numeric, 0);
+		if( begin != 0 ) { PHANTASMA_EXCEPTION("Invalid number"); out_error = true; return 0; }
+		size_t pos = v.find_first_not_of(numeric, 0);
+		if( pos == 0 ) { PHANTASMA_EXCEPTION("Invalid number"); out_error = true; return 0; }
+		JSONValue n = pos == JSONValue::npos ? v : v.substr(0, pos);
+		return (UInt64)std::strtoull(n.data(), nullptr, 10);
+	}
 	PHANTASMA_FUNCTION String AsString(const JSONValue& v, bool& out_error)
 	{
 		if( v.length() < 1 || v[0] != '"' ) { PHANTASMA_EXCEPTION("Casting non-string value to string"); out_error = true; return String(); }
