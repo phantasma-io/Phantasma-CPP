@@ -451,6 +451,3 @@ inline std::vector<int256> ReadArrayInt256(ReadView& r)
 } // namespace phantasma::carbon
 
 #include "DataVm.h"
-#include "Contracts/Token.h"
-#include "DataBlockchain.h"
-#include "Tx.h"

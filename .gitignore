@@ -30,3 +30,6 @@
 *.exe
 *.out
 *.app
+
+carbon-token-deployment-tool
+config.toml

@@ -10,6 +10,7 @@
 
 #include "../../Numerics/Base64.h"
 #include "../DataBlockchain.h"
+#include "TokenSchemas.h"
 
 namespace phantasma::carbon {
 
@@ -31,13 +32,6 @@ enum TokenFlags
 	TokenFlags_None = 0,
 	TokenFlags_BigFungible = 1 << 0,
 	TokenFlags_NonFungible = 1 << 1,
-};
-
-struct TokenSchemas
-{
-	VmStructSchema seriesMetadata{};
-	VmStructSchema rom{};
-	VmStructSchema ram{};
 };
 
 struct TokenInfo
@@ -258,19 +252,6 @@ inline void Write(const GasConfigWithTokens& in, WriteView& w)
 	Write(in.dataToken, w);
 }
 
-// Owned wrappers -------------------------------------------------------------
-struct TokenSchemasOwned
-{
-	TokenSchemas view{};
-	std::vector<VmNamedVariableSchema> seriesFields;
-	std::vector<VmNamedVariableSchema> romFields;
-	std::vector<VmNamedVariableSchema> ramFields;
-
-	TokenSchemasOwned() = default;
-
-	TokenSchemas View() const { return view; }
-};
-
 struct TokenInfoOwned
 {
 	TokenInfo view{};
@@ -299,54 +280,42 @@ struct SeriesInfoOwned
 	}
 };
 
-// Builders -------------------------------------------------------------------
-struct TokenSchemasBuilder
-{
-	static TokenSchemasOwned PrepareStandardTokenSchemas()
-	{
-		TokenSchemasOwned owned;
-		owned.seriesFields = {
-			VmNamedVariableSchema{ StandardMeta::id, VmVariableSchema{ VmType::Int256 } },
-			VmNamedVariableSchema{ SmallString("mode"), VmVariableSchema{ VmType::Int8 } },
-			VmNamedVariableSchema{ SmallString("rom"), VmVariableSchema{ VmType::Bytes } },
-		};
-		owned.romFields = {
-			VmNamedVariableSchema{ StandardMeta::id, VmVariableSchema{ VmType::Int256 } },
-			VmNamedVariableSchema{ SmallString("rom"), VmVariableSchema{ VmType::Bytes } },
-			VmNamedVariableSchema{ StandardMeta::Token::Nft::name, VmVariableSchema{ VmType::String } },
-			VmNamedVariableSchema{ StandardMeta::Token::Nft::description, VmVariableSchema{ VmType::String } },
-			VmNamedVariableSchema{ StandardMeta::Token::Nft::imageURL, VmVariableSchema{ VmType::String } },
-			VmNamedVariableSchema{ StandardMeta::Token::Nft::infoURL, VmVariableSchema{ VmType::String } },
-			VmNamedVariableSchema{ StandardMeta::Token::Nft::royalties, VmVariableSchema{ VmType::Int32 } },
-		};
-		owned.ramFields.clear();
-
-		owned.view.seriesMetadata = VmStructSchema{ (uint32_t)owned.seriesFields.size(), owned.seriesFields.data(), VmStructSchema::Flag_None };
-		owned.view.rom = VmStructSchema{ (uint32_t)owned.romFields.size(), owned.romFields.data(), VmStructSchema::Flag_None };
-		owned.view.ram = VmStructSchema{ (uint32_t)owned.ramFields.size(), owned.ramFields.data(), VmStructSchema::Flag_DynamicExtras };
-		return owned;
-	}
-
-	static ByteArray BuildAndSerialize(const TokenSchemas* tokenSchemas)
-	{
-		TokenSchemasOwned owned = tokenSchemas ? TokenSchemasOwned() : PrepareStandardTokenSchemas();
-		ByteArray buffer;
-		WriteView w(buffer);
-		if (tokenSchemas)
-		{
-			Write(*tokenSchemas, w);
-		}
-		else
-		{
-			Write(owned.View(), w);
-		}
-		return buffer;
-	}
-};
-
 struct TokenMetadataBuilder
 {
 private:
+	static std::string TrimWhitespace(const std::string& text)
+	{
+		size_t start = 0;
+		while (start < text.size() && isspace((unsigned char)text[start]))
+		{
+			++start;
+		}
+		size_t end = text.size();
+		while (end > start && isspace((unsigned char)text[end - 1]))
+		{
+			--end;
+		}
+		return text.substr(start, end - start);
+	}
+
+	static std::string TrimEndEquals(const std::string& text)
+	{
+		size_t end = text.size();
+		while (end > 0 && text[end - 1] == '=')
+		{
+			--end;
+		}
+		return text.substr(0, end);
+	}
+
+	static bool IsBase64Char(char c)
+	{
+		return (c >= 'A' && c <= 'Z') ||
+			(c >= 'a' && c <= 'z') ||
+			(c >= '0' && c <= '9') ||
+			c == '+' || c == '/' || c == '=';
+	}
+
 	static bool StartsWithCaseInsensitive(const std::string& text, const std::string& prefix)
 	{
 		if (text.size() < prefix.size())
@@ -367,55 +336,94 @@ private:
 
 	static void ValidateIcon(const std::string& icon)
 	{
-		const std::string trimmed = icon;
+		const std::string trimmed = TrimWhitespace(icon);
 		if (trimmed.empty())
 		{
-			PHANTASMA_EXCEPTION("Token metadata icon must be a base64-encoded data URI (PNG, JPEG, or SVG)");
+			PHANTASMA_EXCEPTION("Token metadata icon must be a base64-encoded data URI (PNG, JPEG, or WebP)");
 		}
 
 		if (!StartsWithCaseInsensitive(trimmed, "data:image/"))
 		{
-			PHANTASMA_EXCEPTION("Token metadata icon must be a base64-encoded data URI (PNG, JPEG, or SVG)");
+			PHANTASMA_EXCEPTION("Token metadata icon must be a base64-encoded data URI (PNG, JPEG, or WebP)");
 		}
 		const auto comma = trimmed.find(',');
 		if (comma == std::string::npos)
 		{
-			PHANTASMA_EXCEPTION("Token metadata icon must be a base64-encoded data URI (PNG, JPEG, or SVG)");
+			PHANTASMA_EXCEPTION("Token metadata icon must be a base64-encoded data URI (PNG, JPEG, or WebP)");
 		}
 		const std::string mimePart = trimmed.substr(0, comma);
 		if (!StartsWithCaseInsensitive(mimePart, "data:image/png;base64") &&
 			!StartsWithCaseInsensitive(mimePart, "data:image/jpeg;base64") &&
-			!StartsWithCaseInsensitive(mimePart, "data:image/svg+xml;base64"))
+			!StartsWithCaseInsensitive(mimePart, "data:image/webp;base64"))
 		{
-			PHANTASMA_EXCEPTION("Token metadata icon must be a base64-encoded data URI (PNG, JPEG, or SVG)");
+			PHANTASMA_EXCEPTION("Token metadata icon must be a base64-encoded data URI (PNG, JPEG, or WebP)");
 		}
 
-		std::string payload = trimmed.substr(comma + 1);
-		while (!payload.empty() && isspace((unsigned char)payload.back()))
-		{
-			payload.pop_back();
-		}
+		std::string payload = TrimWhitespace(trimmed.substr(comma + 1));
 		if (payload.empty())
 		{
-			PHANTASMA_EXCEPTION("Token metadata icon must be a base64-encoded data URI (PNG, JPEG, or SVG)");
+			PHANTASMA_EXCEPTION("Token metadata icon must include a non-empty base64 payload");
 		}
 
-		Base64::Decode(payload.c_str(), (int)payload.size());
+		if ((payload.size() % 4) != 0)
+		{
+			PHANTASMA_EXCEPTION("Token metadata icon payload is not valid base64");
+		}
+		for (const char c : payload)
+		{
+			if (!IsBase64Char(c))
+			{
+				PHANTASMA_EXCEPTION("Token metadata icon payload is not valid base64");
+			}
+		}
+
+		const ByteArray decoded = Base64::Decode(payload.c_str(), (int)payload.size());
+		if (decoded.empty())
+		{
+			PHANTASMA_EXCEPTION("Token metadata icon must include a non-empty base64 payload");
+		}
+
+		const String encoded = Base64::Encode(decoded);
+		const std::string encodedStr(encoded.begin(), encoded.end());
+		if (TrimEndEquals(encodedStr) != TrimEndEquals(payload))
+		{
+			PHANTASMA_EXCEPTION("Token metadata icon payload is not valid base64");
+		}
 	}
 
 public:
 	static ByteArray BuildAndSerialize(const std::vector<std::pair<std::string, std::string>>& metaFields)
 	{
+		const std::vector<std::string> required = { "name", "icon", "url", "description" };
 		std::map<std::string, std::string> lookup;
 		for (const auto& kv : metaFields)
 		{
 			lookup[kv.first] = kv.second;
 		}
-		if (lookup.empty())
+		if (lookup.size() < required.size())
 		{
-			PHANTASMA_EXCEPTION("Metadata is empty");
+			PHANTASMA_EXCEPTION("Token metadata is mandatory");
 		}
-		ValidateIcon(lookup["icon"]);
+		std::vector<std::string> missing;
+		for (const auto& field : required)
+		{
+			auto it = lookup.find(field);
+			if (it == lookup.end() || TrimWhitespace(it->second).empty())
+			{
+				missing.push_back(field);
+			}
+		}
+		if (!missing.empty())
+		{
+			std::string list;
+			for (size_t i = 0; i < missing.size(); ++i)
+			{
+				if (i > 0) list += ", ";
+				list += missing[i];
+			}
+			PHANTASMA_EXCEPTION("Token metadata is missing required fields: " + list);
+		}
+		ValidateIcon(lookup.at("icon"));
 
 		std::vector<std::string> storage;
 		storage.reserve(lookup.size());

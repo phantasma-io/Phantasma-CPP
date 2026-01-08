@@ -840,6 +840,7 @@ struct Transaction
 	String payload;//
 	PHANTASMA_VECTOR<Event> events;//
 	String result;//
+	String debugComment;//
 	String fee;//
 	PHANTASMA_VECTOR<Signature> signatures;//
 	UInt32 expiration;//
@@ -1716,6 +1717,11 @@ PHANTASMA_FUNCTION Transaction PhantasmaJsonAPI::DeserializeTransaction(const JS
 			signaturesVector.push_back(DeserializeSignature(json::IndexArray(signaturesJsonArray, i, jsonErr), jsonErr));
 		}
 	}	
+	String debugComment;
+	if (json::HasField(value, PHANTASMA_LITERAL("debugComment"), jsonErr))
+	{
+		debugComment = json::LookupString(value, PHANTASMA_LITERAL("debugComment"), jsonErr);
+	}
 	return Transaction { 
 		json::LookupString(value, PHANTASMA_LITERAL("hash"), jsonErr), 
 		json::LookupString(value, PHANTASMA_LITERAL("chainAddress"), jsonErr), 
@@ -1726,6 +1732,7 @@ PHANTASMA_FUNCTION Transaction PhantasmaJsonAPI::DeserializeTransaction(const JS
 		json::LookupString(value, PHANTASMA_LITERAL("payload"), jsonErr), 
 		eventsVector, 
 		json::LookupString(value, PHANTASMA_LITERAL("result"), jsonErr), 
+		debugComment,
 		json::LookupString(value, PHANTASMA_LITERAL("fee"), jsonErr), 
 		signaturesVector, 
 		json::LookupUInt32(value, PHANTASMA_LITERAL("expiration"), jsonErr),

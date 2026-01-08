@@ -1,0 +1,52 @@
+set shell := ["bash", "-c"]
+
+[private]
+just:
+    just -l
+
+[group('build')]
+clean:
+	make clean
+
+[group('build')]
+build:
+	make
+
+# Rebuild
+[group('build')]
+rb:
+	just clean && just build
+
+[group('run')]
+r: build
+	./carbon-token-deployment-tool
+
+# Create NFT token
+[group('run')]
+ct: build
+	./carbon-token-deployment-tool --create-token
+
+# Create fungible token
+[group('run')]
+ctf: build
+	./carbon-token-deployment-tool --create-token --token-type=fungible
+
+[group('run')]
+ctd: build
+	./carbon-token-deployment-tool --create-token --dry-run
+
+[group('run')]
+cs: build
+	./carbon-token-deployment-tool --create-series
+
+[group('run')]
+csd: build
+	./carbon-token-deployment-tool --create-series --dry-run
+
+[group('run')]
+mn: build
+	./carbon-token-deployment-tool --mint-nft
+
+[group('run')]
+mnd: build
+	./carbon-token-deployment-tool --mint-nft --dry-run

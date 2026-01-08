@@ -3,6 +3,8 @@
 #error "Configure and include PhantasmaAPI.h first"
 #endif
 
+#include "../Numerics/Base16.h"
+#include <chrono>
 #include "DataBlockchain.h"
 #include "Modules.h"
 
@@ -43,13 +45,36 @@ enum class TokenContract_Methods : uint32_t
 	CreateMintedTokenSeries = 21,
 };
 
-struct TxEnvelope
+struct TokenHelper
 {
-	Blockchain::TxMsg msg{};
-	std::vector<ByteArray> buffers;
+	static Bytes32 GetNftAddress(uint64_t carbonTokenId, uint64_t instanceId)
+	{
+		uint8_t prefix[16] = {};
+		prefix[15] = 1;
 
-	const Blockchain::TxMsg& View() const { return msg; }
+		ByteArray buffer;
+		WriteView w(buffer);
+		Write16(prefix, sizeof(prefix), w);
+		Write8u(carbonTokenId, w);
+		Write8u(instanceId, w);
+		return Bytes32(View(buffer));
+	}
 };
+
+	struct TxEnvelope
+	{
+		phantasma::carbon::Blockchain::TxMsg msg{};
+		std::vector<ByteArray> buffers;
+
+		const phantasma::carbon::Blockchain::TxMsg& View() const { return msg; }
+	};
+
+	inline int64_t GetDefaultExpiry()
+	{
+		// Chain tx queues drop messages with expiry <= now, so default to now+60s like TS/C# helpers.
+		using namespace std::chrono;
+		return duration_cast<milliseconds>(system_clock::now().time_since_epoch()).count() + 60'000;
+	}
 
 struct FeeOptions
 {
@@ -133,23 +158,31 @@ struct CreateTokenTxHelper
 	{
 		const CreateTokenFeeOptions fees = feeOptions ? *feeOptions : CreateTokenFeeOptions();
 		const uint64_t maxGas = fees.CalculateMaxGas(tokenInfo.symbol);
+		const int64_t effectiveExpiry = (expiry == 0) ? GetDefaultExpiry() : expiry;
 
 		TxEnvelope env;
 		env.buffers.push_back(CarbonSerialize(tokenInfo));
 
-		env.msg.type = Blockchain::TxTypes::Call;
-		env.msg.expiry = expiry;
+			env.msg.type = phantasma::carbon::Blockchain::TxTypes::Call;
+		env.msg.expiry = effectiveExpiry;
 		env.msg.maxGas = maxGas;
 		env.msg.maxData = maxData;
 		env.msg.gasFrom = creatorPublicKey;
 		env.msg.payload = SmallString();
-		env.msg.call = Blockchain::TxMsgCall{
+		env.msg.call = phantasma::carbon::Blockchain::TxMsgCall{
 			(uint32_t)ModuleId::Token,
 			(uint32_t)TokenContract_Methods::CreateToken,
 			ByteView{ env.buffers.back().data(), env.buffers.back().size() },
 			{}
 		};
 		return env;
+	}
+
+	static uint32_t ParseResult(const std::string& resultHex)
+	{
+		ByteArray bytes = Base16::Decode(resultHex.c_str(), (int)resultHex.size());
+		ReadView r(bytes.empty() ? nullptr : &bytes.front(), bytes.size());
+		return (uint32_t)Read4u(r);
 	}
 };
 
@@ -159,6 +192,7 @@ struct CreateTokenSeriesTxHelper
 	{
 		const CreateSeriesFeeOptions fees = feeOptions ? *feeOptions : CreateSeriesFeeOptions();
 		const uint64_t maxGas = fees.CalculateMaxGas();
+		const int64_t effectiveExpiry = (expiry == 0) ? GetDefaultExpiry() : expiry;
 
 		TxEnvelope env;
 
@@ -168,19 +202,26 @@ struct CreateTokenSeriesTxHelper
 		Write(seriesInfo, argsWriter);
 		env.buffers.push_back(argsBuffer);
 
-		env.msg.type = Blockchain::TxTypes::Call;
-		env.msg.expiry = expiry;
+		env.msg.type = phantasma::carbon::Blockchain::TxTypes::Call;
+		env.msg.expiry = effectiveExpiry;
 		env.msg.maxGas = maxGas;
 		env.msg.maxData = maxData;
 		env.msg.gasFrom = creatorPublicKey;
 		env.msg.payload = SmallString();
-		env.msg.call = Blockchain::TxMsgCall{
+		env.msg.call = phantasma::carbon::Blockchain::TxMsgCall{
 			(uint32_t)ModuleId::Token,
 			(uint32_t)TokenContract_Methods::CreateTokenSeries,
 			ByteView{ env.buffers.back().data(), env.buffers.back().size() },
 			{}
 		};
 		return env;
+	}
+
+	static uint32_t ParseResult(const std::string& resultHex)
+	{
+		ByteArray bytes = Base16::Decode(resultHex.c_str(), (int)resultHex.size());
+		ReadView r(bytes.empty() ? nullptr : &bytes.front(), bytes.size());
+		return (uint32_t)Read4u(r);
 	}
 };
 
@@ -199,15 +240,16 @@ struct MintNonFungibleTxHelper
 	{
 		const MintNftFeeOptions fees = feeOptions ? *feeOptions : MintNftFeeOptions();
 		const uint64_t maxGas = fees.CalculateMaxGas();
+		const int64_t effectiveExpiry = (expiry == 0) ? GetDefaultExpiry() : expiry;
 
 		TxEnvelope env;
-		env.msg.type = Blockchain::TxTypes::MintNonFungible;
-		env.msg.expiry = expiry;
+		env.msg.type = phantasma::carbon::Blockchain::TxTypes::MintNonFungible;
+		env.msg.expiry = effectiveExpiry;
 		env.msg.maxGas = maxGas;
 		env.msg.maxData = maxData;
 		env.msg.gasFrom = senderPublicKey;
 		env.msg.payload = SmallString();
-		env.msg.mintNonFungible = Blockchain::TxMsgMintNonFungible{
+		env.msg.mintNonFungible = phantasma::carbon::Blockchain::TxMsgMintNonFungible{
 			tokenId,
 			receiverPublicKey,
 			seriesId,
@@ -216,11 +258,26 @@ struct MintNonFungibleTxHelper
 		};
 		return env;
 	}
+
+	static std::vector<Bytes32> ParseResult(uint64_t carbonTokenId, const std::string& resultHex)
+	{
+		ByteArray bytes = Base16::Decode(resultHex.c_str(), (int)resultHex.size());
+		ReadView r(bytes.empty() ? nullptr : &bytes.front(), bytes.size());
+		std::vector<Bytes32> result;
+		const uint32_t count = (uint32_t)Read4u(r);
+		result.reserve(count);
+		for (uint32_t i = 0; i != count; ++i)
+		{
+			const uint64_t instanceId = Read8u(r);
+			result.push_back(TokenHelper::GetNftAddress(carbonTokenId, instanceId));
+		}
+		return result;
+	}
 };
 
-inline ByteArray SignAndSerialize(const TxEnvelope& env, const PhantasmaKeys& keys)
-{
-	return Blockchain::TxMsgSigner::SignAndSerialize(env.msg, keys);
-}
+	inline ByteArray SignAndSerialize(const TxEnvelope& env, const PhantasmaKeys& keys)
+	{
+		return phantasma::carbon::Blockchain::TxMsgSigner::SignAndSerialize(env.msg, keys);
+	}
 
 } // namespace phantasma::carbon

@@ -4,9 +4,11 @@
 #endif
 
 #include <algorithm>
+#include <cctype>
 #include <cstddef>
 #include <cstdint>
 #include <cstring>
+#include <string>
 #include <vector>
 
 #include "Carbon.h"
@@ -92,6 +94,62 @@ enum class VmType : uint8_t
 	Array_Bytes64 = Array | Bytes64,
 	Array_String = Array | String,
 };
+
+inline VmType VmTypeFromString(const std::string& name, bool* outError = nullptr)
+{
+	const auto Lower = [](char c) { return (char)tolower((unsigned char)c); };
+	std::string lowered;
+	lowered.reserve(name.size());
+	for (char c : name)
+	{
+		if (c == ' ' || c == '-')
+			continue;
+		lowered.push_back(Lower(c));
+	}
+
+	const auto Matches = [&](const char* text)
+	{
+		return lowered == text;
+	};
+
+	auto Fail = [&](const char* reason) -> VmType
+	{
+		if (outError)
+		{
+			*outError = true;
+			return VmType::Dynamic;
+		}
+		PHANTASMA_EXCEPTION_MESSAGE("Unknown VmType", reason);
+		return VmType::Dynamic;
+	};
+
+	if (Matches("dynamic")) return VmType::Dynamic;
+	if (Matches("array") || Matches("array_dynamic")) return VmType::Array;
+	if (Matches("bytes")) return VmType::Bytes;
+	if (Matches("struct")) return VmType::Struct;
+	if (Matches("int8")) return VmType::Int8;
+	if (Matches("int16")) return VmType::Int16;
+	if (Matches("int32")) return VmType::Int32;
+	if (Matches("int64")) return VmType::Int64;
+	if (Matches("int256")) return VmType::Int256;
+	if (Matches("bytes16")) return VmType::Bytes16;
+	if (Matches("bytes32")) return VmType::Bytes32;
+	if (Matches("bytes64")) return VmType::Bytes64;
+	if (Matches("string")) return VmType::String;
+	if (Matches("array_bytes")) return VmType::Array_Bytes;
+	if (Matches("array_struct")) return VmType::Array_Struct;
+	if (Matches("array_int8")) return VmType::Array_Int8;
+	if (Matches("array_int16")) return VmType::Array_Int16;
+	if (Matches("array_int32")) return VmType::Array_Int32;
+	if (Matches("array_int64")) return VmType::Array_Int64;
+	if (Matches("array_int256")) return VmType::Array_Int256;
+	if (Matches("array_bytes16")) return VmType::Array_Bytes16;
+	if (Matches("array_bytes32")) return VmType::Array_Bytes32;
+	if (Matches("array_bytes64")) return VmType::Array_Bytes64;
+	if (Matches("array_string")) return VmType::Array_String;
+
+	return Fail(name.c_str());
+}
 
 inline VmType operator|(VmType a, VmType b)
 {

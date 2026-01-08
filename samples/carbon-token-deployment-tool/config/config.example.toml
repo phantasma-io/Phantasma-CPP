@@ -1,0 +1,109 @@
+# Example TOML configuration for carbon-token-deployment-tool-cpp
+#
+# Copy this file to `config.toml` and adjust values as needed.
+# Notes:
+# - Keys use snake_case.
+# - Metadata blocks are JSON strings embedded into TOML triple-quotes.
+# - Keep real private keys out of version control.
+
+# RPC endpoint to use (local node or public node)
+# rpc = "http://localhost:7077/rpc"
+rpc = "https://testnet.phantasma.info/rpc"
+
+# Chain nexus: "mainnet" or "testnet"
+nexus = "testnet"
+
+# Wallet private key in WIF format (leave empty for dry-run)
+wif = ""
+
+# Default token symbol used for create token operations
+symbol = "NFTMY"
+
+# Token type: "nft" or "fungible"
+token_type = "nft"
+
+# Token supply (optional for NFT, required when token_type = "fungible")
+# token_max_supply = 1000000000000
+# fungible_decimals = 8
+
+# Optional: existing Carbon token / series identifiers
+carbon_token_id = 0
+carbon_token_series_id = 0
+
+# Token ROM (HEX-encoded string, optional)
+rom = ""
+
+# Token schemas, fixed on token deployment.
+# If seriesMetadata is empty, it will contain mode and rom fields, cannot be removed.
+# If ram is empty, we use dynamical structure without schema for NFT RAM.
+# Metadata can be moved between seriesMetadata and rom to make it shared.
+# Mandatory fields name, description, imageURL, infoURL, royalties must be availabe either in seriesMetadata or in NFT's rom.
+# Nft's rom will contain rom field which cannot be removed.
+token_schemas="""
+{
+  "seriesMetadata": [
+    { "name": "extraSharedSampleField", "type": "String" }
+  ],
+  "rom": [
+    { "name": "name", "type": "String" },
+    { "name": "description", "type": "String" },
+    { "name": "imageURL", "type": "String" },
+    { "name": "infoURL", "type": "String" },
+    { "name": "royalties", "type": "Int32" },
+    { "name": "extraSampleField", "type": "String" }
+  ],
+  "ram": []
+}
+"""
+
+# Token-level metadata
+token_metadata="""
+{
+  "name": "My test token!",
+  "icon": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAAE0lEQVQImWNgYGD4z8DAwMAAAgAB9HF4YQAAAABJRU5ErkJggg==",
+  "url": "http://example.com",
+  "description": "My test token description"
+}
+"""
+
+# Series shared metadata, if required:
+# Royalties: numeric value - 10000000 = 1%
+#series_metadata="""
+#{
+#  "name": "Test NFT Name",
+#  "description": "Test NFT Description",
+#  "imageURL": "images-assets.nasa.gov/image/PIA13227/PIA13227~orig.jpg",
+#  "infoURL": "https://images.nasa.gov/details/PIA13227",
+#  "royalties": 10000000
+#}
+#"""
+
+# No shared metadata:
+series_metadata="""
+{
+}
+"""
+
+# NFT instance metadata
+# Royalties: numeric value - 10000000 = 1%
+nft_metadata="""
+{
+  "name": "Test NFT Name",
+  "description": "Test NFT Description",
+  "imageURL": "images-assets.nasa.gov/image/PIA13227/PIA13227~orig.jpg",
+  "infoURL": "https://images.nasa.gov/details/PIA13227",
+  "royalties": 10000000
+}
+"""
+
+# Data size limits (numeric)
+create_token_max_data = 1000000000
+create_token_series_max_data = 100000000
+mint_token_max_data = 100000000
+
+# Gas / fee configuration (numeric values)
+gas_fee_base = 10000
+gas_fee_create_token_base = 10000000000
+gas_fee_create_token_symbol = 10000000000
+gas_fee_create_token_series = 2500000000
+gas_fee_multiplier = 10000
