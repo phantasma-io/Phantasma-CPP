@@ -7,6 +7,8 @@
 
      void PhantasmaJsonAPI::MakeGetAccountRequest(JSONBuilder, addressText);
      bool PhantasmaJsonAPI::ParseGetAccountResponse(JSONValue, Account);
+     void PhantasmaJsonAPI::MakeGetAccountsRequest(JSONBuilder, accountText, extended, checkAddressReservedByte);
+     bool PhantasmaJsonAPI::ParseGetAccountsResponse(JSONValue, vector<Account>);
      void PhantasmaJsonAPI::MakeLookUpNameRequest(JSONBuilder, name);
      bool PhantasmaJsonAPI::ParseLookUpNameResponse(JSONValue, String);
      void PhantasmaJsonAPI::MakeGetBlockHeightRequest(JSONBuilder, chainInput);
@@ -15,12 +17,10 @@
      bool PhantasmaJsonAPI::ParseGetBlockTransactionCountByHashResponse(JSONValue, Int32);
      void PhantasmaJsonAPI::MakeGetBlockByHashRequest(JSONBuilder, blockHash);
      bool PhantasmaJsonAPI::ParseGetBlockByHashResponse(JSONValue, Block);
-     void PhantasmaJsonAPI::MakeGetRawBlockByHashRequest(JSONBuilder, blockHash);
-     bool PhantasmaJsonAPI::ParseGetRawBlockByHashResponse(JSONValue, String);
      void PhantasmaJsonAPI::MakeGetBlockByHeightRequest(JSONBuilder, chainInput, height);
      bool PhantasmaJsonAPI::ParseGetBlockByHeightResponse(JSONValue, Block);
-     void PhantasmaJsonAPI::MakeGetRawBlockByHeightRequest(JSONBuilder, chainInput, height);
-     bool PhantasmaJsonAPI::ParseGetRawBlockByHeightResponse(JSONValue, String);
+     void PhantasmaJsonAPI::MakeGetLatestBlockRequest(JSONBuilder, chainInput);
+     bool PhantasmaJsonAPI::ParseGetLatestBlockResponse(JSONValue, Block);
      void PhantasmaJsonAPI::MakeGetTransactionByBlockHashAndIndexRequest(JSONBuilder, blockHash, index);
      bool PhantasmaJsonAPI::ParseGetTransactionByBlockHashAndIndexResponse(JSONValue, Transaction);
      void PhantasmaJsonAPI::MakeGetAddressTransactionsRequest(JSONBuilder, addressText, page, pageSize);
@@ -35,24 +35,44 @@
      bool PhantasmaJsonAPI::ParseInvokeRawScriptResponse(JSONValue, Script);
      void PhantasmaJsonAPI::MakeGetTransactionRequest(JSONBuilder, hashText);
      bool PhantasmaJsonAPI::ParseGetTransactionResponse(JSONValue, Transaction);
-     void PhantasmaJsonAPI::MakeCancelTransactionRequest(JSONBuilder, hashText);
-     bool PhantasmaJsonAPI::ParseCancelTransactionResponse(JSONValue, String);
      void PhantasmaJsonAPI::MakeGetChainsRequest(JSONBuilder);
      bool PhantasmaJsonAPI::ParseGetChainsResponse(JSONValue, vector<Chain>);
-     void PhantasmaJsonAPI::MakeGetTokensRequest(JSONBuilder);
+     void PhantasmaJsonAPI::MakeGetChainRequest(JSONBuilder, name, extended);
+     bool PhantasmaJsonAPI::ParseGetChainResponse(JSONValue, Chain);
+     void PhantasmaJsonAPI::MakeGetNexusRequest(JSONBuilder, extended);
+     bool PhantasmaJsonAPI::ParseGetNexusResponse(JSONValue, Nexus);
+     void PhantasmaJsonAPI::MakeGetOrganizationRequest(JSONBuilder, ID);
+     bool PhantasmaJsonAPI::ParseGetOrganizationResponse(JSONValue, Organization);
+     void PhantasmaJsonAPI::MakeGetOrganizationByNameRequest(JSONBuilder, name, extended);
+     bool PhantasmaJsonAPI::ParseGetOrganizationByNameResponse(JSONValue, Organization);
+     void PhantasmaJsonAPI::MakeGetOrganizationsRequest(JSONBuilder, extended);
+     bool PhantasmaJsonAPI::ParseGetOrganizationsResponse(JSONValue, vector<Organization>);
+     void PhantasmaJsonAPI::MakeGetLeaderboardRequest(JSONBuilder, name);
+     bool PhantasmaJsonAPI::ParseGetLeaderboardResponse(JSONValue, Leaderboard);
+     void PhantasmaJsonAPI::MakeGetTokensRequest(JSONBuilder, extended, ownerAddress);
      bool PhantasmaJsonAPI::ParseGetTokensResponse(JSONValue, vector<Token>);
-     void PhantasmaJsonAPI::MakeGetTokenRequest(JSONBuilder, symbol);
+     void PhantasmaJsonAPI::MakeGetTokenRequest(JSONBuilder, symbol, extended, carbonTokenId);
      bool PhantasmaJsonAPI::ParseGetTokenResponse(JSONValue, Token);
+     void PhantasmaJsonAPI::MakeGetTokenSeriesRequest(JSONBuilder, symbol, carbonTokenId, pageSize, cursor);
+     bool PhantasmaJsonAPI::ParseGetTokenSeriesResponse(JSONValue, CursorPaginatedResult<TokenSeries>);
+     void PhantasmaJsonAPI::MakeGetTokenNFTsRequest(JSONBuilder, carbonTokenId, carbonSeriesId, pageSize, cursor, extended);
+     bool PhantasmaJsonAPI::ParseGetTokenNFTsResponse(JSONValue, CursorPaginatedResult<TokenData>);
      void PhantasmaJsonAPI::MakeGetTokenDataRequest(JSONBuilder, symbol, IDtext);
      bool PhantasmaJsonAPI::ParseGetTokenDataResponse(JSONValue, TokenData);
-     void PhantasmaJsonAPI::MakeGetAppsRequest(JSONBuilder);
-     bool PhantasmaJsonAPI::ParseGetAppsResponse(JSONValue, vector<App>);
-     void PhantasmaJsonAPI::MakeGetTokenTransfersRequest(JSONBuilder, tokenSymbol, page, pageSize);
-     bool PhantasmaJsonAPI::ParseGetTokenTransfersResponse(JSONValue, vector<Transaction>);
-     void PhantasmaJsonAPI::MakeGetTokenTransferCountRequest(JSONBuilder, tokenSymbol);
-     bool PhantasmaJsonAPI::ParseGetTokenTransferCountResponse(JSONValue, Int32);
+     void PhantasmaJsonAPI::MakeGetNFTRequest(JSONBuilder, symbol, IDtext, extended);
+     bool PhantasmaJsonAPI::ParseGetNFTResponse(JSONValue, TokenData);
+     void PhantasmaJsonAPI::MakeGetNFTsRequest(JSONBuilder, symbol, IDtext, extended);
+     bool PhantasmaJsonAPI::ParseGetNFTsResponse(JSONValue, vector<TokenData>);
      void PhantasmaJsonAPI::MakeGetTokenBalanceRequest(JSONBuilder, addressText, tokenSymbol, chainInput);
      bool PhantasmaJsonAPI::ParseGetTokenBalanceResponse(JSONValue, Balance);
+     void PhantasmaJsonAPI::MakeGetAccountFungibleTokensRequest(JSONBuilder, account, tokenSymbol, carbonTokenId, pageSize, cursor, checkAddressReservedByte);
+     bool PhantasmaJsonAPI::ParseGetAccountFungibleTokensResponse(JSONValue, CursorPaginatedResult<Balance>);
+     void PhantasmaJsonAPI::MakeGetAccountNFTsRequest(JSONBuilder, account, tokenSymbol, carbonTokenId, carbonSeriesId, pageSize, cursor, extended, checkAddressReservedByte);
+     bool PhantasmaJsonAPI::ParseGetAccountNFTsResponse(JSONValue, CursorPaginatedResult<TokenData>);
+     void PhantasmaJsonAPI::MakeGetAccountOwnedTokensRequest(JSONBuilder, account, tokenSymbol, carbonTokenId, pageSize, cursor, checkAddressReservedByte);
+     bool PhantasmaJsonAPI::ParseGetAccountOwnedTokensResponse(JSONValue, CursorPaginatedResult<Token>);
+     void PhantasmaJsonAPI::MakeGetAccountOwnedTokenSeriesRequest(JSONBuilder, account, tokenSymbol, carbonTokenId, pageSize, cursor, checkAddressReservedByte);
+     bool PhantasmaJsonAPI::ParseGetAccountOwnedTokenSeriesResponse(JSONValue, CursorPaginatedResult<TokenSeries>);
      void PhantasmaJsonAPI::MakeGetAuctionsCountRequest(JSONBuilder, chainAddressOrName, symbol);
      bool PhantasmaJsonAPI::ParseGetAuctionsCountResponse(JSONValue, Int32);
      void PhantasmaJsonAPI::MakeGetAuctionsRequest(JSONBuilder, chainAddressOrName, symbol, page, pageSize);
@@ -63,14 +83,14 @@
      bool PhantasmaJsonAPI::ParseGetArchiveResponse(JSONValue, Archive);
      void PhantasmaJsonAPI::MakeWriteArchiveRequest(JSONBuilder, hashText, blockIndex, blockContent);
      bool PhantasmaJsonAPI::ParseWriteArchiveResponse(JSONValue, bool);
-     void PhantasmaJsonAPI::MakeGetABIRequest(JSONBuilder, chainAddressOrName, contractName);
-     bool PhantasmaJsonAPI::ParseGetABIResponse(JSONValue, ABIContract);
-     void PhantasmaJsonAPI::MakeRelaySendRequest(JSONBuilder, receiptHex);
-     bool PhantasmaJsonAPI::ParseRelaySendResponse(JSONValue, bool);
-     void PhantasmaJsonAPI::MakeRelayReceiveRequest(JSONBuilder, accountInput);
-     bool PhantasmaJsonAPI::ParseRelayReceiveResponse(JSONValue, vector<Receipt>);
-     void PhantasmaJsonAPI::MakeGetEventsRequest(JSONBuilder, accountInput);
-     bool PhantasmaJsonAPI::ParseGetEventsResponse(JSONValue, vector<Event>);
+     void PhantasmaJsonAPI::MakeReadArchiveRequest(JSONBuilder, hashText, blockIndex);
+     bool PhantasmaJsonAPI::ParseReadArchiveResponse(JSONValue, String);
+     void PhantasmaJsonAPI::MakeGetContractRequest(JSONBuilder, chainAddressOrName, contractName);
+     bool PhantasmaJsonAPI::ParseGetContractResponse(JSONValue, Contract);
+     void PhantasmaJsonAPI::MakeGetContractsRequest(JSONBuilder, chainAddressOrName, extended);
+     bool PhantasmaJsonAPI::ParseGetContractsResponse(JSONValue, vector<Contract>);
+     void PhantasmaJsonAPI::MakeGetContractByAddressRequest(JSONBuilder, chainAddressOrName, contractAddress);
+     bool PhantasmaJsonAPI::ParseGetContractByAddressResponse(JSONValue, Contract);
 
 ------------------------------------------------------------------------------
  High-level API
@@ -81,13 +101,13 @@
 
      PhantasmaAPI phantasmaAPI(httpClient);
      Account = phantasmaAPI.GetAccount(addressText, error);
+     vector<Account> = phantasmaAPI.GetAccounts(accountText, extended, checkAddressReservedByte, error);
      String = phantasmaAPI.LookUpName(name, error);
      Int32 = phantasmaAPI.GetBlockHeight(chainInput, error);
      Int32 = phantasmaAPI.GetBlockTransactionCountByHash(blockHash, error);
      Block = phantasmaAPI.GetBlockByHash(blockHash, error);
-     String = phantasmaAPI.GetRawBlockByHash(blockHash, error);
      Block = phantasmaAPI.GetBlockByHeight(chainInput, height, error);
-     String = phantasmaAPI.GetRawBlockByHeight(chainInput, height, error);
+     Block = phantasmaAPI.GetLatestBlock(chainInput, error);
      Transaction = phantasmaAPI.GetTransactionByBlockHashAndIndex(blockHash, index, error);
      AccountTransactions = phantasmaAPI.GetAddressTransactions(addressText, page, pageSize, error);
      Int32 = phantasmaAPI.GetAddressTransactionCount(addressText, chainInput, error);
@@ -95,24 +115,36 @@
      String = phantasmaAPI.SendCarbonTransaction(txData, error);
      Script = phantasmaAPI.InvokeRawScript(chainInput, scriptData, error);
      Transaction = phantasmaAPI.GetTransaction(hashText, error);
-     String = phantasmaAPI.CancelTransaction(hashText, error);
      vector<Chain> = phantasmaAPI.GetChains(error);
-     vector<Token> = phantasmaAPI.GetTokens(error);
-     Token = phantasmaAPI.GetToken(symbol, error);
+     Chain = phantasmaAPI.GetChain(name, extended, error);
+     Nexus = phantasmaAPI.GetNexus(extended, error);
+     Organization = phantasmaAPI.GetOrganization(ID, error);
+     Organization = phantasmaAPI.GetOrganizationByName(name, extended, error);
+     vector<Organization> = phantasmaAPI.GetOrganizations(extended, error);
+     Leaderboard = phantasmaAPI.GetLeaderboard(name, error);
+     vector<Token> = phantasmaAPI.GetTokens(extended, error);
+     vector<Token> = phantasmaAPI.GetTokens(extended, ownerAddress, error);
+     Token = phantasmaAPI.GetToken(symbol, extended, error);
+     Token = phantasmaAPI.GetToken(symbol, extended, carbonTokenId, error);
+     CursorPaginatedResult<TokenSeries> = phantasmaAPI.GetTokenSeries(symbol, carbonTokenId, pageSize, cursor, error);
+     CursorPaginatedResult<TokenData> = phantasmaAPI.GetTokenNFTs(carbonTokenId, carbonSeriesId, pageSize, cursor, extended, error);
      TokenData = phantasmaAPI.GetTokenData(symbol, IDtext, error);
-     vector<App> = phantasmaAPI.GetApps(error);
-     vector<Transaction> = phantasmaAPI.GetTokenTransfers(tokenSymbol, page, pageSize, error);
-     Int32 = phantasmaAPI.GetTokenTransferCount(tokenSymbol, error);
+     TokenData = phantasmaAPI.GetNFT(symbol, IDtext, extended, error);
+     vector<TokenData> = phantasmaAPI.GetNFTs(symbol, IDtext, extended, error);
      Balance = phantasmaAPI.GetTokenBalance(addressText, tokenSymbol, chainInput, error);
+     CursorPaginatedResult<Balance> = phantasmaAPI.GetAccountFungibleTokens(account, tokenSymbol, carbonTokenId, pageSize, cursor, checkAddressReservedByte, error);
+     CursorPaginatedResult<TokenData> = phantasmaAPI.GetAccountNFTs(account, tokenSymbol, carbonTokenId, carbonSeriesId, pageSize, cursor, extended, checkAddressReservedByte, error);
+     CursorPaginatedResult<Token> = phantasmaAPI.GetAccountOwnedTokens(account, tokenSymbol, carbonTokenId, pageSize, cursor, checkAddressReservedByte, error);
+     CursorPaginatedResult<TokenSeries> = phantasmaAPI.GetAccountOwnedTokenSeries(account, tokenSymbol, carbonTokenId, pageSize, cursor, checkAddressReservedByte, error);
      Int32 = phantasmaAPI.GetAuctionsCount(chainAddressOrName, symbol, error);
      vector<Auction> = phantasmaAPI.GetAuctions(chainAddressOrName, symbol, page, pageSize, error);
      Auction = phantasmaAPI.GetAuction(chainAddressOrName, symbol, IDtext, error);
      Archive = phantasmaAPI.GetArchive(hashText, error);
      bool = phantasmaAPI.WriteArchive(hashText, blockIndex, blockContent, error);
-     ABIContract = phantasmaAPI.GetABI(chainAddressOrName, contractName, error);
-     bool = phantasmaAPI.RelaySend(receiptHex, error);
-     vector<Receipt> = phantasmaAPI.RelayReceive(accountInput, error);
-     vector<Event> = phantasmaAPI.GetEvents(accountInput, error);
+     String = phantasmaAPI.ReadArchive(hashText, blockIndex, error);
+     Contract = phantasmaAPI.GetContract(chainAddressOrName, contractName, error);
+     vector<Contract> = phantasmaAPI.GetContracts(chainAddressOrName, extended, error);
+     Contract = phantasmaAPI.GetContractByAddress(chainAddressOrName, contractAddress, error);
 
 ------------------------------------------------------------------------------
  API configuration
@@ -354,4 +386,3 @@
   |`PHANTASMA_Ed25519_PrivateKeyFromSeed` | Generate a 64 byte public key from a 32 byte seed.            |
   |`PHANTASMA_Ed25519_SignDetached`       | Generate a 64 byte signature from a message and a private key.|
   |`PHANTASMA_Ed25519_ValidateDetached`   | Validate a 64 byte signature using a public key.              |
-

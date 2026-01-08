@@ -12,6 +12,8 @@
 //
 //     void PhantasmaJsonAPI::MakeGetAccountRequest(JSONBuilder, account);
 //     bool PhantasmaJsonAPI::ParseGetAccountResponse(JSONValue, Account);
+//     void PhantasmaJsonAPI::MakeGetAccountsRequest(JSONBuilder, accountText, extended, checkAddressReservedByte);
+//     bool PhantasmaJsonAPI::ParseGetAccountsResponse(JSONValue, vector<Account>);
 //     void PhantasmaJsonAPI::MakeLookUpNameRequest(JSONBuilder, name);
 //     bool PhantasmaJsonAPI::ParseLookUpNameResponse(JSONValue, String);
 //     void PhantasmaJsonAPI::MakeGetBlockHeightRequest(JSONBuilder, chainInput);
@@ -20,12 +22,10 @@
 //     bool PhantasmaJsonAPI::ParseGetBlockTransactionCountByHashResponse(JSONValue, Int32);
 //     void PhantasmaJsonAPI::MakeGetBlockByHashRequest(JSONBuilder, blockHash);
 //     bool PhantasmaJsonAPI::ParseGetBlockByHashResponse(JSONValue, Block);
-//     void PhantasmaJsonAPI::MakeGetRawBlockByHashRequest(JSONBuilder, blockHash);
-//     bool PhantasmaJsonAPI::ParseGetRawBlockByHashResponse(JSONValue, String);
 //     void PhantasmaJsonAPI::MakeGetBlockByHeightRequest(JSONBuilder, chainInput, height);
 //     bool PhantasmaJsonAPI::ParseGetBlockByHeightResponse(JSONValue, Block);
-//     void PhantasmaJsonAPI::MakeGetRawBlockByHeightRequest(JSONBuilder, chainInput, height);
-//     bool PhantasmaJsonAPI::ParseGetRawBlockByHeightResponse(JSONValue, String);
+//     void PhantasmaJsonAPI::MakeGetLatestBlockRequest(JSONBuilder, chainInput);
+//     bool PhantasmaJsonAPI::ParseGetLatestBlockResponse(JSONValue, Block);
 //     void PhantasmaJsonAPI::MakeGetTransactionByBlockHashAndIndexRequest(JSONBuilder, blockHash, index);
 //     bool PhantasmaJsonAPI::ParseGetTransactionByBlockHashAndIndexResponse(JSONValue, Transaction);
 //     void PhantasmaJsonAPI::MakeGetAddressTransactionsRequest(JSONBuilder, account, page, pageSize);
@@ -40,26 +40,44 @@
 //     bool PhantasmaJsonAPI::ParseInvokeRawScriptResponse(JSONValue, Script);
 //     void PhantasmaJsonAPI::MakeGetTransactionRequest(JSONBuilder, hashText);
 //     bool PhantasmaJsonAPI::ParseGetTransactionResponse(JSONValue, Transaction);
-//     void PhantasmaJsonAPI::MakeCancelTransactionRequest(JSONBuilder, hashText);
-//     bool PhantasmaJsonAPI::ParseCancelTransactionResponse(JSONValue, String);
 //     void PhantasmaJsonAPI::MakeGetChainsRequest(JSONBuilder);
 //     bool PhantasmaJsonAPI::ParseGetChainsResponse(JSONValue, vector<Chain>);
+//     void PhantasmaJsonAPI::MakeGetChainRequest(JSONBuilder, name, extended);
+//     bool PhantasmaJsonAPI::ParseGetChainResponse(JSONValue, Chain);
 //     void PhantasmaJsonAPI::MakeGetNexusRequest(JSONBuilder, extended);
 //     bool PhantasmaJsonAPI::ParseGetNexusResponse(JSONValue, Nexus);
 //     void PhantasmaJsonAPI::MakeGetOrganizationRequest(JSONBuilder, ID);
 //     bool PhantasmaJsonAPI::ParseGetOrganizationResponse(JSONValue, Organization);
+//     void PhantasmaJsonAPI::MakeGetOrganizationByNameRequest(JSONBuilder, name, extended);
+//     bool PhantasmaJsonAPI::ParseGetOrganizationByNameResponse(JSONValue, Organization);
+//     void PhantasmaJsonAPI::MakeGetOrganizationsRequest(JSONBuilder, extended);
+//     bool PhantasmaJsonAPI::ParseGetOrganizationsResponse(JSONValue, vector<Organization>);
 //     void PhantasmaJsonAPI::MakeGetLeaderboardRequest(JSONBuilder, name);
 //     bool PhantasmaJsonAPI::ParseGetLeaderboardResponse(JSONValue, Leaderboard);
-//     void PhantasmaJsonAPI::MakeGetTokensRequest(JSONBuilder, extended);
+//     void PhantasmaJsonAPI::MakeGetTokensRequest(JSONBuilder, extended, ownerAddress);
 //     bool PhantasmaJsonAPI::ParseGetTokensResponse(JSONValue, vector<Token>);
-//     void PhantasmaJsonAPI::MakeGetTokenRequest(JSONBuilder, symbol, extended);
+//     void PhantasmaJsonAPI::MakeGetTokenRequest(JSONBuilder, symbol, extended, carbonTokenId);
 //     bool PhantasmaJsonAPI::ParseGetTokenResponse(JSONValue, Token);
+//     void PhantasmaJsonAPI::MakeGetTokenSeriesRequest(JSONBuilder, symbol, carbonTokenId, pageSize, cursor);
+//     bool PhantasmaJsonAPI::ParseGetTokenSeriesResponse(JSONValue, CursorPaginatedResult<TokenSeries>);
+//     void PhantasmaJsonAPI::MakeGetTokenNFTsRequest(JSONBuilder, carbonTokenId, carbonSeriesId, pageSize, cursor, extended);
+//     bool PhantasmaJsonAPI::ParseGetTokenNFTsResponse(JSONValue, CursorPaginatedResult<TokenData>);
 //     void PhantasmaJsonAPI::MakeGetTokenDataRequest(JSONBuilder, symbol, IDtext);
 //     bool PhantasmaJsonAPI::ParseGetTokenDataResponse(JSONValue, TokenData);
 //     void PhantasmaJsonAPI::MakeGetNFTRequest(JSONBuilder, symbol, IDtext, extended);
 //     bool PhantasmaJsonAPI::ParseGetNFTResponse(JSONValue, TokenData);
+//     void PhantasmaJsonAPI::MakeGetNFTsRequest(JSONBuilder, symbol, IDtext, extended);
+//     bool PhantasmaJsonAPI::ParseGetNFTsResponse(JSONValue, vector<TokenData>);
 //     void PhantasmaJsonAPI::MakeGetTokenBalanceRequest(JSONBuilder, account, tokenSymbol, chainInput);
 //     bool PhantasmaJsonAPI::ParseGetTokenBalanceResponse(JSONValue, Balance);
+//     void PhantasmaJsonAPI::MakeGetAccountFungibleTokensRequest(JSONBuilder, account, tokenSymbol, carbonTokenId, pageSize, cursor, checkAddressReservedByte);
+//     bool PhantasmaJsonAPI::ParseGetAccountFungibleTokensResponse(JSONValue, CursorPaginatedResult<Balance>);
+//     void PhantasmaJsonAPI::MakeGetAccountNFTsRequest(JSONBuilder, account, tokenSymbol, carbonTokenId, carbonSeriesId, pageSize, cursor, extended, checkAddressReservedByte);
+//     bool PhantasmaJsonAPI::ParseGetAccountNFTsResponse(JSONValue, CursorPaginatedResult<TokenData>);
+//     void PhantasmaJsonAPI::MakeGetAccountOwnedTokensRequest(JSONBuilder, account, tokenSymbol, carbonTokenId, pageSize, cursor, checkAddressReservedByte);
+//     bool PhantasmaJsonAPI::ParseGetAccountOwnedTokensResponse(JSONValue, CursorPaginatedResult<Token>);
+//     void PhantasmaJsonAPI::MakeGetAccountOwnedTokenSeriesRequest(JSONBuilder, account, tokenSymbol, carbonTokenId, pageSize, cursor, checkAddressReservedByte);
+//     bool PhantasmaJsonAPI::ParseGetAccountOwnedTokenSeriesResponse(JSONValue, CursorPaginatedResult<TokenSeries>);
 //     void PhantasmaJsonAPI::MakeGetAuctionsCountRequest(JSONBuilder, chainAddressOrName, symbol);
 //     bool PhantasmaJsonAPI::ParseGetAuctionsCountResponse(JSONValue, Int32);
 //     void PhantasmaJsonAPI::MakeGetAuctionsRequest(JSONBuilder, chainAddressOrName, symbol, page, pageSize);
@@ -74,22 +92,10 @@
 //     bool PhantasmaJsonAPI::ParseReadArchiveResponse(JSONValue, String);
 //     void PhantasmaJsonAPI::MakeGetContractRequest(JSONBuilder, chainAddressOrName, contractName);
 //     bool PhantasmaJsonAPI::ParseGetContractResponse(JSONValue, Contract);
-//     void PhantasmaJsonAPI::MakeGetPeersRequest(JSONBuilder);
-//     bool PhantasmaJsonAPI::ParseGetPeersResponse(JSONValue, vector<Peer>);
-//     void PhantasmaJsonAPI::MakeRelaySendRequest(JSONBuilder, receiptHex);
-//     bool PhantasmaJsonAPI::ParseRelaySendResponse(JSONValue, bool);
-//     void PhantasmaJsonAPI::MakeRelayReceiveRequest(JSONBuilder, account);
-//     bool PhantasmaJsonAPI::ParseRelayReceiveResponse(JSONValue, vector<Receipt>);
-//     void PhantasmaJsonAPI::MakeGetEventsRequest(JSONBuilder, account);
-//     bool PhantasmaJsonAPI::ParseGetEventsResponse(JSONValue, vector<Event>);
-//     void PhantasmaJsonAPI::MakeGetPlatformsRequest(JSONBuilder);
-//     bool PhantasmaJsonAPI::ParseGetPlatformsResponse(JSONValue, vector<Platform>);
-//     void PhantasmaJsonAPI::MakeGetValidatorsRequest(JSONBuilder);
-//     bool PhantasmaJsonAPI::ParseGetValidatorsResponse(JSONValue, vector<Validator>);
-//     void PhantasmaJsonAPI::MakeSettleSwapRequest(JSONBuilder, sourcePlatform, destPlatform, hashText);
-//     bool PhantasmaJsonAPI::ParseSettleSwapResponse(JSONValue, String);
-//     void PhantasmaJsonAPI::MakeGetSwapsForAddressRequest(JSONBuilder, account);
-//     bool PhantasmaJsonAPI::ParseGetSwapsForAddressResponse(JSONValue, vector<Swap>);
+//     void PhantasmaJsonAPI::MakeGetContractsRequest(JSONBuilder, chainAddressOrName, extended);
+//     bool PhantasmaJsonAPI::ParseGetContractsResponse(JSONValue, vector<Contract>);
+//     void PhantasmaJsonAPI::MakeGetContractByAddressRequest(JSONBuilder, chainAddressOrName, contractAddress);
+//     bool PhantasmaJsonAPI::ParseGetContractByAddressResponse(JSONValue, Contract);
 //
 //------------------------------------------------------------------------------
 // High-level API
@@ -100,13 +106,13 @@
 //
 //     PhantasmaAPI phantasmaAPI(httpClient);
 //     Account = phantasmaAPI.GetAccount(account, error);
+//     vector<Account> = phantasmaAPI.GetAccounts(accountText, extended, checkAddressReservedByte, error);
 //     String = phantasmaAPI.LookUpName(name, error);
 //     Int32 = phantasmaAPI.GetBlockHeight(chainInput, error);
 //     Int32 = phantasmaAPI.GetBlockTransactionCountByHash(blockHash, error);
 //     Block = phantasmaAPI.GetBlockByHash(blockHash, error);
-//     String = phantasmaAPI.GetRawBlockByHash(blockHash, error);
 //     Block = phantasmaAPI.GetBlockByHeight(chainInput, height, error);
-//     String = phantasmaAPI.GetRawBlockByHeight(chainInput, height, error);
+//     Block = phantasmaAPI.GetLatestBlock(chainInput, error);
 //     Transaction = phantasmaAPI.GetTransactionByBlockHashAndIndex(blockHash, index, error);
 //     AccountTransactions = phantasmaAPI.GetAddressTransactions(account, page, pageSize, error);
 //     Int32 = phantasmaAPI.GetAddressTransactionCount(account, chainInput, error);
@@ -114,16 +120,27 @@
 //     String = phantasmaAPI.SendCarbonTransaction(txData, error);
 //     Script = phantasmaAPI.InvokeRawScript(chainInput, scriptData, error);
 //     Transaction = phantasmaAPI.GetTransaction(hashText, error);
-//     String = phantasmaAPI.CancelTransaction(hashText, error);
 //     vector<Chain> = phantasmaAPI.GetChains(error);
+//     Chain = phantasmaAPI.GetChain(name, extended, error);
 //     Nexus = phantasmaAPI.GetNexus(extended, error);
 //     Organization = phantasmaAPI.GetOrganization(ID, error);
+//     Organization = phantasmaAPI.GetOrganizationByName(name, extended, error);
+//     vector<Organization> = phantasmaAPI.GetOrganizations(extended, error);
 //     Leaderboard = phantasmaAPI.GetLeaderboard(name, error);
 //     vector<Token> = phantasmaAPI.GetTokens(extended, error);
+//     vector<Token> = phantasmaAPI.GetTokens(extended, ownerAddress, error);
 //     Token = phantasmaAPI.GetToken(symbol, extended, error);
+//     Token = phantasmaAPI.GetToken(symbol, extended, carbonTokenId, error);
+//     CursorPaginatedResult<TokenSeries> = phantasmaAPI.GetTokenSeries(symbol, carbonTokenId, pageSize, cursor, error);
+//     CursorPaginatedResult<TokenData> = phantasmaAPI.GetTokenNFTs(carbonTokenId, carbonSeriesId, pageSize, cursor, extended, error);
 //     TokenData = phantasmaAPI.GetTokenData(symbol, IDtext, error);
 //     TokenData = phantasmaAPI.GetNFT(symbol, IDtext, extended, error);
+//     vector<TokenData> = phantasmaAPI.GetNFTs(symbol, IDtext, extended, error);
 //     Balance = phantasmaAPI.GetTokenBalance(account, tokenSymbol, chainInput, error);
+//     CursorPaginatedResult<Balance> = phantasmaAPI.GetAccountFungibleTokens(account, tokenSymbol, carbonTokenId, pageSize, cursor, checkAddressReservedByte, error);
+//     CursorPaginatedResult<TokenData> = phantasmaAPI.GetAccountNFTs(account, tokenSymbol, carbonTokenId, carbonSeriesId, pageSize, cursor, extended, checkAddressReservedByte, error);
+//     CursorPaginatedResult<Token> = phantasmaAPI.GetAccountOwnedTokens(account, tokenSymbol, carbonTokenId, pageSize, cursor, checkAddressReservedByte, error);
+//     CursorPaginatedResult<TokenSeries> = phantasmaAPI.GetAccountOwnedTokenSeries(account, tokenSymbol, carbonTokenId, pageSize, cursor, checkAddressReservedByte, error);
 //     Int32 = phantasmaAPI.GetAuctionsCount(chainAddressOrName, symbol, error);
 //     vector<Auction> = phantasmaAPI.GetAuctions(chainAddressOrName, symbol, page, pageSize, error);
 //     Auction = phantasmaAPI.GetAuction(chainAddressOrName, symbol, IDtext, error);
@@ -131,14 +148,8 @@
 //     bool = phantasmaAPI.WriteArchive(hashText, blockIndex, blockContent, error);
 //     String = phantasmaAPI.ReadArchive(hashText, blockIndex, error);
 //     Contract = phantasmaAPI.GetContract(chainAddressOrName, contractName, error);
-//     vector<Peer> = phantasmaAPI.GetPeers(error);
-//     bool = phantasmaAPI.RelaySend(receiptHex, error);
-//     vector<Receipt> = phantasmaAPI.RelayReceive(account, error);
-//     vector<Event> = phantasmaAPI.GetEvents(account, error);
-//     vector<Platform> = phantasmaAPI.GetPlatforms(error);
-//     vector<Validator> = phantasmaAPI.GetValidators(error);
-//     String = phantasmaAPI.SettleSwap(sourcePlatform, destPlatform, hashText, error);
-//     vector<Swap> = phantasmaAPI.GetSwapsForAddress(account, error);
+//     vector<Contract> = phantasmaAPI.GetContracts(chainAddressOrName, extended, error);
+//     Contract = phantasmaAPI.GetContractByAddress(chainAddressOrName, contractAddress, error);
 //
 //------------------------------------------------------------------------------
 // API configuration
@@ -868,6 +879,13 @@ struct Paginated
 	JSONValue result;//
 };
 
+template<class T>
+struct CursorPaginatedResult
+{
+	PHANTASMA_VECTOR<T> result;//
+	String cursor;//
+};
+
 struct Block
 {
 	String hash;//
@@ -1083,6 +1101,9 @@ public:
 	// Returns the account name and balance of given address. 
 	static void MakeGetAccountRequest(JSONBuilder&, const Char* account);
 	static bool ParseGetAccountResponse(const JSONValue&, Account& out, PhantasmaError* err=0);
+	// Returns data about several accounts. 
+	static void MakeGetAccountsRequest(JSONBuilder&, const Char* accountText, bool extended, bool checkAddressReservedByte);
+	static bool ParseGetAccountsResponse(const JSONValue&, PHANTASMA_VECTOR<Account>& out, PhantasmaError* err=0);
 	// Returns the address that owns a given name. 
 	static void MakeLookUpNameRequest(JSONBuilder&, const Char* name);
 	static bool ParseLookUpNameResponse(const JSONValue&, String& out, PhantasmaError* err=0);
@@ -1095,15 +1116,12 @@ public:
 	// Returns information about a block by hash. 
 	static void MakeGetBlockByHashRequest(JSONBuilder&, const Char* blockHash);
 	static bool ParseGetBlockByHashResponse(const JSONValue&, Block& out, PhantasmaError* err=0);
-	// Returns a serialized string, containing information about a block by hash. 
-	static void MakeGetRawBlockByHashRequest(JSONBuilder&, const Char* blockHash);
-	static bool ParseGetRawBlockByHashResponse(const JSONValue&, String& out, PhantasmaError* err=0);
 	// Returns information about a block by height and chain. 
 	static void MakeGetBlockByHeightRequest(JSONBuilder&, const Char* chainInput, const Char* height);
 	static bool ParseGetBlockByHeightResponse(const JSONValue&, Block& out, PhantasmaError* err=0);
-	// Returns a serialized string, in hex format, containing information about a block by height and chain. 
-	static void MakeGetRawBlockByHeightRequest(JSONBuilder&, const Char* chainInput, const Char* height);
-	static bool ParseGetRawBlockByHeightResponse(const JSONValue&, String& out, PhantasmaError* err=0);
+	// Returns information about the latest block in a chain. 
+	static void MakeGetLatestBlockRequest(JSONBuilder&, const Char* chainInput);
+	static bool ParseGetLatestBlockResponse(const JSONValue&, Block& out, PhantasmaError* err=0);
 	// Returns the information about a transaction requested by a block hash and transaction index. 
 	static void MakeGetTransactionByBlockHashAndIndexRequest(JSONBuilder&, const Char* blockHash, Int32 index);
 	static bool ParseGetTransactionByBlockHashAndIndexResponse(const JSONValue&, Transaction& out, PhantasmaError* err=0);
@@ -1125,36 +1143,63 @@ public:
 	// Returns information about a transaction by hash. 
 	static void MakeGetTransactionRequest(JSONBuilder&, const Char* hashText);
 	static bool ParseGetTransactionResponse(const JSONValue&, Transaction& out, PhantasmaError* err=0);
-	// Removes a pending transaction from the mempool. 
-	static void MakeCancelTransactionRequest(JSONBuilder&, const Char* hashText);
-	static bool ParseCancelTransactionResponse(const JSONValue&, String& out, PhantasmaError* err=0);
 	// Returns an array of all chains deployed in Phantasma. 
 	static void MakeGetChainsRequest(JSONBuilder&);
 	static bool ParseGetChainsResponse(const JSONValue&, PHANTASMA_VECTOR<Chain>& out, PhantasmaError* err=0);
+	// Returns info about a specific chain. 
+	static void MakeGetChainRequest(JSONBuilder&, const Char* name, bool extended);
+	static bool ParseGetChainResponse(const JSONValue&, Chain& out, PhantasmaError* err=0);
 	// Returns info about the nexus. 
 	static void MakeGetNexusRequest(JSONBuilder&, bool extended);
 	static bool ParseGetNexusResponse(const JSONValue&, Nexus& out, PhantasmaError* err=0);
 	// Returns info about an organization. 
 	static void MakeGetOrganizationRequest(JSONBuilder&, const Char* ID);
 	static bool ParseGetOrganizationResponse(const JSONValue&, Organization& out, PhantasmaError* err=0);
+	// Returns info about an organization by name. 
+	static void MakeGetOrganizationByNameRequest(JSONBuilder&, const Char* name, bool extended);
+	static bool ParseGetOrganizationByNameResponse(const JSONValue&, Organization& out, PhantasmaError* err=0);
+	// Returns all organizations deployed in Phantasma. 
+	static void MakeGetOrganizationsRequest(JSONBuilder&, bool extended);
+	static bool ParseGetOrganizationsResponse(const JSONValue&, PHANTASMA_VECTOR<Organization>& out, PhantasmaError* err=0);
 	// Returns content of a Phantasma leaderboard. 
 	static void MakeGetLeaderboardRequest(JSONBuilder&, const Char* name);
 	static bool ParseGetLeaderboardResponse(const JSONValue&, Leaderboard& out, PhantasmaError* err=0);
 	// Returns an array of tokens deployed in Phantasma. 
-	static void MakeGetTokensRequest(JSONBuilder&, bool extended);
+	static void MakeGetTokensRequest(JSONBuilder&, bool extended, const Char* ownerAddress = nullptr);
 	static bool ParseGetTokensResponse(const JSONValue&, PHANTASMA_VECTOR<Token>& out, PhantasmaError* err=0);
 	// Returns info about a specific token deployed in Phantasma. 
-	static void MakeGetTokenRequest(JSONBuilder&, const Char* symbol, bool extended);
+	static void MakeGetTokenRequest(JSONBuilder&, const Char* symbol, bool extended, UInt64 carbonTokenId = 0);
 	static bool ParseGetTokenResponse(const JSONValue&, Token& out, PhantasmaError* err=0);
+	// Returns list of series for a specific token (cursor pagination). 
+	static void MakeGetTokenSeriesRequest(JSONBuilder&, const Char* symbol, UInt64 carbonTokenId, UInt32 pageSize, const Char* cursor);
+	static bool ParseGetTokenSeriesResponse(const JSONValue&, CursorPaginatedResult<TokenSeries>& out, PhantasmaError* err=0);
+	// Returns an array of NFTs for a token (cursor pagination). 
+	static void MakeGetTokenNFTsRequest(JSONBuilder&, UInt64 carbonTokenId, UInt32 carbonSeriesId, UInt32 pageSize, const Char* cursor, bool extended);
+	static bool ParseGetTokenNFTsResponse(const JSONValue&, CursorPaginatedResult<TokenData>& out, PhantasmaError* err=0);
 	// Returns data of a non-fungible token, in hexadecimal format. 
 	static void MakeGetTokenDataRequest(JSONBuilder&, const Char* symbol, const Char* IDtext);
 	static bool ParseGetTokenDataResponse(const JSONValue&, TokenData& out, PhantasmaError* err=0);
 	// Returns data of a non-fungible token, in hexadecimal format. 
 	static void MakeGetNFTRequest(JSONBuilder&, const Char* symbol, const Char* IDtext, bool extended);
 	static bool ParseGetNFTResponse(const JSONValue&, TokenData& out, PhantasmaError* err=0);
+	// Returns data of non-fungible tokens by ID list. 
+	static void MakeGetNFTsRequest(JSONBuilder&, const Char* symbol, const Char* IDtext, bool extended);
+	static bool ParseGetNFTsResponse(const JSONValue&, PHANTASMA_VECTOR<TokenData>& out, PhantasmaError* err=0);
 	// Returns the balance for a specific token and chain, given an address. 
 	static void MakeGetTokenBalanceRequest(JSONBuilder&, const Char* account, const Char* tokenSymbol, const Char* chainInput);
 	static bool ParseGetTokenBalanceResponse(const JSONValue&, Balance& out, PhantasmaError* err=0);
+	// Returns fungible token balances owned by an address (cursor pagination). 
+	static void MakeGetAccountFungibleTokensRequest(JSONBuilder&, const Char* account, const Char* tokenSymbol, UInt64 carbonTokenId, UInt32 pageSize, const Char* cursor, bool checkAddressReservedByte);
+	static bool ParseGetAccountFungibleTokensResponse(const JSONValue&, CursorPaginatedResult<Balance>& out, PhantasmaError* err=0);
+	// Returns NFTs owned by an address (cursor pagination). 
+	static void MakeGetAccountNFTsRequest(JSONBuilder&, const Char* account, const Char* tokenSymbol, UInt64 carbonTokenId, UInt32 carbonSeriesId, UInt32 pageSize, const Char* cursor, bool extended, bool checkAddressReservedByte);
+	static bool ParseGetAccountNFTsResponse(const JSONValue&, CursorPaginatedResult<TokenData>& out, PhantasmaError* err=0);
+	// Returns NFT tokens for which the account owns at least one NFT instance (cursor pagination). 
+	static void MakeGetAccountOwnedTokensRequest(JSONBuilder&, const Char* account, const Char* tokenSymbol, UInt64 carbonTokenId, UInt32 pageSize, const Char* cursor, bool checkAddressReservedByte);
+	static bool ParseGetAccountOwnedTokensResponse(const JSONValue&, CursorPaginatedResult<Token>& out, PhantasmaError* err=0);
+	// Returns NFT series for which the account owns at least one NFT instance (cursor pagination). 
+	static void MakeGetAccountOwnedTokenSeriesRequest(JSONBuilder&, const Char* account, const Char* tokenSymbol, UInt64 carbonTokenId, UInt32 pageSize, const Char* cursor, bool checkAddressReservedByte);
+	static bool ParseGetAccountOwnedTokenSeriesResponse(const JSONValue&, CursorPaginatedResult<TokenSeries>& out, PhantasmaError* err=0);
 	// Returns the number of active auctions. 
 	static void MakeGetAuctionsCountRequest(JSONBuilder&, const Char* chainAddressOrName, const Char* symbol);
 	static bool ParseGetAuctionsCountResponse(const JSONValue&, Int32& out, PhantasmaError* err=0);
@@ -1176,30 +1221,12 @@ public:
 	// Returns the ABI interface of specific contract. 
 	static void MakeGetContractRequest(JSONBuilder&, const Char* chainAddressOrName, const Char* contractName);
 	static bool ParseGetContractResponse(const JSONValue&, Contract& out, PhantasmaError* err=0);
-	// Returns list of known peers. 
-	static void MakeGetPeersRequest(JSONBuilder&);
-	static bool ParseGetPeersResponse(const JSONValue&, PHANTASMA_VECTOR<Peer>& out, PhantasmaError* err=0);
-	// Writes a message to the relay network. 
-	static void MakeRelaySendRequest(JSONBuilder&, const Char* receiptHex);
-	static bool ParseRelaySendResponse(const JSONValue&, bool& out, PhantasmaError* err=0);
-	// Receives messages from the relay network. 
-	static void MakeRelayReceiveRequest(JSONBuilder&, const Char* account);
-	static bool ParseRelayReceiveResponse(const JSONValue&, PHANTASMA_VECTOR<Receipt>& out, PhantasmaError* err=0);
-	// Reads pending messages from the relay network. 
-	static void MakeGetEventsRequest(JSONBuilder&, const Char* account);
-	static bool ParseGetEventsResponse(const JSONValue&, PHANTASMA_VECTOR<Event>& out, PhantasmaError* err=0);
-	// Returns an array of available interop platforms. 
-	static void MakeGetPlatformsRequest(JSONBuilder&);
-	static bool ParseGetPlatformsResponse(const JSONValue&, PHANTASMA_VECTOR<Platform>& out, PhantasmaError* err=0);
-	// Returns an array of available validators. 
-	static void MakeGetValidatorsRequest(JSONBuilder&);
-	static bool ParseGetValidatorsResponse(const JSONValue&, PHANTASMA_VECTOR<Validator>& out, PhantasmaError* err=0);
-	// Tries to settle a pending swap for a specific hash. 
-	static void MakeSettleSwapRequest(JSONBuilder&, const Char* sourcePlatform, const Char* destPlatform, const Char* hashText);
-	static bool ParseSettleSwapResponse(const JSONValue&, String& out, PhantasmaError* err=0);
-	// Returns platform swaps for a specific address. 
-	static void MakeGetSwapsForAddressRequest(JSONBuilder&, const Char* account);
-	static bool ParseGetSwapsForAddressResponse(const JSONValue&, PHANTASMA_VECTOR<Swap>& out, PhantasmaError* err=0);
+	// Returns the ABI interface of specific contract (list). 
+	static void MakeGetContractsRequest(JSONBuilder&, const Char* chainAddressOrName, bool extended);
+	static bool ParseGetContractsResponse(const JSONValue&, PHANTASMA_VECTOR<Contract>& out, PhantasmaError* err=0);
+	// Returns the ABI interface of specific contract by address. 
+	static void MakeGetContractByAddressRequest(JSONBuilder&, const Char* chainAddressOrName, const Char* contractAddress);
+	static bool ParseGetContractByAddressResponse(const JSONValue&, Contract& out, PhantasmaError* err=0);
 	
 
 //private:
@@ -1266,6 +1293,8 @@ public:
 
 	// Returns the account name and balance of given address. 
 	Account GetAccount(const Char* account, PhantasmaError* out_error = nullptr);
+	// Returns data about several accounts. 
+	PHANTASMA_VECTOR<Account> GetAccounts(const Char* accountText, bool extended, bool checkAddressReservedByte, PhantasmaError* out_error = nullptr);
 	// Returns the address that owns a given name. 
 	String LookUpName(const Char* name, PhantasmaError* out_error = nullptr);
 	// Returns the height of a chain. 
@@ -1274,12 +1303,10 @@ public:
 	Int32 GetBlockTransactionCountByHash(const Char* blockHash, PhantasmaError* out_error = nullptr);
 	// Returns information about a block by hash. 
 	Block GetBlockByHash(const Char* blockHash, PhantasmaError* out_error = nullptr);
-	// Returns a serialized string, containing information about a block by hash. 
-	String GetRawBlockByHash(const Char* blockHash, PhantasmaError* out_error = nullptr);
 	// Returns information about a block by height and chain. 
 	Block GetBlockByHeight(const Char* chainInput, const Char* height, PhantasmaError* out_error = nullptr);
-	// Returns a serialized string, in hex format, containing information about a block by height and chain. 
-	String GetRawBlockByHeight(const Char* chainInput, const Char* height, PhantasmaError* out_error = nullptr);
+	// Returns information about the latest block in a chain. 
+	Block GetLatestBlock(const Char* chainInput, PhantasmaError* out_error = nullptr);
 	// Returns the information about a transaction requested by a block hash and transaction index. 
 	Transaction GetTransactionByBlockHashAndIndex(const Char* blockHash, Int32 index, PhantasmaError* out_error = nullptr);
 	// Returns last X transactions of given address. (paginated call)
@@ -1294,26 +1321,48 @@ public:
 	Script InvokeRawScript(const Char* chainInput, const Char* scriptData, PhantasmaError* out_error = nullptr);
 	// Returns information about a transaction by hash. 
 	Transaction GetTransaction(const Char* hashText, PhantasmaError* out_error = nullptr);
-	// Removes a pending transaction from the mempool. 
-	String CancelTransaction(const Char* hashText, PhantasmaError* out_error = nullptr);
 	// Returns an array of all chains deployed in Phantasma. 
 	PHANTASMA_VECTOR<Chain> GetChains(PhantasmaError* out_error = nullptr);
+	// Returns info about a specific chain. 
+	Chain GetChain(const Char* name, bool extended, PhantasmaError* out_error = nullptr);
 	// Returns info about the nexus. 
 	Nexus GetNexus(bool extended, PhantasmaError* out_error = nullptr);
 	// Returns info about an organization. 
 	Organization GetOrganization(const Char* ID, PhantasmaError* out_error = nullptr);
+	// Returns info about an organization by name. 
+	Organization GetOrganizationByName(const Char* name, bool extended, PhantasmaError* out_error = nullptr);
+	// Returns info about all organizations. 
+	PHANTASMA_VECTOR<Organization> GetOrganizations(bool extended, PhantasmaError* out_error = nullptr);
 	// Returns content of a Phantasma leaderboard. 
 	Leaderboard GetLeaderboard(const Char* name, PhantasmaError* out_error = nullptr);
 	// Returns an array of tokens deployed in Phantasma. 
 	PHANTASMA_VECTOR<Token> GetTokens(bool extended, PhantasmaError* out_error = nullptr);
+	// Returns an array of tokens deployed in Phantasma filtered by owner address. 
+	PHANTASMA_VECTOR<Token> GetTokens(bool extended, const Char* ownerAddress, PhantasmaError* out_error = nullptr);
 	// Returns info about a specific token deployed in Phantasma. 
 	Token GetToken(const Char* symbol, bool extended, PhantasmaError* out_error = nullptr);
+	// Returns info about a specific token by symbol or carbon token id. 
+	Token GetToken(const Char* symbol, bool extended, UInt64 carbonTokenId, PhantasmaError* out_error = nullptr);
+	// Returns list of series for a specific token (cursor pagination). 
+	CursorPaginatedResult<TokenSeries> GetTokenSeries(const Char* symbol, UInt64 carbonTokenId, UInt32 pageSize, const Char* cursor, PhantasmaError* out_error = nullptr);
+	// Returns an array of NFTs for a token (cursor pagination). 
+	CursorPaginatedResult<TokenData> GetTokenNFTs(UInt64 carbonTokenId, UInt32 carbonSeriesId, UInt32 pageSize, const Char* cursor, bool extended, PhantasmaError* out_error = nullptr);
 	// Returns data of a non-fungible token, in hexadecimal format. 
 	TokenData GetTokenData(const Char* symbol, const Char* IDtext, PhantasmaError* out_error = nullptr);
 	// Returns data of a non-fungible token, in hexadecimal format. 
 	TokenData GetNFT(const Char* symbol, const Char* IDtext, bool extended, PhantasmaError* out_error = nullptr);
+	// Returns data of non-fungible tokens by ID list. 
+	PHANTASMA_VECTOR<TokenData> GetNFTs(const Char* symbol, const Char* IDtext, bool extended, PhantasmaError* out_error = nullptr);
 	// Returns the balance for a specific token and chain, given an address. 
 	Balance GetTokenBalance(const Char* account, const Char* tokenSymbol, const Char* chainInput, PhantasmaError* out_error = nullptr);
+	// Returns fungible token balances owned by an address (cursor pagination). 
+	CursorPaginatedResult<Balance> GetAccountFungibleTokens(const Char* account, const Char* tokenSymbol, UInt64 carbonTokenId, UInt32 pageSize, const Char* cursor, bool checkAddressReservedByte, PhantasmaError* out_error = nullptr);
+	// Returns NFTs owned by an address (cursor pagination). 
+	CursorPaginatedResult<TokenData> GetAccountNFTs(const Char* account, const Char* tokenSymbol, UInt64 carbonTokenId, UInt32 carbonSeriesId, UInt32 pageSize, const Char* cursor, bool extended, bool checkAddressReservedByte, PhantasmaError* out_error = nullptr);
+	// Returns NFT tokens for which the account owns at least one NFT instance (cursor pagination). 
+	CursorPaginatedResult<Token> GetAccountOwnedTokens(const Char* account, const Char* tokenSymbol, UInt64 carbonTokenId, UInt32 pageSize, const Char* cursor, bool checkAddressReservedByte, PhantasmaError* out_error = nullptr);
+	// Returns NFT series for which the account owns at least one NFT instance (cursor pagination). 
+	CursorPaginatedResult<TokenSeries> GetAccountOwnedTokenSeries(const Char* account, const Char* tokenSymbol, UInt64 carbonTokenId, UInt32 pageSize, const Char* cursor, bool checkAddressReservedByte, PhantasmaError* out_error = nullptr);
 	// Returns the number of active auctions. 
 	Int32 GetAuctionsCount(const Char* chainAddressOrName, const Char* symbol, PhantasmaError* out_error = nullptr);
 	// Returns the auctions available in the market. (paginated call)
@@ -1328,22 +1377,10 @@ public:
 	String ReadArchive(const Char* hashText, Int32 blockIndex, PhantasmaError* out_error = nullptr);
 	// Returns the ABI interface of specific contract. 
 	Contract GetContract(const Char* chainAddressOrName, const Char* contractName, PhantasmaError* out_error = nullptr);
-	// Returns list of known peers. 
-	PHANTASMA_VECTOR<Peer> GetPeers(PhantasmaError* out_error = nullptr);
-	// Writes a message to the relay network. 
-	bool RelaySend(const Char* receiptHex, PhantasmaError* out_error = nullptr);
-	// Receives messages from the relay network. 
-	PHANTASMA_VECTOR<Receipt> RelayReceive(const Char* account, PhantasmaError* out_error = nullptr);
-	// Reads pending messages from the relay network. 
-	PHANTASMA_VECTOR<Event> GetEvents(const Char* account, PhantasmaError* out_error = nullptr);
-	// Returns an array of available interop platforms. 
-	PHANTASMA_VECTOR<Platform> GetPlatforms(PhantasmaError* out_error = nullptr);
-	// Returns an array of available validators. 
-	PHANTASMA_VECTOR<Validator> GetValidators(PhantasmaError* out_error = nullptr);
-	// Tries to settle a pending swap for a specific hash. 
-	String SettleSwap(const Char* sourcePlatform, const Char* destPlatform, const Char* hashText, PhantasmaError* out_error = nullptr);
-	// Returns platform swaps for a specific address. 
-	PHANTASMA_VECTOR<Swap> GetSwapsForAddress(const Char* account, PhantasmaError* out_error = nullptr);
+	// Returns the ABI interface of specific contract (list). 
+	PHANTASMA_VECTOR<Contract> GetContracts(const Char* chainAddressOrName, bool extended, PhantasmaError* out_error = nullptr);
+	// Returns the ABI interface of specific contract by address. 
+	Contract GetContractByAddress(const Char* chainAddressOrName, const Char* contractAddress, PhantasmaError* out_error = nullptr);
 	
 private:
 	HttpClient& m_httpClient;
@@ -2341,6 +2378,47 @@ PHANTASMA_FUNCTION bool PhantasmaJsonAPI::ParseGetAccountResponse(const JSONValu
 }
 
 
+// Returns data about several accounts. 
+PHANTASMA_FUNCTION void PhantasmaJsonAPI::MakeGetAccountsRequest(JSONBuilder& request, const Char* accountText, bool extended, bool checkAddressReservedByte)
+{
+	json::BeginObject(request);
+	json::AddString(request, PHANTASMA_LITERAL("jsonrpc"), PHANTASMA_LITERAL("2.0"));
+	json::AddString(request, PHANTASMA_LITERAL("method"), PHANTASMA_LITERAL("getAccounts"));
+	json::AddString(request, PHANTASMA_LITERAL("id"), PHANTASMA_LITERAL("1"));
+	json::AddArray(request, PHANTASMA_LITERAL("params"), accountText, extended, checkAddressReservedByte);
+	json::EndObject(request);
+}
+
+PHANTASMA_FUNCTION bool PhantasmaJsonAPI::ParseGetAccountsResponse(const JSONValue& _jsonResponse, PHANTASMA_VECTOR<Account>& output, PhantasmaError* pout_err)
+{
+	PhantasmaError err_dummy;
+	PhantasmaError& out_error = pout_err ? *pout_err : err_dummy;
+	JSONValue jsonResponse = PhantasmaJsonAPI::CheckResponse(_jsonResponse, out_error);
+	if( out_error.code )
+		return false;
+	bool jsonErr = false;
+	if (!json::IsArray(jsonResponse, jsonErr))
+	{ 
+		PHANTASMA_EXCEPTION("Malformed response: No JSON array on the \"result\" node");
+		out_error.code = PhantasmaError::InvalidJSON;
+		return false;
+	} 
+
+	const JSONArray& resultArray = json::AsArray(jsonResponse, jsonErr);
+	int resultArraySize = json::ArraySize(resultArray, jsonErr);
+	output.reserve(resultArraySize);
+	for(int i = 0; i < resultArraySize; ++i)
+	{
+		output.push_back(DeserializeAccount(json::IndexArray(resultArray, i, jsonErr), jsonErr));
+		if( jsonErr || out_error.code )
+			break;
+	}
+	if( !out_error.code && jsonErr )
+		out_error.code = PhantasmaError::InvalidJSON;
+	return out_error.code == 0;
+}
+
+
 // Returns the address that owns a given name. 
 PHANTASMA_FUNCTION void PhantasmaJsonAPI::MakeLookUpNameRequest(JSONBuilder& request, const Char* name)
 {
@@ -2445,32 +2523,6 @@ PHANTASMA_FUNCTION bool PhantasmaJsonAPI::ParseGetBlockByHashResponse(const JSON
 }
 
 
-// Returns a serialized string, containing information about a block by hash. 
-PHANTASMA_FUNCTION void PhantasmaJsonAPI::MakeGetRawBlockByHashRequest(JSONBuilder& request, const Char* blockHash)
-{
-	json::BeginObject(request);
-	json::AddString(request, PHANTASMA_LITERAL("jsonrpc"), PHANTASMA_LITERAL("2.0"));
-	json::AddString(request, PHANTASMA_LITERAL("method"), PHANTASMA_LITERAL("getRawBlockByHash"));
-	json::AddString(request, PHANTASMA_LITERAL("id"), PHANTASMA_LITERAL("1"));
-	json::AddArray(request, PHANTASMA_LITERAL("params"), blockHash);
-	json::EndObject(request);
-}
-
-PHANTASMA_FUNCTION bool PhantasmaJsonAPI::ParseGetRawBlockByHashResponse(const JSONValue& _jsonResponse, String& output, PhantasmaError* pout_err)
-{
-	PhantasmaError err_dummy;
-	PhantasmaError& out_error = pout_err ? *pout_err : err_dummy;
-	JSONValue jsonResponse = PhantasmaJsonAPI::CheckResponse(_jsonResponse, out_error);
-	if( out_error.code )
-		return false;
-	bool jsonErr = false;
-	output = json::AsString(jsonResponse, jsonErr);
-	if( !out_error.code && jsonErr )
-		out_error.code = PhantasmaError::InvalidJSON;
-	return out_error.code == 0;
-}
-
-
 // Returns information about a block by height and chain. 
 PHANTASMA_FUNCTION void PhantasmaJsonAPI::MakeGetBlockByHeightRequest(JSONBuilder& request, const Char* chainInput, const Char* height)
 {
@@ -2497,18 +2549,18 @@ PHANTASMA_FUNCTION bool PhantasmaJsonAPI::ParseGetBlockByHeightResponse(const JS
 }
 
 
-// Returns a serialized string, in hex format, containing information about a block by height and chain. 
-PHANTASMA_FUNCTION void PhantasmaJsonAPI::MakeGetRawBlockByHeightRequest(JSONBuilder& request, const Char* chainInput, const Char* height)
+// Returns information about the latest block in a chain. 
+PHANTASMA_FUNCTION void PhantasmaJsonAPI::MakeGetLatestBlockRequest(JSONBuilder& request, const Char* chainInput)
 {
 	json::BeginObject(request);
 	json::AddString(request, PHANTASMA_LITERAL("jsonrpc"), PHANTASMA_LITERAL("2.0"));
-	json::AddString(request, PHANTASMA_LITERAL("method"), PHANTASMA_LITERAL("getRawBlockByHeight"));
+	json::AddString(request, PHANTASMA_LITERAL("method"), PHANTASMA_LITERAL("getLatestBlock"));
 	json::AddString(request, PHANTASMA_LITERAL("id"), PHANTASMA_LITERAL("1"));
-	json::AddArray(request, PHANTASMA_LITERAL("params"), chainInput, height);
+	json::AddArray(request, PHANTASMA_LITERAL("params"), chainInput);
 	json::EndObject(request);
 }
 
-PHANTASMA_FUNCTION bool PhantasmaJsonAPI::ParseGetRawBlockByHeightResponse(const JSONValue& _jsonResponse, String& output, PhantasmaError* pout_err)
+PHANTASMA_FUNCTION bool PhantasmaJsonAPI::ParseGetLatestBlockResponse(const JSONValue& _jsonResponse, Block& output, PhantasmaError* pout_err)
 {
 	PhantasmaError err_dummy;
 	PhantasmaError& out_error = pout_err ? *pout_err : err_dummy;
@@ -2516,7 +2568,7 @@ PHANTASMA_FUNCTION bool PhantasmaJsonAPI::ParseGetRawBlockByHeightResponse(const
 	if( out_error.code )
 		return false;
 	bool jsonErr = false;
-	output = json::AsString(jsonResponse, jsonErr);
+	output = DeserializeBlock(jsonResponse, jsonErr);
 	if( !out_error.code && jsonErr )
 		out_error.code = PhantasmaError::InvalidJSON;
 	return out_error.code == 0;
@@ -2704,32 +2756,6 @@ PHANTASMA_FUNCTION bool PhantasmaJsonAPI::ParseGetTransactionResponse(const JSON
 }
 
 
-// Removes a pending transaction from the mempool. 
-PHANTASMA_FUNCTION void PhantasmaJsonAPI::MakeCancelTransactionRequest(JSONBuilder& request, const Char* hashText)
-{
-	json::BeginObject(request);
-	json::AddString(request, PHANTASMA_LITERAL("jsonrpc"), PHANTASMA_LITERAL("2.0"));
-	json::AddString(request, PHANTASMA_LITERAL("method"), PHANTASMA_LITERAL("cancelTransaction"));
-	json::AddString(request, PHANTASMA_LITERAL("id"), PHANTASMA_LITERAL("1"));
-	json::AddArray(request, PHANTASMA_LITERAL("params"), hashText);
-	json::EndObject(request);
-}
-
-PHANTASMA_FUNCTION bool PhantasmaJsonAPI::ParseCancelTransactionResponse(const JSONValue& _jsonResponse, String& output, PhantasmaError* pout_err)
-{
-	PhantasmaError err_dummy;
-	PhantasmaError& out_error = pout_err ? *pout_err : err_dummy;
-	JSONValue jsonResponse = PhantasmaJsonAPI::CheckResponse(_jsonResponse, out_error);
-	if( out_error.code )
-		return false;
-	bool jsonErr = false;
-	output = json::AsString(jsonResponse, jsonErr);
-	if( !out_error.code && jsonErr )
-		out_error.code = PhantasmaError::InvalidJSON;
-	return out_error.code == 0;
-}
-
-
 // Returns an array of all chains deployed in Phantasma. 
 PHANTASMA_FUNCTION void PhantasmaJsonAPI::MakeGetChainsRequest(JSONBuilder& request)
 {
@@ -2765,6 +2791,32 @@ PHANTASMA_FUNCTION bool PhantasmaJsonAPI::ParseGetChainsResponse(const JSONValue
 		if( jsonErr || out_error.code )
 			break;
 	}
+	if( !out_error.code && jsonErr )
+		out_error.code = PhantasmaError::InvalidJSON;
+	return out_error.code == 0;
+}
+
+
+// Returns info about a specific chain. 
+PHANTASMA_FUNCTION void PhantasmaJsonAPI::MakeGetChainRequest(JSONBuilder& request, const Char* name, bool extended)
+{
+	json::BeginObject(request);
+	json::AddString(request, PHANTASMA_LITERAL("jsonrpc"), PHANTASMA_LITERAL("2.0"));
+	json::AddString(request, PHANTASMA_LITERAL("method"), PHANTASMA_LITERAL("getChain"));
+	json::AddString(request, PHANTASMA_LITERAL("id"), PHANTASMA_LITERAL("1"));
+	json::AddArray(request, PHANTASMA_LITERAL("params"), name, extended);
+	json::EndObject(request);
+}
+
+PHANTASMA_FUNCTION bool PhantasmaJsonAPI::ParseGetChainResponse(const JSONValue& _jsonResponse, Chain& output, PhantasmaError* pout_err)
+{
+	PhantasmaError err_dummy;
+	PhantasmaError& out_error = pout_err ? *pout_err : err_dummy;
+	JSONValue jsonResponse = PhantasmaJsonAPI::CheckResponse(_jsonResponse, out_error);
+	if( out_error.code )
+		return false;
+	bool jsonErr = false;
+	output = DeserializeChain(jsonResponse, jsonErr);
 	if( !out_error.code && jsonErr )
 		out_error.code = PhantasmaError::InvalidJSON;
 	return out_error.code == 0;
@@ -2823,6 +2875,73 @@ PHANTASMA_FUNCTION bool PhantasmaJsonAPI::ParseGetOrganizationResponse(const JSO
 }
 
 
+// Returns info about an organization by name. 
+PHANTASMA_FUNCTION void PhantasmaJsonAPI::MakeGetOrganizationByNameRequest(JSONBuilder& request, const Char* name, bool extended)
+{
+	json::BeginObject(request);
+	json::AddString(request, PHANTASMA_LITERAL("jsonrpc"), PHANTASMA_LITERAL("2.0"));
+	json::AddString(request, PHANTASMA_LITERAL("method"), PHANTASMA_LITERAL("getOrganizationByName"));
+	json::AddString(request, PHANTASMA_LITERAL("id"), PHANTASMA_LITERAL("1"));
+	json::AddArray(request, PHANTASMA_LITERAL("params"), name, extended);
+	json::EndObject(request);
+}
+
+PHANTASMA_FUNCTION bool PhantasmaJsonAPI::ParseGetOrganizationByNameResponse(const JSONValue& _jsonResponse, Organization& output, PhantasmaError* pout_err)
+{
+	PhantasmaError err_dummy;
+	PhantasmaError& out_error = pout_err ? *pout_err : err_dummy;
+	JSONValue jsonResponse = PhantasmaJsonAPI::CheckResponse(_jsonResponse, out_error);
+	if( out_error.code )
+		return false;
+	bool jsonErr = false;
+	output = DeserializeOrganization(jsonResponse, jsonErr);
+	if( !out_error.code && jsonErr )
+		out_error.code = PhantasmaError::InvalidJSON;
+	return out_error.code == 0;
+}
+
+
+// Returns info about all organizations. 
+PHANTASMA_FUNCTION void PhantasmaJsonAPI::MakeGetOrganizationsRequest(JSONBuilder& request, bool extended)
+{
+	json::BeginObject(request);
+	json::AddString(request, PHANTASMA_LITERAL("jsonrpc"), PHANTASMA_LITERAL("2.0"));
+	json::AddString(request, PHANTASMA_LITERAL("method"), PHANTASMA_LITERAL("getOrganizations"));
+	json::AddString(request, PHANTASMA_LITERAL("id"), PHANTASMA_LITERAL("1"));
+	json::AddArray(request, PHANTASMA_LITERAL("params"), extended);
+	json::EndObject(request);
+}
+
+PHANTASMA_FUNCTION bool PhantasmaJsonAPI::ParseGetOrganizationsResponse(const JSONValue& _jsonResponse, PHANTASMA_VECTOR<Organization>& output, PhantasmaError* pout_err)
+{
+	PhantasmaError err_dummy;
+	PhantasmaError& out_error = pout_err ? *pout_err : err_dummy;
+	JSONValue jsonResponse = PhantasmaJsonAPI::CheckResponse(_jsonResponse, out_error);
+	if( out_error.code )
+		return false;
+	bool jsonErr = false;
+	if (!json::IsArray(jsonResponse, jsonErr))
+	{ 
+		PHANTASMA_EXCEPTION("Malformed response: No JSON array on the \"result\" node");
+		out_error.code = PhantasmaError::InvalidJSON;
+		return false;
+	} 
+
+	const JSONArray& resultArray = json::AsArray(jsonResponse, jsonErr);
+	int resultArraySize = json::ArraySize(resultArray, jsonErr);
+	output.reserve(resultArraySize);
+	for(int i = 0; i < resultArraySize; ++i)
+	{
+		output.push_back(DeserializeOrganization(json::IndexArray(resultArray, i, jsonErr), jsonErr));
+		if( jsonErr || out_error.code )
+			break;
+	}
+	if( !out_error.code && jsonErr )
+		out_error.code = PhantasmaError::InvalidJSON;
+	return out_error.code == 0;
+}
+
+
 // Returns content of a Phantasma leaderboard. 
 PHANTASMA_FUNCTION void PhantasmaJsonAPI::MakeGetLeaderboardRequest(JSONBuilder& request, const Char* name)
 {
@@ -2850,13 +2969,20 @@ PHANTASMA_FUNCTION bool PhantasmaJsonAPI::ParseGetLeaderboardResponse(const JSON
 
 
 // Returns an array of tokens deployed in Phantasma. 
-PHANTASMA_FUNCTION void PhantasmaJsonAPI::MakeGetTokensRequest(JSONBuilder& request, bool extended)
+PHANTASMA_FUNCTION void PhantasmaJsonAPI::MakeGetTokensRequest(JSONBuilder& request, bool extended, const Char* ownerAddress)
 {
 	json::BeginObject(request);
 	json::AddString(request, PHANTASMA_LITERAL("jsonrpc"), PHANTASMA_LITERAL("2.0"));
 	json::AddString(request, PHANTASMA_LITERAL("method"), PHANTASMA_LITERAL("getTokens"));
 	json::AddString(request, PHANTASMA_LITERAL("id"), PHANTASMA_LITERAL("1"));
-	json::AddArray(request, PHANTASMA_LITERAL("params"), extended);
+	if (ownerAddress && ownerAddress[0])
+	{
+		json::AddArray(request, PHANTASMA_LITERAL("params"), extended, ownerAddress);
+	}
+	else
+	{
+		json::AddArray(request, PHANTASMA_LITERAL("params"), extended);
+	}
 	json::EndObject(request);
 }
 
@@ -2891,13 +3017,20 @@ PHANTASMA_FUNCTION bool PhantasmaJsonAPI::ParseGetTokensResponse(const JSONValue
 
 
 // Returns info about a specific token deployed in Phantasma. 
-PHANTASMA_FUNCTION void PhantasmaJsonAPI::MakeGetTokenRequest(JSONBuilder& request, const Char* symbol, bool extended)
+PHANTASMA_FUNCTION void PhantasmaJsonAPI::MakeGetTokenRequest(JSONBuilder& request, const Char* symbol, bool extended, UInt64 carbonTokenId)
 {
 	json::BeginObject(request);
 	json::AddString(request, PHANTASMA_LITERAL("jsonrpc"), PHANTASMA_LITERAL("2.0"));
 	json::AddString(request, PHANTASMA_LITERAL("method"), PHANTASMA_LITERAL("getToken"));
 	json::AddString(request, PHANTASMA_LITERAL("id"), PHANTASMA_LITERAL("1"));
-	json::AddArray(request, PHANTASMA_LITERAL("params"), symbol, extended);
+	if (carbonTokenId != 0)
+	{
+		json::AddArray(request, PHANTASMA_LITERAL("params"), symbol, extended, carbonTokenId);
+	}
+	else
+	{
+		json::AddArray(request, PHANTASMA_LITERAL("params"), symbol, extended);
+	}
 	json::EndObject(request);
 }
 
@@ -2910,6 +3043,98 @@ PHANTASMA_FUNCTION bool PhantasmaJsonAPI::ParseGetTokenResponse(const JSONValue&
 		return false;
 	bool jsonErr = false;
 	output = DeserializeToken(jsonResponse, jsonErr);
+	if( !out_error.code && jsonErr )
+		out_error.code = PhantasmaError::InvalidJSON;
+	return out_error.code == 0;
+}
+
+
+// Returns list of series for a specific token (cursor pagination). 
+PHANTASMA_FUNCTION void PhantasmaJsonAPI::MakeGetTokenSeriesRequest(JSONBuilder& request, const Char* symbol, UInt64 carbonTokenId, UInt32 pageSize, const Char* cursor)
+{
+	json::BeginObject(request);
+	json::AddString(request, PHANTASMA_LITERAL("jsonrpc"), PHANTASMA_LITERAL("2.0"));
+	json::AddString(request, PHANTASMA_LITERAL("method"), PHANTASMA_LITERAL("getTokenSeries"));
+	json::AddString(request, PHANTASMA_LITERAL("id"), PHANTASMA_LITERAL("1"));
+	json::AddArray(request, PHANTASMA_LITERAL("params"), symbol, carbonTokenId, pageSize, cursor);
+	json::EndObject(request);
+}
+
+PHANTASMA_FUNCTION bool PhantasmaJsonAPI::ParseGetTokenSeriesResponse(const JSONValue& _jsonResponse, CursorPaginatedResult<TokenSeries>& output, PhantasmaError* pout_err)
+{
+	PhantasmaError err_dummy;
+	PhantasmaError& out_error = pout_err ? *pout_err : err_dummy;
+	JSONValue jsonResponse = PhantasmaJsonAPI::CheckResponse(_jsonResponse, out_error);
+	if( out_error.code )
+		return false;
+	bool jsonErr = false;
+	String cursor = json::HasField(jsonResponse, PHANTASMA_LITERAL("cursor"), jsonErr)
+		? json::LookupString(jsonResponse, PHANTASMA_LITERAL("cursor"), jsonErr)
+		: json::String(PHANTASMA_LITERAL(""));
+	JSONValue resultValue = json::LookupValue(jsonResponse, PHANTASMA_LITERAL("result"), jsonErr);
+	if (!json::IsArray(resultValue, jsonErr))
+	{ 
+		PHANTASMA_EXCEPTION("Malformed response: No JSON array on the \"result\" node");
+		out_error.code = PhantasmaError::InvalidJSON;
+		return false;
+	} 
+
+	const JSONArray& resultArray = json::AsArray(resultValue, jsonErr);
+	int resultArraySize = json::ArraySize(resultArray, jsonErr);
+	output.result.reserve(resultArraySize);
+	for(int i = 0; i < resultArraySize; ++i)
+	{
+		output.result.push_back(DeserializeTokenSeries(json::IndexArray(resultArray, i, jsonErr), jsonErr));
+		if( jsonErr || out_error.code )
+			break;
+	}
+	output.cursor = cursor;
+	if( !out_error.code && jsonErr )
+		out_error.code = PhantasmaError::InvalidJSON;
+	return out_error.code == 0;
+}
+
+
+// Returns an array of NFTs for a token (cursor pagination). 
+PHANTASMA_FUNCTION void PhantasmaJsonAPI::MakeGetTokenNFTsRequest(JSONBuilder& request, UInt64 carbonTokenId, UInt32 carbonSeriesId, UInt32 pageSize, const Char* cursor, bool extended)
+{
+	json::BeginObject(request);
+	json::AddString(request, PHANTASMA_LITERAL("jsonrpc"), PHANTASMA_LITERAL("2.0"));
+	json::AddString(request, PHANTASMA_LITERAL("method"), PHANTASMA_LITERAL("getTokenNFTs"));
+	json::AddString(request, PHANTASMA_LITERAL("id"), PHANTASMA_LITERAL("1"));
+	json::AddArray(request, PHANTASMA_LITERAL("params"), carbonTokenId, carbonSeriesId, pageSize, cursor, extended);
+	json::EndObject(request);
+}
+
+PHANTASMA_FUNCTION bool PhantasmaJsonAPI::ParseGetTokenNFTsResponse(const JSONValue& _jsonResponse, CursorPaginatedResult<TokenData>& output, PhantasmaError* pout_err)
+{
+	PhantasmaError err_dummy;
+	PhantasmaError& out_error = pout_err ? *pout_err : err_dummy;
+	JSONValue jsonResponse = PhantasmaJsonAPI::CheckResponse(_jsonResponse, out_error);
+	if( out_error.code )
+		return false;
+	bool jsonErr = false;
+	String cursor = json::HasField(jsonResponse, PHANTASMA_LITERAL("cursor"), jsonErr)
+		? json::LookupString(jsonResponse, PHANTASMA_LITERAL("cursor"), jsonErr)
+		: json::String(PHANTASMA_LITERAL(""));
+	JSONValue resultValue = json::LookupValue(jsonResponse, PHANTASMA_LITERAL("result"), jsonErr);
+	if (!json::IsArray(resultValue, jsonErr))
+	{ 
+		PHANTASMA_EXCEPTION("Malformed response: No JSON array on the \"result\" node");
+		out_error.code = PhantasmaError::InvalidJSON;
+		return false;
+	} 
+
+	const JSONArray& resultArray = json::AsArray(resultValue, jsonErr);
+	int resultArraySize = json::ArraySize(resultArray, jsonErr);
+	output.result.reserve(resultArraySize);
+	for(int i = 0; i < resultArraySize; ++i)
+	{
+		output.result.push_back(DeserializeTokenData(json::IndexArray(resultArray, i, jsonErr), jsonErr));
+		if( jsonErr || out_error.code )
+			break;
+	}
+	output.cursor = cursor;
 	if( !out_error.code && jsonErr )
 		out_error.code = PhantasmaError::InvalidJSON;
 	return out_error.code == 0;
@@ -2968,6 +3193,47 @@ PHANTASMA_FUNCTION bool PhantasmaJsonAPI::ParseGetNFTResponse(const JSONValue& _
 }
 
 
+// Returns data of non-fungible tokens by ID list. 
+PHANTASMA_FUNCTION void PhantasmaJsonAPI::MakeGetNFTsRequest(JSONBuilder& request, const Char* symbol, const Char* IDtext, bool extended)
+{
+	json::BeginObject(request);
+	json::AddString(request, PHANTASMA_LITERAL("jsonrpc"), PHANTASMA_LITERAL("2.0"));
+	json::AddString(request, PHANTASMA_LITERAL("method"), PHANTASMA_LITERAL("getNFTs"));
+	json::AddString(request, PHANTASMA_LITERAL("id"), PHANTASMA_LITERAL("1"));
+	json::AddArray(request, PHANTASMA_LITERAL("params"), symbol, IDtext, extended);
+	json::EndObject(request);
+}
+
+PHANTASMA_FUNCTION bool PhantasmaJsonAPI::ParseGetNFTsResponse(const JSONValue& _jsonResponse, PHANTASMA_VECTOR<TokenData>& output, PhantasmaError* pout_err)
+{
+	PhantasmaError err_dummy;
+	PhantasmaError& out_error = pout_err ? *pout_err : err_dummy;
+	JSONValue jsonResponse = PhantasmaJsonAPI::CheckResponse(_jsonResponse, out_error);
+	if( out_error.code )
+		return false;
+	bool jsonErr = false;
+	if (!json::IsArray(jsonResponse, jsonErr))
+	{ 
+		PHANTASMA_EXCEPTION("Malformed response: No JSON array on the \"result\" node");
+		out_error.code = PhantasmaError::InvalidJSON;
+		return false;
+	} 
+
+	const JSONArray& resultArray = json::AsArray(jsonResponse, jsonErr);
+	int resultArraySize = json::ArraySize(resultArray, jsonErr);
+	output.reserve(resultArraySize);
+	for(int i = 0; i < resultArraySize; ++i)
+	{
+		output.push_back(DeserializeTokenData(json::IndexArray(resultArray, i, jsonErr), jsonErr));
+		if( jsonErr || out_error.code )
+			break;
+	}
+	if( !out_error.code && jsonErr )
+		out_error.code = PhantasmaError::InvalidJSON;
+	return out_error.code == 0;
+}
+
+
 // Returns the balance for a specific token and chain, given an address. 
 PHANTASMA_FUNCTION void PhantasmaJsonAPI::MakeGetTokenBalanceRequest(JSONBuilder& request, const Char* account, const Char* tokenSymbol, const Char* chainInput)
 {
@@ -2988,6 +3254,190 @@ PHANTASMA_FUNCTION bool PhantasmaJsonAPI::ParseGetTokenBalanceResponse(const JSO
 		return false;
 	bool jsonErr = false;
 	output = DeserializeBalance(jsonResponse, jsonErr);
+	if( !out_error.code && jsonErr )
+		out_error.code = PhantasmaError::InvalidJSON;
+	return out_error.code == 0;
+}
+
+
+// Returns fungible token balances owned by an address (cursor pagination). 
+PHANTASMA_FUNCTION void PhantasmaJsonAPI::MakeGetAccountFungibleTokensRequest(JSONBuilder& request, const Char* account, const Char* tokenSymbol, UInt64 carbonTokenId, UInt32 pageSize, const Char* cursor, bool checkAddressReservedByte)
+{
+	json::BeginObject(request);
+	json::AddString(request, PHANTASMA_LITERAL("jsonrpc"), PHANTASMA_LITERAL("2.0"));
+	json::AddString(request, PHANTASMA_LITERAL("method"), PHANTASMA_LITERAL("getAccountFungibleTokens"));
+	json::AddString(request, PHANTASMA_LITERAL("id"), PHANTASMA_LITERAL("1"));
+	json::AddArray(request, PHANTASMA_LITERAL("params"), account, tokenSymbol, carbonTokenId, pageSize, cursor, checkAddressReservedByte);
+	json::EndObject(request);
+}
+
+PHANTASMA_FUNCTION bool PhantasmaJsonAPI::ParseGetAccountFungibleTokensResponse(const JSONValue& _jsonResponse, CursorPaginatedResult<Balance>& output, PhantasmaError* pout_err)
+{
+	PhantasmaError err_dummy;
+	PhantasmaError& out_error = pout_err ? *pout_err : err_dummy;
+	JSONValue jsonResponse = PhantasmaJsonAPI::CheckResponse(_jsonResponse, out_error);
+	if( out_error.code )
+		return false;
+	bool jsonErr = false;
+	String cursor = json::HasField(jsonResponse, PHANTASMA_LITERAL("cursor"), jsonErr)
+		? json::LookupString(jsonResponse, PHANTASMA_LITERAL("cursor"), jsonErr)
+		: json::String(PHANTASMA_LITERAL(""));
+	JSONValue resultValue = json::LookupValue(jsonResponse, PHANTASMA_LITERAL("result"), jsonErr);
+	if (!json::IsArray(resultValue, jsonErr))
+	{ 
+		PHANTASMA_EXCEPTION("Malformed response: No JSON array on the \"result\" node");
+		out_error.code = PhantasmaError::InvalidJSON;
+		return false;
+	} 
+
+	const JSONArray& resultArray = json::AsArray(resultValue, jsonErr);
+	int resultArraySize = json::ArraySize(resultArray, jsonErr);
+	output.result.reserve(resultArraySize);
+	for(int i = 0; i < resultArraySize; ++i)
+	{
+		output.result.push_back(DeserializeBalance(json::IndexArray(resultArray, i, jsonErr), jsonErr));
+		if( jsonErr || out_error.code )
+			break;
+	}
+	output.cursor = cursor;
+	if( !out_error.code && jsonErr )
+		out_error.code = PhantasmaError::InvalidJSON;
+	return out_error.code == 0;
+}
+
+
+// Returns NFTs owned by an address (cursor pagination). 
+PHANTASMA_FUNCTION void PhantasmaJsonAPI::MakeGetAccountNFTsRequest(JSONBuilder& request, const Char* account, const Char* tokenSymbol, UInt64 carbonTokenId, UInt32 carbonSeriesId, UInt32 pageSize, const Char* cursor, bool extended, bool checkAddressReservedByte)
+{
+	json::BeginObject(request);
+	json::AddString(request, PHANTASMA_LITERAL("jsonrpc"), PHANTASMA_LITERAL("2.0"));
+	json::AddString(request, PHANTASMA_LITERAL("method"), PHANTASMA_LITERAL("getAccountNFTs"));
+	json::AddString(request, PHANTASMA_LITERAL("id"), PHANTASMA_LITERAL("1"));
+	json::AddArray(request, PHANTASMA_LITERAL("params"), account, tokenSymbol, carbonTokenId, carbonSeriesId, pageSize, cursor, extended, checkAddressReservedByte);
+	json::EndObject(request);
+}
+
+PHANTASMA_FUNCTION bool PhantasmaJsonAPI::ParseGetAccountNFTsResponse(const JSONValue& _jsonResponse, CursorPaginatedResult<TokenData>& output, PhantasmaError* pout_err)
+{
+	PhantasmaError err_dummy;
+	PhantasmaError& out_error = pout_err ? *pout_err : err_dummy;
+	JSONValue jsonResponse = PhantasmaJsonAPI::CheckResponse(_jsonResponse, out_error);
+	if( out_error.code )
+		return false;
+	bool jsonErr = false;
+	String cursor = json::HasField(jsonResponse, PHANTASMA_LITERAL("cursor"), jsonErr)
+		? json::LookupString(jsonResponse, PHANTASMA_LITERAL("cursor"), jsonErr)
+		: json::String(PHANTASMA_LITERAL(""));
+	JSONValue resultValue = json::LookupValue(jsonResponse, PHANTASMA_LITERAL("result"), jsonErr);
+	if (!json::IsArray(resultValue, jsonErr))
+	{ 
+		PHANTASMA_EXCEPTION("Malformed response: No JSON array on the \"result\" node");
+		out_error.code = PhantasmaError::InvalidJSON;
+		return false;
+	} 
+
+	const JSONArray& resultArray = json::AsArray(resultValue, jsonErr);
+	int resultArraySize = json::ArraySize(resultArray, jsonErr);
+	output.result.reserve(resultArraySize);
+	for(int i = 0; i < resultArraySize; ++i)
+	{
+		output.result.push_back(DeserializeTokenData(json::IndexArray(resultArray, i, jsonErr), jsonErr));
+		if( jsonErr || out_error.code )
+			break;
+	}
+	output.cursor = cursor;
+	if( !out_error.code && jsonErr )
+		out_error.code = PhantasmaError::InvalidJSON;
+	return out_error.code == 0;
+}
+
+
+// Returns NFT tokens for which the account owns at least one NFT instance (cursor pagination). 
+PHANTASMA_FUNCTION void PhantasmaJsonAPI::MakeGetAccountOwnedTokensRequest(JSONBuilder& request, const Char* account, const Char* tokenSymbol, UInt64 carbonTokenId, UInt32 pageSize, const Char* cursor, bool checkAddressReservedByte)
+{
+	json::BeginObject(request);
+	json::AddString(request, PHANTASMA_LITERAL("jsonrpc"), PHANTASMA_LITERAL("2.0"));
+	json::AddString(request, PHANTASMA_LITERAL("method"), PHANTASMA_LITERAL("getAccountOwnedTokens"));
+	json::AddString(request, PHANTASMA_LITERAL("id"), PHANTASMA_LITERAL("1"));
+	json::AddArray(request, PHANTASMA_LITERAL("params"), account, tokenSymbol, carbonTokenId, pageSize, cursor, checkAddressReservedByte);
+	json::EndObject(request);
+}
+
+PHANTASMA_FUNCTION bool PhantasmaJsonAPI::ParseGetAccountOwnedTokensResponse(const JSONValue& _jsonResponse, CursorPaginatedResult<Token>& output, PhantasmaError* pout_err)
+{
+	PhantasmaError err_dummy;
+	PhantasmaError& out_error = pout_err ? *pout_err : err_dummy;
+	JSONValue jsonResponse = PhantasmaJsonAPI::CheckResponse(_jsonResponse, out_error);
+	if( out_error.code )
+		return false;
+	bool jsonErr = false;
+	String cursor = json::HasField(jsonResponse, PHANTASMA_LITERAL("cursor"), jsonErr)
+		? json::LookupString(jsonResponse, PHANTASMA_LITERAL("cursor"), jsonErr)
+		: json::String(PHANTASMA_LITERAL(""));
+	JSONValue resultValue = json::LookupValue(jsonResponse, PHANTASMA_LITERAL("result"), jsonErr);
+	if (!json::IsArray(resultValue, jsonErr))
+	{ 
+		PHANTASMA_EXCEPTION("Malformed response: No JSON array on the \"result\" node");
+		out_error.code = PhantasmaError::InvalidJSON;
+		return false;
+	} 
+
+	const JSONArray& resultArray = json::AsArray(resultValue, jsonErr);
+	int resultArraySize = json::ArraySize(resultArray, jsonErr);
+	output.result.reserve(resultArraySize);
+	for(int i = 0; i < resultArraySize; ++i)
+	{
+		output.result.push_back(DeserializeToken(json::IndexArray(resultArray, i, jsonErr), jsonErr));
+		if( jsonErr || out_error.code )
+			break;
+	}
+	output.cursor = cursor;
+	if( !out_error.code && jsonErr )
+		out_error.code = PhantasmaError::InvalidJSON;
+	return out_error.code == 0;
+}
+
+
+// Returns NFT series for which the account owns at least one NFT instance (cursor pagination). 
+PHANTASMA_FUNCTION void PhantasmaJsonAPI::MakeGetAccountOwnedTokenSeriesRequest(JSONBuilder& request, const Char* account, const Char* tokenSymbol, UInt64 carbonTokenId, UInt32 pageSize, const Char* cursor, bool checkAddressReservedByte)
+{
+	json::BeginObject(request);
+	json::AddString(request, PHANTASMA_LITERAL("jsonrpc"), PHANTASMA_LITERAL("2.0"));
+	json::AddString(request, PHANTASMA_LITERAL("method"), PHANTASMA_LITERAL("getAccountOwnedTokenSeries"));
+	json::AddString(request, PHANTASMA_LITERAL("id"), PHANTASMA_LITERAL("1"));
+	json::AddArray(request, PHANTASMA_LITERAL("params"), account, tokenSymbol, carbonTokenId, pageSize, cursor, checkAddressReservedByte);
+	json::EndObject(request);
+}
+
+PHANTASMA_FUNCTION bool PhantasmaJsonAPI::ParseGetAccountOwnedTokenSeriesResponse(const JSONValue& _jsonResponse, CursorPaginatedResult<TokenSeries>& output, PhantasmaError* pout_err)
+{
+	PhantasmaError err_dummy;
+	PhantasmaError& out_error = pout_err ? *pout_err : err_dummy;
+	JSONValue jsonResponse = PhantasmaJsonAPI::CheckResponse(_jsonResponse, out_error);
+	if( out_error.code )
+		return false;
+	bool jsonErr = false;
+	String cursor = json::HasField(jsonResponse, PHANTASMA_LITERAL("cursor"), jsonErr)
+		? json::LookupString(jsonResponse, PHANTASMA_LITERAL("cursor"), jsonErr)
+		: json::String(PHANTASMA_LITERAL(""));
+	JSONValue resultValue = json::LookupValue(jsonResponse, PHANTASMA_LITERAL("result"), jsonErr);
+	if (!json::IsArray(resultValue, jsonErr))
+	{ 
+		PHANTASMA_EXCEPTION("Malformed response: No JSON array on the \"result\" node");
+		out_error.code = PhantasmaError::InvalidJSON;
+		return false;
+	} 
+
+	const JSONArray& resultArray = json::AsArray(resultValue, jsonErr);
+	int resultArraySize = json::ArraySize(resultArray, jsonErr);
+	output.result.reserve(resultArraySize);
+	for(int i = 0; i < resultArraySize; ++i)
+	{
+		output.result.push_back(DeserializeTokenSeries(json::IndexArray(resultArray, i, jsonErr), jsonErr));
+		if( jsonErr || out_error.code )
+			break;
+	}
+	output.cursor = cursor;
 	if( !out_error.code && jsonErr )
 		out_error.code = PhantasmaError::InvalidJSON;
 	return out_error.code == 0;
@@ -3187,19 +3637,18 @@ PHANTASMA_FUNCTION bool PhantasmaJsonAPI::ParseGetContractResponse(const JSONVal
 	return out_error.code == 0;
 }
 
-
-// Returns list of known peers. 
-PHANTASMA_FUNCTION void PhantasmaJsonAPI::MakeGetPeersRequest(JSONBuilder& request)
+// Returns the ABI interface of specific contract (list). 
+PHANTASMA_FUNCTION void PhantasmaJsonAPI::MakeGetContractsRequest(JSONBuilder& request, const Char* chainAddressOrName, bool extended)
 {
 	json::BeginObject(request);
 	json::AddString(request, PHANTASMA_LITERAL("jsonrpc"), PHANTASMA_LITERAL("2.0"));
-	json::AddString(request, PHANTASMA_LITERAL("method"), PHANTASMA_LITERAL("getPeers"));
+	json::AddString(request, PHANTASMA_LITERAL("method"), PHANTASMA_LITERAL("getContracts"));
 	json::AddString(request, PHANTASMA_LITERAL("id"), PHANTASMA_LITERAL("1"));
-	json::AddArray(request, PHANTASMA_LITERAL("params"));
+	json::AddArray(request, PHANTASMA_LITERAL("params"), chainAddressOrName, extended);
 	json::EndObject(request);
 }
 
-PHANTASMA_FUNCTION bool PhantasmaJsonAPI::ParseGetPeersResponse(const JSONValue& _jsonResponse, PHANTASMA_VECTOR<Peer>& output, PhantasmaError* pout_err)
+PHANTASMA_FUNCTION bool PhantasmaJsonAPI::ParseGetContractsResponse(const JSONValue& _jsonResponse, PHANTASMA_VECTOR<Contract>& output, PhantasmaError* pout_err)
 {
 	PhantasmaError err_dummy;
 	PhantasmaError& out_error = pout_err ? *pout_err : err_dummy;
@@ -3219,7 +3668,7 @@ PHANTASMA_FUNCTION bool PhantasmaJsonAPI::ParseGetPeersResponse(const JSONValue&
 	output.reserve(resultArraySize);
 	for(int i = 0; i < resultArraySize; ++i)
 	{
-		output.push_back(DeserializePeer(json::IndexArray(resultArray, i, jsonErr), jsonErr));
+		output.push_back(DeserializeContract(json::IndexArray(resultArray, i, jsonErr), jsonErr));
 		if( jsonErr || out_error.code )
 			break;
 	}
@@ -3229,18 +3678,18 @@ PHANTASMA_FUNCTION bool PhantasmaJsonAPI::ParseGetPeersResponse(const JSONValue&
 }
 
 
-// Writes a message to the relay network. 
-PHANTASMA_FUNCTION void PhantasmaJsonAPI::MakeRelaySendRequest(JSONBuilder& request, const Char* receiptHex)
+// Returns the ABI interface of specific contract by address. 
+PHANTASMA_FUNCTION void PhantasmaJsonAPI::MakeGetContractByAddressRequest(JSONBuilder& request, const Char* chainAddressOrName, const Char* contractAddress)
 {
 	json::BeginObject(request);
 	json::AddString(request, PHANTASMA_LITERAL("jsonrpc"), PHANTASMA_LITERAL("2.0"));
-	json::AddString(request, PHANTASMA_LITERAL("method"), PHANTASMA_LITERAL("relaySend"));
+	json::AddString(request, PHANTASMA_LITERAL("method"), PHANTASMA_LITERAL("getContractByAddress"));
 	json::AddString(request, PHANTASMA_LITERAL("id"), PHANTASMA_LITERAL("1"));
-	json::AddArray(request, PHANTASMA_LITERAL("params"), receiptHex);
+	json::AddArray(request, PHANTASMA_LITERAL("params"), chainAddressOrName, contractAddress);
 	json::EndObject(request);
 }
 
-PHANTASMA_FUNCTION bool PhantasmaJsonAPI::ParseRelaySendResponse(const JSONValue& _jsonResponse, bool& output, PhantasmaError* pout_err)
+PHANTASMA_FUNCTION bool PhantasmaJsonAPI::ParseGetContractByAddressResponse(const JSONValue& _jsonResponse, Contract& output, PhantasmaError* pout_err)
 {
 	PhantasmaError err_dummy;
 	PhantasmaError& out_error = pout_err ? *pout_err : err_dummy;
@@ -3248,243 +3697,11 @@ PHANTASMA_FUNCTION bool PhantasmaJsonAPI::ParseRelaySendResponse(const JSONValue
 	if( out_error.code )
 		return false;
 	bool jsonErr = false;
-	output = Deserializebool(jsonResponse, jsonErr);
+	output = DeserializeContract(jsonResponse, jsonErr);
 	if( !out_error.code && jsonErr )
 		out_error.code = PhantasmaError::InvalidJSON;
 	return out_error.code == 0;
 }
-
-
-// Receives messages from the relay network. 
-PHANTASMA_FUNCTION void PhantasmaJsonAPI::MakeRelayReceiveRequest(JSONBuilder& request, const Char* account)
-{
-	json::BeginObject(request);
-	json::AddString(request, PHANTASMA_LITERAL("jsonrpc"), PHANTASMA_LITERAL("2.0"));
-	json::AddString(request, PHANTASMA_LITERAL("method"), PHANTASMA_LITERAL("relayReceive"));
-	json::AddString(request, PHANTASMA_LITERAL("id"), PHANTASMA_LITERAL("1"));
-	json::AddArray(request, PHANTASMA_LITERAL("params"), account);
-	json::EndObject(request);
-}
-
-PHANTASMA_FUNCTION bool PhantasmaJsonAPI::ParseRelayReceiveResponse(const JSONValue& _jsonResponse, PHANTASMA_VECTOR<Receipt>& output, PhantasmaError* pout_err)
-{
-	PhantasmaError err_dummy;
-	PhantasmaError& out_error = pout_err ? *pout_err : err_dummy;
-	JSONValue jsonResponse = PhantasmaJsonAPI::CheckResponse(_jsonResponse, out_error);
-	if( out_error.code )
-		return false;
-	bool jsonErr = false;
-	if (!json::IsArray(jsonResponse, jsonErr))
-	{ 
-		PHANTASMA_EXCEPTION("Malformed response: No JSON array on the \"result\" node");
-		out_error.code = PhantasmaError::InvalidJSON;
-		return false;
-	} 
-
-	const JSONArray& resultArray = json::AsArray(jsonResponse, jsonErr);
-	int resultArraySize = json::ArraySize(resultArray, jsonErr);
-	output.reserve(resultArraySize);
-	for(int i = 0; i < resultArraySize; ++i)
-	{
-		output.push_back(DeserializeReceipt(json::IndexArray(resultArray, i, jsonErr), jsonErr));
-		if( jsonErr || out_error.code )
-			break;
-	}
-	if( !out_error.code && jsonErr )
-		out_error.code = PhantasmaError::InvalidJSON;
-	return out_error.code == 0;
-}
-
-
-// Reads pending messages from the relay network. 
-PHANTASMA_FUNCTION void PhantasmaJsonAPI::MakeGetEventsRequest(JSONBuilder& request, const Char* account)
-{
-	json::BeginObject(request);
-	json::AddString(request, PHANTASMA_LITERAL("jsonrpc"), PHANTASMA_LITERAL("2.0"));
-	json::AddString(request, PHANTASMA_LITERAL("method"), PHANTASMA_LITERAL("getEvents"));
-	json::AddString(request, PHANTASMA_LITERAL("id"), PHANTASMA_LITERAL("1"));
-	json::AddArray(request, PHANTASMA_LITERAL("params"), account);
-	json::EndObject(request);
-}
-
-PHANTASMA_FUNCTION bool PhantasmaJsonAPI::ParseGetEventsResponse(const JSONValue& _jsonResponse, PHANTASMA_VECTOR<Event>& output, PhantasmaError* pout_err)
-{
-	PhantasmaError err_dummy;
-	PhantasmaError& out_error = pout_err ? *pout_err : err_dummy;
-	JSONValue jsonResponse = PhantasmaJsonAPI::CheckResponse(_jsonResponse, out_error);
-	if( out_error.code )
-		return false;
-	bool jsonErr = false;
-	if (!json::IsArray(jsonResponse, jsonErr))
-	{ 
-		PHANTASMA_EXCEPTION("Malformed response: No JSON array on the \"result\" node");
-		out_error.code = PhantasmaError::InvalidJSON;
-		return false;
-	} 
-
-	const JSONArray& resultArray = json::AsArray(jsonResponse, jsonErr);
-	int resultArraySize = json::ArraySize(resultArray, jsonErr);
-	output.reserve(resultArraySize);
-	for(int i = 0; i < resultArraySize; ++i)
-	{
-		output.push_back(DeserializeEvent(json::IndexArray(resultArray, i, jsonErr), jsonErr));
-		if( jsonErr || out_error.code )
-			break;
-	}
-	if( !out_error.code && jsonErr )
-		out_error.code = PhantasmaError::InvalidJSON;
-	return out_error.code == 0;
-}
-
-
-// Returns an array of available interop platforms. 
-PHANTASMA_FUNCTION void PhantasmaJsonAPI::MakeGetPlatformsRequest(JSONBuilder& request)
-{
-	json::BeginObject(request);
-	json::AddString(request, PHANTASMA_LITERAL("jsonrpc"), PHANTASMA_LITERAL("2.0"));
-	json::AddString(request, PHANTASMA_LITERAL("method"), PHANTASMA_LITERAL("getPlatforms"));
-	json::AddString(request, PHANTASMA_LITERAL("id"), PHANTASMA_LITERAL("1"));
-	json::AddArray(request, PHANTASMA_LITERAL("params"));
-	json::EndObject(request);
-}
-
-PHANTASMA_FUNCTION bool PhantasmaJsonAPI::ParseGetPlatformsResponse(const JSONValue& _jsonResponse, PHANTASMA_VECTOR<Platform>& output, PhantasmaError* pout_err)
-{
-	PhantasmaError err_dummy;
-	PhantasmaError& out_error = pout_err ? *pout_err : err_dummy;
-	JSONValue jsonResponse = PhantasmaJsonAPI::CheckResponse(_jsonResponse, out_error);
-	if( out_error.code )
-		return false;
-	bool jsonErr = false;
-	if (!json::IsArray(jsonResponse, jsonErr))
-	{ 
-		PHANTASMA_EXCEPTION("Malformed response: No JSON array on the \"result\" node");
-		out_error.code = PhantasmaError::InvalidJSON;
-		return false;
-	} 
-
-	const JSONArray& resultArray = json::AsArray(jsonResponse, jsonErr);
-	int resultArraySize = json::ArraySize(resultArray, jsonErr);
-	output.reserve(resultArraySize);
-	for(int i = 0; i < resultArraySize; ++i)
-	{
-		output.push_back(DeserializePlatform(json::IndexArray(resultArray, i, jsonErr), jsonErr));
-		if( jsonErr || out_error.code )
-			break;
-	}
-	if( !out_error.code && jsonErr )
-		out_error.code = PhantasmaError::InvalidJSON;
-	return out_error.code == 0;
-}
-
-
-// Returns an array of available validators. 
-PHANTASMA_FUNCTION void PhantasmaJsonAPI::MakeGetValidatorsRequest(JSONBuilder& request)
-{
-	json::BeginObject(request);
-	json::AddString(request, PHANTASMA_LITERAL("jsonrpc"), PHANTASMA_LITERAL("2.0"));
-	json::AddString(request, PHANTASMA_LITERAL("method"), PHANTASMA_LITERAL("getValidators"));
-	json::AddString(request, PHANTASMA_LITERAL("id"), PHANTASMA_LITERAL("1"));
-	json::AddArray(request, PHANTASMA_LITERAL("params"));
-	json::EndObject(request);
-}
-
-PHANTASMA_FUNCTION bool PhantasmaJsonAPI::ParseGetValidatorsResponse(const JSONValue& _jsonResponse, PHANTASMA_VECTOR<Validator>& output, PhantasmaError* pout_err)
-{
-	PhantasmaError err_dummy;
-	PhantasmaError& out_error = pout_err ? *pout_err : err_dummy;
-	JSONValue jsonResponse = PhantasmaJsonAPI::CheckResponse(_jsonResponse, out_error);
-	if( out_error.code )
-		return false;
-	bool jsonErr = false;
-	if (!json::IsArray(jsonResponse, jsonErr))
-	{ 
-		PHANTASMA_EXCEPTION("Malformed response: No JSON array on the \"result\" node");
-		out_error.code = PhantasmaError::InvalidJSON;
-		return false;
-	} 
-
-	const JSONArray& resultArray = json::AsArray(jsonResponse, jsonErr);
-	int resultArraySize = json::ArraySize(resultArray, jsonErr);
-	output.reserve(resultArraySize);
-	for(int i = 0; i < resultArraySize; ++i)
-	{
-		output.push_back(DeserializeValidator(json::IndexArray(resultArray, i, jsonErr), jsonErr));
-		if( jsonErr || out_error.code )
-			break;
-	}
-	if( !out_error.code && jsonErr )
-		out_error.code = PhantasmaError::InvalidJSON;
-	return out_error.code == 0;
-}
-
-
-// Tries to settle a pending swap for a specific hash. 
-PHANTASMA_FUNCTION void PhantasmaJsonAPI::MakeSettleSwapRequest(JSONBuilder& request, const Char* sourcePlatform, const Char* destPlatform, const Char* hashText)
-{
-	json::BeginObject(request);
-	json::AddString(request, PHANTASMA_LITERAL("jsonrpc"), PHANTASMA_LITERAL("2.0"));
-	json::AddString(request, PHANTASMA_LITERAL("method"), PHANTASMA_LITERAL("settleSwap"));
-	json::AddString(request, PHANTASMA_LITERAL("id"), PHANTASMA_LITERAL("1"));
-	json::AddArray(request, PHANTASMA_LITERAL("params"), sourcePlatform, destPlatform, hashText);
-	json::EndObject(request);
-}
-
-PHANTASMA_FUNCTION bool PhantasmaJsonAPI::ParseSettleSwapResponse(const JSONValue& _jsonResponse, String& output, PhantasmaError* pout_err)
-{
-	PhantasmaError err_dummy;
-	PhantasmaError& out_error = pout_err ? *pout_err : err_dummy;
-	JSONValue jsonResponse = PhantasmaJsonAPI::CheckResponse(_jsonResponse, out_error);
-	if( out_error.code )
-		return false;
-	bool jsonErr = false;
-	output = json::AsString(jsonResponse, jsonErr);
-	if( !out_error.code && jsonErr )
-		out_error.code = PhantasmaError::InvalidJSON;
-	return out_error.code == 0;
-}
-
-
-// Returns platform swaps for a specific address. 
-PHANTASMA_FUNCTION void PhantasmaJsonAPI::MakeGetSwapsForAddressRequest(JSONBuilder& request, const Char* account)
-{
-	json::BeginObject(request);
-	json::AddString(request, PHANTASMA_LITERAL("jsonrpc"), PHANTASMA_LITERAL("2.0"));
-	json::AddString(request, PHANTASMA_LITERAL("method"), PHANTASMA_LITERAL("getSwapsForAddress"));
-	json::AddString(request, PHANTASMA_LITERAL("id"), PHANTASMA_LITERAL("1"));
-	json::AddArray(request, PHANTASMA_LITERAL("params"), account);
-	json::EndObject(request);
-}
-
-PHANTASMA_FUNCTION bool PhantasmaJsonAPI::ParseGetSwapsForAddressResponse(const JSONValue& _jsonResponse, PHANTASMA_VECTOR<Swap>& output, PhantasmaError* pout_err)
-{
-	PhantasmaError err_dummy;
-	PhantasmaError& out_error = pout_err ? *pout_err : err_dummy;
-	JSONValue jsonResponse = PhantasmaJsonAPI::CheckResponse(_jsonResponse, out_error);
-	if( out_error.code )
-		return false;
-	bool jsonErr = false;
-	if (!json::IsArray(jsonResponse, jsonErr))
-	{ 
-		PHANTASMA_EXCEPTION("Malformed response: No JSON array on the \"result\" node");
-		out_error.code = PhantasmaError::InvalidJSON;
-		return false;
-	} 
-
-	const JSONArray& resultArray = json::AsArray(jsonResponse, jsonErr);
-	int resultArraySize = json::ArraySize(resultArray, jsonErr);
-	output.reserve(resultArraySize);
-	for(int i = 0; i < resultArraySize; ++i)
-	{
-		output.push_back(DeserializeSwap(json::IndexArray(resultArray, i, jsonErr), jsonErr));
-		if( jsonErr || out_error.code )
-			break;
-	}
-	if( !out_error.code && jsonErr )
-		out_error.code = PhantasmaError::InvalidJSON;
-	return out_error.code == 0;
-}
-
 
 	
 #if defined(PHANTASMA_HTTPCLIENT)
@@ -3497,6 +3714,17 @@ PHANTASMA_FUNCTION Account PhantasmaAPI::GetAccount(const Char* account, Phantas
 	Account output;
 	if( !out_error || out_error->code == 0 )
 		PhantasmaJsonAPI::ParseGetAccountResponse(json::Parse(response), output, out_error);
+	return output;
+}
+
+PHANTASMA_FUNCTION PHANTASMA_VECTOR<Account> PhantasmaAPI::GetAccounts(const Char* accountText, bool extended, bool checkAddressReservedByte, PhantasmaError* out_error)
+{
+	JSONBuilder request;
+	PhantasmaJsonAPI::MakeGetAccountsRequest(request, accountText, extended, checkAddressReservedByte);
+	const JSONDocument& response = HttpPost(m_httpClient, PhantasmaJsonAPI::Uri(), request, out_error);
+	PHANTASMA_VECTOR<Account> output;
+	if( !out_error || out_error->code == 0 )
+		PhantasmaJsonAPI::ParseGetAccountsResponse(json::Parse(response), output, out_error);
 	return output;
 }
 
@@ -3544,17 +3772,6 @@ PHANTASMA_FUNCTION Block PhantasmaAPI::GetBlockByHash(const Char* blockHash, Pha
 	return output;
 }
 
-PHANTASMA_FUNCTION String PhantasmaAPI::GetRawBlockByHash(const Char* blockHash, PhantasmaError* out_error)
-{
-	JSONBuilder request;
-	PhantasmaJsonAPI::MakeGetRawBlockByHashRequest(request, blockHash);
-	const JSONDocument& response = HttpPost(m_httpClient, PhantasmaJsonAPI::Uri(), request, out_error);
-	String output;
-	if( !out_error || out_error->code == 0 )
-		PhantasmaJsonAPI::ParseGetRawBlockByHashResponse(json::Parse(response), output, out_error);
-	return output;
-}
-
 PHANTASMA_FUNCTION Block PhantasmaAPI::GetBlockByHeight(const Char* chainInput, const Char* height, PhantasmaError* out_error)
 {
 	JSONBuilder request;
@@ -3566,14 +3783,14 @@ PHANTASMA_FUNCTION Block PhantasmaAPI::GetBlockByHeight(const Char* chainInput, 
 	return output;
 }
 
-PHANTASMA_FUNCTION String PhantasmaAPI::GetRawBlockByHeight(const Char* chainInput, const Char* height, PhantasmaError* out_error)
+PHANTASMA_FUNCTION Block PhantasmaAPI::GetLatestBlock(const Char* chainInput, PhantasmaError* out_error)
 {
 	JSONBuilder request;
-	PhantasmaJsonAPI::MakeGetRawBlockByHeightRequest(request, chainInput, height);
+	PhantasmaJsonAPI::MakeGetLatestBlockRequest(request, chainInput);
 	const JSONDocument& response = HttpPost(m_httpClient, PhantasmaJsonAPI::Uri(), request, out_error);
-	String output;
+	Block output;
 	if( !out_error || out_error->code == 0 )
-		PhantasmaJsonAPI::ParseGetRawBlockByHeightResponse(json::Parse(response), output, out_error);
+		PhantasmaJsonAPI::ParseGetLatestBlockResponse(json::Parse(response), output, out_error);
 	return output;
 }
 
@@ -3671,17 +3888,6 @@ PHANTASMA_FUNCTION Transaction PhantasmaAPI::GetTransaction(const Char* hashText
 	return output;
 }
 
-PHANTASMA_FUNCTION String PhantasmaAPI::CancelTransaction(const Char* hashText, PhantasmaError* out_error)
-{
-	JSONBuilder request;
-	PhantasmaJsonAPI::MakeCancelTransactionRequest(request, hashText);
-	const JSONDocument& response = HttpPost(m_httpClient, PhantasmaJsonAPI::Uri(), request, out_error);
-	String output;
-	if( !out_error || out_error->code == 0 )
-		PhantasmaJsonAPI::ParseCancelTransactionResponse(json::Parse(response), output, out_error);
-	return output;
-}
-
 PHANTASMA_FUNCTION PHANTASMA_VECTOR<Chain> PhantasmaAPI::GetChains(PhantasmaError* out_error)
 {
 	JSONBuilder request;
@@ -3690,6 +3896,17 @@ PHANTASMA_FUNCTION PHANTASMA_VECTOR<Chain> PhantasmaAPI::GetChains(PhantasmaErro
 	PHANTASMA_VECTOR<Chain> output;
 	if( !out_error || out_error->code == 0 )
 		PhantasmaJsonAPI::ParseGetChainsResponse(json::Parse(response), output, out_error);
+	return output;
+}
+
+PHANTASMA_FUNCTION Chain PhantasmaAPI::GetChain(const Char* name, bool extended, PhantasmaError* out_error)
+{
+	JSONBuilder request;
+	PhantasmaJsonAPI::MakeGetChainRequest(request, name, extended);
+	const JSONDocument& response = HttpPost(m_httpClient, PhantasmaJsonAPI::Uri(), request, out_error);
+	Chain output;
+	if( !out_error || out_error->code == 0 )
+		PhantasmaJsonAPI::ParseGetChainResponse(json::Parse(response), output, out_error);
 	return output;
 }
 
@@ -3715,6 +3932,28 @@ PHANTASMA_FUNCTION Organization PhantasmaAPI::GetOrganization(const Char* ID, Ph
 	return output;
 }
 
+PHANTASMA_FUNCTION Organization PhantasmaAPI::GetOrganizationByName(const Char* name, bool extended, PhantasmaError* out_error)
+{
+	JSONBuilder request;
+	PhantasmaJsonAPI::MakeGetOrganizationByNameRequest(request, name, extended);
+	const JSONDocument& response = HttpPost(m_httpClient, PhantasmaJsonAPI::Uri(), request, out_error);
+	Organization output;
+	if( !out_error || out_error->code == 0 )
+		PhantasmaJsonAPI::ParseGetOrganizationByNameResponse(json::Parse(response), output, out_error);
+	return output;
+}
+
+PHANTASMA_FUNCTION PHANTASMA_VECTOR<Organization> PhantasmaAPI::GetOrganizations(bool extended, PhantasmaError* out_error)
+{
+	JSONBuilder request;
+	PhantasmaJsonAPI::MakeGetOrganizationsRequest(request, extended);
+	const JSONDocument& response = HttpPost(m_httpClient, PhantasmaJsonAPI::Uri(), request, out_error);
+	PHANTASMA_VECTOR<Organization> output;
+	if( !out_error || out_error->code == 0 )
+		PhantasmaJsonAPI::ParseGetOrganizationsResponse(json::Parse(response), output, out_error);
+	return output;
+}
+
 PHANTASMA_FUNCTION Leaderboard PhantasmaAPI::GetLeaderboard(const Char* name, PhantasmaError* out_error)
 {
 	JSONBuilder request;
@@ -3729,7 +3968,18 @@ PHANTASMA_FUNCTION Leaderboard PhantasmaAPI::GetLeaderboard(const Char* name, Ph
 PHANTASMA_FUNCTION PHANTASMA_VECTOR<Token> PhantasmaAPI::GetTokens(bool extended, PhantasmaError* out_error)
 {
 	JSONBuilder request;
-	PhantasmaJsonAPI::MakeGetTokensRequest(request, extended);
+	PhantasmaJsonAPI::MakeGetTokensRequest(request, extended, nullptr);
+	const JSONDocument& response = HttpPost(m_httpClient, PhantasmaJsonAPI::Uri(), request, out_error);
+	PHANTASMA_VECTOR<Token> output;
+	if( !out_error || out_error->code == 0 )
+		PhantasmaJsonAPI::ParseGetTokensResponse(json::Parse(response), output, out_error);
+	return output;
+}
+
+PHANTASMA_FUNCTION PHANTASMA_VECTOR<Token> PhantasmaAPI::GetTokens(bool extended, const Char* ownerAddress, PhantasmaError* out_error)
+{
+	JSONBuilder request;
+	PhantasmaJsonAPI::MakeGetTokensRequest(request, extended, ownerAddress);
 	const JSONDocument& response = HttpPost(m_httpClient, PhantasmaJsonAPI::Uri(), request, out_error);
 	PHANTASMA_VECTOR<Token> output;
 	if( !out_error || out_error->code == 0 )
@@ -3740,11 +3990,44 @@ PHANTASMA_FUNCTION PHANTASMA_VECTOR<Token> PhantasmaAPI::GetTokens(bool extended
 PHANTASMA_FUNCTION Token PhantasmaAPI::GetToken(const Char* symbol, bool extended, PhantasmaError* out_error)
 {
 	JSONBuilder request;
-	PhantasmaJsonAPI::MakeGetTokenRequest(request, symbol, extended);
+	PhantasmaJsonAPI::MakeGetTokenRequest(request, symbol, extended, 0);
 	const JSONDocument& response = HttpPost(m_httpClient, PhantasmaJsonAPI::Uri(), request, out_error);
 	Token output;
 	if( !out_error || out_error->code == 0 )
 		PhantasmaJsonAPI::ParseGetTokenResponse(json::Parse(response), output, out_error);
+	return output;
+}
+
+PHANTASMA_FUNCTION Token PhantasmaAPI::GetToken(const Char* symbol, bool extended, UInt64 carbonTokenId, PhantasmaError* out_error)
+{
+	JSONBuilder request;
+	PhantasmaJsonAPI::MakeGetTokenRequest(request, symbol, extended, carbonTokenId);
+	const JSONDocument& response = HttpPost(m_httpClient, PhantasmaJsonAPI::Uri(), request, out_error);
+	Token output;
+	if( !out_error || out_error->code == 0 )
+		PhantasmaJsonAPI::ParseGetTokenResponse(json::Parse(response), output, out_error);
+	return output;
+}
+
+PHANTASMA_FUNCTION CursorPaginatedResult<TokenSeries> PhantasmaAPI::GetTokenSeries(const Char* symbol, UInt64 carbonTokenId, UInt32 pageSize, const Char* cursor, PhantasmaError* out_error)
+{
+	JSONBuilder request;
+	PhantasmaJsonAPI::MakeGetTokenSeriesRequest(request, symbol, carbonTokenId, pageSize, cursor);
+	const JSONDocument& response = HttpPost(m_httpClient, PhantasmaJsonAPI::Uri(), request, out_error);
+	CursorPaginatedResult<TokenSeries> output;
+	if( !out_error || out_error->code == 0 )
+		PhantasmaJsonAPI::ParseGetTokenSeriesResponse(json::Parse(response), output, out_error);
+	return output;
+}
+
+PHANTASMA_FUNCTION CursorPaginatedResult<TokenData> PhantasmaAPI::GetTokenNFTs(UInt64 carbonTokenId, UInt32 carbonSeriesId, UInt32 pageSize, const Char* cursor, bool extended, PhantasmaError* out_error)
+{
+	JSONBuilder request;
+	PhantasmaJsonAPI::MakeGetTokenNFTsRequest(request, carbonTokenId, carbonSeriesId, pageSize, cursor, extended);
+	const JSONDocument& response = HttpPost(m_httpClient, PhantasmaJsonAPI::Uri(), request, out_error);
+	CursorPaginatedResult<TokenData> output;
+	if( !out_error || out_error->code == 0 )
+		PhantasmaJsonAPI::ParseGetTokenNFTsResponse(json::Parse(response), output, out_error);
 	return output;
 }
 
@@ -3770,6 +4053,17 @@ PHANTASMA_FUNCTION TokenData PhantasmaAPI::GetNFT(const Char* symbol, const Char
 	return output;
 }
 
+PHANTASMA_FUNCTION PHANTASMA_VECTOR<TokenData> PhantasmaAPI::GetNFTs(const Char* symbol, const Char* IDtext, bool extended, PhantasmaError* out_error)
+{
+	JSONBuilder request;
+	PhantasmaJsonAPI::MakeGetNFTsRequest(request, symbol, IDtext, extended);
+	const JSONDocument& response = HttpPost(m_httpClient, PhantasmaJsonAPI::Uri(), request, out_error);
+	PHANTASMA_VECTOR<TokenData> output;
+	if( !out_error || out_error->code == 0 )
+		PhantasmaJsonAPI::ParseGetNFTsResponse(json::Parse(response), output, out_error);
+	return output;
+}
+
 PHANTASMA_FUNCTION Balance PhantasmaAPI::GetTokenBalance(const Char* account, const Char* tokenSymbol, const Char* chainInput, PhantasmaError* out_error)
 {
 	JSONBuilder request;
@@ -3778,6 +4072,50 @@ PHANTASMA_FUNCTION Balance PhantasmaAPI::GetTokenBalance(const Char* account, co
 	Balance output;
 	if( !out_error || out_error->code == 0 )
 		PhantasmaJsonAPI::ParseGetTokenBalanceResponse(json::Parse(response), output, out_error);
+	return output;
+}
+
+PHANTASMA_FUNCTION CursorPaginatedResult<Balance> PhantasmaAPI::GetAccountFungibleTokens(const Char* account, const Char* tokenSymbol, UInt64 carbonTokenId, UInt32 pageSize, const Char* cursor, bool checkAddressReservedByte, PhantasmaError* out_error)
+{
+	JSONBuilder request;
+	PhantasmaJsonAPI::MakeGetAccountFungibleTokensRequest(request, account, tokenSymbol, carbonTokenId, pageSize, cursor, checkAddressReservedByte);
+	const JSONDocument& response = HttpPost(m_httpClient, PhantasmaJsonAPI::Uri(), request, out_error);
+	CursorPaginatedResult<Balance> output;
+	if( !out_error || out_error->code == 0 )
+		PhantasmaJsonAPI::ParseGetAccountFungibleTokensResponse(json::Parse(response), output, out_error);
+	return output;
+}
+
+PHANTASMA_FUNCTION CursorPaginatedResult<TokenData> PhantasmaAPI::GetAccountNFTs(const Char* account, const Char* tokenSymbol, UInt64 carbonTokenId, UInt32 carbonSeriesId, UInt32 pageSize, const Char* cursor, bool extended, bool checkAddressReservedByte, PhantasmaError* out_error)
+{
+	JSONBuilder request;
+	PhantasmaJsonAPI::MakeGetAccountNFTsRequest(request, account, tokenSymbol, carbonTokenId, carbonSeriesId, pageSize, cursor, extended, checkAddressReservedByte);
+	const JSONDocument& response = HttpPost(m_httpClient, PhantasmaJsonAPI::Uri(), request, out_error);
+	CursorPaginatedResult<TokenData> output;
+	if( !out_error || out_error->code == 0 )
+		PhantasmaJsonAPI::ParseGetAccountNFTsResponse(json::Parse(response), output, out_error);
+	return output;
+}
+
+PHANTASMA_FUNCTION CursorPaginatedResult<Token> PhantasmaAPI::GetAccountOwnedTokens(const Char* account, const Char* tokenSymbol, UInt64 carbonTokenId, UInt32 pageSize, const Char* cursor, bool checkAddressReservedByte, PhantasmaError* out_error)
+{
+	JSONBuilder request;
+	PhantasmaJsonAPI::MakeGetAccountOwnedTokensRequest(request, account, tokenSymbol, carbonTokenId, pageSize, cursor, checkAddressReservedByte);
+	const JSONDocument& response = HttpPost(m_httpClient, PhantasmaJsonAPI::Uri(), request, out_error);
+	CursorPaginatedResult<Token> output;
+	if( !out_error || out_error->code == 0 )
+		PhantasmaJsonAPI::ParseGetAccountOwnedTokensResponse(json::Parse(response), output, out_error);
+	return output;
+}
+
+PHANTASMA_FUNCTION CursorPaginatedResult<TokenSeries> PhantasmaAPI::GetAccountOwnedTokenSeries(const Char* account, const Char* tokenSymbol, UInt64 carbonTokenId, UInt32 pageSize, const Char* cursor, bool checkAddressReservedByte, PhantasmaError* out_error)
+{
+	JSONBuilder request;
+	PhantasmaJsonAPI::MakeGetAccountOwnedTokenSeriesRequest(request, account, tokenSymbol, carbonTokenId, pageSize, cursor, checkAddressReservedByte);
+	const JSONDocument& response = HttpPost(m_httpClient, PhantasmaJsonAPI::Uri(), request, out_error);
+	CursorPaginatedResult<TokenSeries> output;
+	if( !out_error || out_error->code == 0 )
+		PhantasmaJsonAPI::ParseGetAccountOwnedTokenSeriesResponse(json::Parse(response), output, out_error);
 	return output;
 }
 
@@ -3858,91 +4196,25 @@ PHANTASMA_FUNCTION Contract PhantasmaAPI::GetContract(const Char* chainAddressOr
 	return output;
 }
 
-PHANTASMA_FUNCTION PHANTASMA_VECTOR<Peer> PhantasmaAPI::GetPeers(PhantasmaError* out_error)
+PHANTASMA_FUNCTION PHANTASMA_VECTOR<Contract> PhantasmaAPI::GetContracts(const Char* chainAddressOrName, bool extended, PhantasmaError* out_error)
 {
 	JSONBuilder request;
-	PhantasmaJsonAPI::MakeGetPeersRequest(request);
+	PhantasmaJsonAPI::MakeGetContractsRequest(request, chainAddressOrName, extended);
 	const JSONDocument& response = HttpPost(m_httpClient, PhantasmaJsonAPI::Uri(), request, out_error);
-	PHANTASMA_VECTOR<Peer> output;
+	PHANTASMA_VECTOR<Contract> output;
 	if( !out_error || out_error->code == 0 )
-		PhantasmaJsonAPI::ParseGetPeersResponse(json::Parse(response), output, out_error);
+		PhantasmaJsonAPI::ParseGetContractsResponse(json::Parse(response), output, out_error);
 	return output;
 }
 
-PHANTASMA_FUNCTION bool PhantasmaAPI::RelaySend(const Char* receiptHex, PhantasmaError* out_error)
+PHANTASMA_FUNCTION Contract PhantasmaAPI::GetContractByAddress(const Char* chainAddressOrName, const Char* contractAddress, PhantasmaError* out_error)
 {
 	JSONBuilder request;
-	PhantasmaJsonAPI::MakeRelaySendRequest(request, receiptHex);
+	PhantasmaJsonAPI::MakeGetContractByAddressRequest(request, chainAddressOrName, contractAddress);
 	const JSONDocument& response = HttpPost(m_httpClient, PhantasmaJsonAPI::Uri(), request, out_error);
-	bool output;
+	Contract output;
 	if( !out_error || out_error->code == 0 )
-		PhantasmaJsonAPI::ParseRelaySendResponse(json::Parse(response), output, out_error);
-	return output;
-}
-
-PHANTASMA_FUNCTION PHANTASMA_VECTOR<Receipt> PhantasmaAPI::RelayReceive(const Char* account, PhantasmaError* out_error)
-{
-	JSONBuilder request;
-	PhantasmaJsonAPI::MakeRelayReceiveRequest(request, account);
-	const JSONDocument& response = HttpPost(m_httpClient, PhantasmaJsonAPI::Uri(), request, out_error);
-	PHANTASMA_VECTOR<Receipt> output;
-	if( !out_error || out_error->code == 0 )
-		PhantasmaJsonAPI::ParseRelayReceiveResponse(json::Parse(response), output, out_error);
-	return output;
-}
-
-PHANTASMA_FUNCTION PHANTASMA_VECTOR<Event> PhantasmaAPI::GetEvents(const Char* account, PhantasmaError* out_error)
-{
-	JSONBuilder request;
-	PhantasmaJsonAPI::MakeGetEventsRequest(request, account);
-	const JSONDocument& response = HttpPost(m_httpClient, PhantasmaJsonAPI::Uri(), request, out_error);
-	PHANTASMA_VECTOR<Event> output;
-	if( !out_error || out_error->code == 0 )
-		PhantasmaJsonAPI::ParseGetEventsResponse(json::Parse(response), output, out_error);
-	return output;
-}
-
-PHANTASMA_FUNCTION PHANTASMA_VECTOR<Platform> PhantasmaAPI::GetPlatforms(PhantasmaError* out_error)
-{
-	JSONBuilder request;
-	PhantasmaJsonAPI::MakeGetPlatformsRequest(request);
-	const JSONDocument& response = HttpPost(m_httpClient, PhantasmaJsonAPI::Uri(), request, out_error);
-	PHANTASMA_VECTOR<Platform> output;
-	if( !out_error || out_error->code == 0 )
-		PhantasmaJsonAPI::ParseGetPlatformsResponse(json::Parse(response), output, out_error);
-	return output;
-}
-
-PHANTASMA_FUNCTION PHANTASMA_VECTOR<Validator> PhantasmaAPI::GetValidators(PhantasmaError* out_error)
-{
-	JSONBuilder request;
-	PhantasmaJsonAPI::MakeGetValidatorsRequest(request);
-	const JSONDocument& response = HttpPost(m_httpClient, PhantasmaJsonAPI::Uri(), request, out_error);
-	PHANTASMA_VECTOR<Validator> output;
-	if( !out_error || out_error->code == 0 )
-		PhantasmaJsonAPI::ParseGetValidatorsResponse(json::Parse(response), output, out_error);
-	return output;
-}
-
-PHANTASMA_FUNCTION String PhantasmaAPI::SettleSwap(const Char* sourcePlatform, const Char* destPlatform, const Char* hashText, PhantasmaError* out_error)
-{
-	JSONBuilder request;
-	PhantasmaJsonAPI::MakeSettleSwapRequest(request, sourcePlatform, destPlatform, hashText);
-	const JSONDocument& response = HttpPost(m_httpClient, PhantasmaJsonAPI::Uri(), request, out_error);
-	String output;
-	if( !out_error || out_error->code == 0 )
-		PhantasmaJsonAPI::ParseSettleSwapResponse(json::Parse(response), output, out_error);
-	return output;
-}
-
-PHANTASMA_FUNCTION PHANTASMA_VECTOR<Swap> PhantasmaAPI::GetSwapsForAddress(const Char* account, PhantasmaError* out_error)
-{
-	JSONBuilder request;
-	PhantasmaJsonAPI::MakeGetSwapsForAddressRequest(request, account);
-	const JSONDocument& response = HttpPost(m_httpClient, PhantasmaJsonAPI::Uri(), request, out_error);
-	PHANTASMA_VECTOR<Swap> output;
-	if( !out_error || out_error->code == 0 )
-		PhantasmaJsonAPI::ParseGetSwapsForAddressResponse(json::Parse(response), output, out_error);
+		PhantasmaJsonAPI::ParseGetContractByAddressResponse(json::Parse(response), output, out_error);
 	return output;
 }
 
