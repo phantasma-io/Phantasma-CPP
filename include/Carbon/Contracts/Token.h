@@ -445,32 +445,98 @@ public:
 
 struct TokenSeriesMetadataBuilder
 {
-	static ByteArray BuildAndSerialize(const int256& phantasmaSeriesId, const ByteArray& sharedRom, const TokenSchemas* tokenSchemas)
+	static ByteArray BuildAndSerialize(
+		const VmStructSchema& seriesMetadataSchema,
+		const uint256& phantasmaSeriesId,
+		const std::vector<MetadataField>& metadata)
 	{
-		TokenSchemasOwned tsOwned = tokenSchemas ? TokenSchemasOwned{ *tokenSchemas, {}, {}, {} } : TokenSchemasBuilder::PrepareStandardTokenSchemas();
+		Allocator alloc;
+		const ByteArray sharedRom = MetadataHelper::GetOptionalBytesField(metadata, "rom");
+
 		std::vector<VmNamedDynamicVariable> fields = {
 			VmNamedDynamicVariable{ StandardMeta::id, VmDynamicVariable(phantasmaSeriesId) },
 			VmNamedDynamicVariable{ SmallString("mode"), VmDynamicVariable((uint8_t)(sharedRom.empty() ? 0 : 1)) },
 			VmNamedDynamicVariable{ SmallString("rom"), VmDynamicVariable(ByteView{ sharedRom.data(), sharedRom.size() }) },
 		};
 
+		for (uint32_t i = 0; i != seriesMetadataSchema.numFields; ++i)
+		{
+			const VmNamedVariableSchema& schemaField = seriesMetadataSchema.fields[i];
+			bool isDefault = false;
+			for (const auto& field : MetadataHelper::SeriesDefaultMetadataFields)
+			{
+				if (field.name == schemaField.name.c_str())
+				{
+					isDefault = true;
+					break;
+				}
+			}
+			if (isDefault)
+			{
+				continue;
+			}
+
+			MetadataHelper::PushMetadataField(schemaField, fields, metadata, alloc);
+		}
+
 		VmDynamicStruct meta = VmDynamicStruct::Sort((uint32_t)fields.size(), fields.data());
 		ByteArray buffer;
 		WriteView w(buffer);
-		Write(meta, tsOwned.view.seriesMetadata, w);
+		Write(meta, seriesMetadataSchema, w);
 		return buffer;
+	}
+
+	static ByteArray BuildAndSerialize(
+		const VmStructSchema& seriesMetadataSchema,
+		const int256& phantasmaSeriesId,
+		const std::vector<MetadataField>& metadata)
+	{
+		return BuildAndSerialize(seriesMetadataSchema, phantasmaSeriesId.Unsigned(), metadata);
 	}
 };
 
 struct SeriesInfoBuilder
 {
-	static SeriesInfoOwned Build(const int256& phantasmaSeriesId, uint32_t maxMint, uint32_t maxSupply, const Bytes32& ownerPublicKey, const ByteArray* metadata = nullptr)
+	static SeriesInfoOwned Build(
+		const VmStructSchema& seriesMetadataSchema,
+		const uint256& phantasmaSeriesId,
+		uint32_t maxMint,
+		uint32_t maxSupply,
+		const Bytes32& ownerPublicKey,
+		const std::vector<MetadataField>& metadata)
 	{
 		SeriesInfoOwned owned;
 		owned.view.maxMint = maxMint;
 		owned.view.maxSupply = maxSupply;
 		owned.view.owner = ownerPublicKey;
-		owned.metadataStorage = metadata ? *metadata : TokenSeriesMetadataBuilder::BuildAndSerialize(phantasmaSeriesId, {}, nullptr);
+		owned.metadataStorage = TokenSeriesMetadataBuilder::BuildAndSerialize(seriesMetadataSchema, phantasmaSeriesId, metadata);
+		owned.view.rom = VmStructSchema{};
+		owned.view.ram = VmStructSchema{};
+		return owned;
+	}
+
+	static SeriesInfoOwned Build(
+		const VmStructSchema& seriesMetadataSchema,
+		const int256& phantasmaSeriesId,
+		uint32_t maxMint,
+		uint32_t maxSupply,
+		const Bytes32& ownerPublicKey,
+		const std::vector<MetadataField>& metadata)
+	{
+		return Build(seriesMetadataSchema, phantasmaSeriesId.Unsigned(), maxMint, maxSupply, ownerPublicKey, metadata);
+	}
+
+	static SeriesInfoOwned Build(const int256& phantasmaSeriesId, uint32_t maxMint, uint32_t maxSupply, const Bytes32& ownerPublicKey, const ByteArray* metadata = nullptr)
+	{
+		if (!metadata)
+		{
+			PHANTASMA_EXCEPTION("series metadata is required");
+		}
+		SeriesInfoOwned owned;
+		owned.view.maxMint = maxMint;
+		owned.view.maxSupply = maxSupply;
+		owned.view.owner = ownerPublicKey;
+		owned.metadataStorage = *metadata;
 		owned.view.rom = VmStructSchema{};
 		owned.view.ram = VmStructSchema{};
 		return owned;
@@ -479,6 +545,54 @@ struct SeriesInfoBuilder
 
 struct NftRomBuilder
 {
+	static ByteArray BuildAndSerialize(
+		const VmStructSchema& nftRomSchema,
+		const uint256& phantasmaNftId,
+		const std::vector<MetadataField>& metadata)
+	{
+		Allocator alloc;
+		const ByteArray rom = MetadataHelper::GetOptionalBytesField(metadata, "rom");
+
+		std::vector<VmNamedDynamicVariable> fields = {
+			VmNamedDynamicVariable{ StandardMeta::id, VmDynamicVariable(phantasmaNftId) },
+			VmNamedDynamicVariable{ SmallString("rom"), VmDynamicVariable(ByteView{ rom.data(), rom.size() }) },
+		};
+
+		for (uint32_t i = 0; i != nftRomSchema.numFields; ++i)
+		{
+			const VmNamedVariableSchema& schemaField = nftRomSchema.fields[i];
+			bool isDefault = false;
+			for (const auto& field : MetadataHelper::NftDefaultMetadataFields)
+			{
+				if (field.name == schemaField.name.c_str())
+				{
+					isDefault = true;
+					break;
+				}
+			}
+			if (isDefault)
+			{
+				continue;
+			}
+
+			MetadataHelper::PushMetadataField(schemaField, fields, metadata, alloc);
+		}
+
+		VmDynamicStruct romStruct = VmDynamicStruct::Sort((uint32_t)fields.size(), fields.data());
+		ByteArray buffer;
+		WriteView w(buffer);
+		Write(romStruct, nftRomSchema, w);
+		return buffer;
+	}
+
+	static ByteArray BuildAndSerialize(
+		const VmStructSchema& nftRomSchema,
+		const int256& phantasmaNftId,
+		const std::vector<MetadataField>& metadata)
+	{
+		return BuildAndSerialize(nftRomSchema, phantasmaNftId.Unsigned(), metadata);
+	}
+
 	static ByteArray BuildAndSerialize(
 		const int256& phantasmaNftId,
 		const std::string& name,
@@ -489,22 +603,20 @@ struct NftRomBuilder
 		const ByteArray& rom,
 		const TokenSchemas* tokenSchemas)
 	{
-		TokenSchemasOwned tsOwned = tokenSchemas ? TokenSchemasOwned{ *tokenSchemas, {}, {}, {} } : TokenSchemasBuilder::PrepareStandardTokenSchemas();
-		std::vector<VmNamedDynamicVariable> fields = {
-			VmNamedDynamicVariable{ StandardMeta::id, VmDynamicVariable(phantasmaNftId) },
-			VmNamedDynamicVariable{ StandardMeta::Token::Nft::name, VmDynamicVariable(name.c_str()) },
-			VmNamedDynamicVariable{ StandardMeta::Token::Nft::description, VmDynamicVariable(description.c_str()) },
-			VmNamedDynamicVariable{ StandardMeta::Token::Nft::imageURL, VmDynamicVariable(imageURL.c_str()) },
-			VmNamedDynamicVariable{ StandardMeta::Token::Nft::infoURL, VmDynamicVariable(infoURL.c_str()) },
-			VmNamedDynamicVariable{ StandardMeta::Token::Nft::royalties, VmDynamicVariable((int32_t)royalties) },
-			VmNamedDynamicVariable{ SmallString("rom"), VmDynamicVariable(ByteView{ rom.data(), rom.size() }) },
+		const TokenSchemasOwned tsOwned = tokenSchemas
+			? TokenSchemasOwned{ *tokenSchemas, {}, {}, {} }
+			: TokenSchemasBuilder::PrepareStandardTokenSchemas();
+
+		std::vector<MetadataField> metadata = {
+			MetadataField{ "name", MetadataValue::FromString(name) },
+			MetadataField{ "description", MetadataValue::FromString(description) },
+			MetadataField{ "imageURL", MetadataValue::FromString(imageURL) },
+			MetadataField{ "infoURL", MetadataValue::FromString(infoURL) },
+			MetadataField{ "royalties", MetadataValue::FromInt64((int64_t)royalties) },
+			MetadataField{ "rom", MetadataValue::FromBytes(rom) },
 		};
 
-		VmDynamicStruct romStruct = VmDynamicStruct::Sort((uint32_t)fields.size(), fields.data());
-		ByteArray buffer;
-		WriteView w(buffer);
-		Write(romStruct, tsOwned.view.rom, w);
-		return buffer;
+		return BuildAndSerialize(tsOwned.view.rom, phantasmaNftId, metadata);
 	}
 };
 
@@ -512,16 +624,55 @@ struct TokenInfoBuilder
 {
 	static TokenInfoOwned Build(const std::string& symbol, const intx& maxSupply, bool isNFT, uint8_t decimals, const Bytes32& creatorPublicKey, const ByteArray& metadata, const ByteArray* tokenSchemas = nullptr)
 	{
+		if (symbol.empty())
+		{
+			PHANTASMA_EXCEPTION("Symbol validation error: Empty string is invalid");
+		}
+		if (symbol.size() > 255)
+		{
+			PHANTASMA_EXCEPTION("Symbol validation error: Too long");
+		}
+		for (char c : symbol)
+		{
+			if (c < 'A' || c > 'Z')
+			{
+				PHANTASMA_EXCEPTION("Symbol validation error: Anything outside A-Z is forbidden (digits, accents, etc.)");
+			}
+		}
+
+		if (metadata.empty())
+		{
+			PHANTASMA_EXCEPTION("metadata is required");
+		}
+
+		const bool isInt64Safe = maxSupply.Int256().Is8ByteSafe();
+
 		TokenInfoOwned owned;
 		owned.view.maxSupply = (const intx_pod&)maxSupply;
-		owned.view.flags = isNFT ? TokenFlags_NonFungible : TokenFlags_BigFungible;
+		owned.view.flags = TokenFlags_None;
+		if (isNFT)
+		{
+			if (!isInt64Safe)
+			{
+				PHANTASMA_EXCEPTION("NFT maximum supply must fit into Int64");
+			}
+			owned.view.flags = TokenFlags_NonFungible;
+		}
+		else if (!isInt64Safe)
+		{
+			owned.view.flags = TokenFlags_BigFungible;
+		}
 		owned.view.decimals = decimals;
 		owned.view.owner = creatorPublicKey;
 		owned.view.symbol = SmallString(symbol.c_str(), symbol.size());
 		owned.metadataStorage = metadata;
 		if (isNFT)
 		{
-			owned.schemasStorage = tokenSchemas ? *tokenSchemas : TokenSchemasBuilder::BuildAndSerialize(nullptr);
+			if (!tokenSchemas)
+			{
+				PHANTASMA_EXCEPTION("tokenSchemas is required for NFTs");
+			}
+			owned.schemasStorage = *tokenSchemas;
 		}
 		return owned;
 	}

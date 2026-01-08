@@ -250,35 +250,6 @@ static intx ParseIntx(const std::string& text, const std::string& label)
 	return v;
 }
 
-static ByteArray DecodeHex(const std::string& hex, const std::string& label)
-{
-	std::string trimmed = Trim(hex);
-	if (trimmed.empty())
-	{
-		throw std::runtime_error("Invalid hex for " + label);
-	}
-	if (trimmed.rfind("0x", 0) == 0 || trimmed.rfind("0X", 0) == 0)
-	{
-		trimmed = trimmed.substr(2);
-	}
-	if (trimmed.empty())
-	{
-		return {};
-	}
-	if ((trimmed.size() % 2) != 0)
-	{
-		throw std::runtime_error("Invalid hex for " + label + " (length must be even)");
-	}
-	try
-	{
-		return Base16::Decode(trimmed.c_str(), (int)trimmed.size());
-	}
-	catch (...)
-	{
-		throw std::runtime_error("Invalid hex for " + label);
-	}
-}
-
 static void ParseJson(const std::string& text, const std::string& label, rapidjson::Document& doc)
 {
 	doc.Parse<rapidjson::kParseDefaultFlags>(text.c_str());
@@ -290,139 +261,117 @@ static void ParseJson(const std::string& text, const std::string& label, rapidjs
 	}
 }
 
-static void CloneValue(const rapidjson::Value& src, rapidjson::Value& dst, rapidjson::Document::AllocatorType& alloc)
+static MetadataValue ParseMetadataValue(const rapidjson::Value& value, const std::string& path)
 {
-	if (src.IsObject())
+	if (value.IsString())
 	{
-		dst.SetObject();
-		for (auto it = src.MemberBegin(); it != src.MemberEnd(); ++it)
+		return MetadataValue::FromString(value.GetString());
+	}
+	if (value.IsBool())
+	{
+		throw std::runtime_error(path + " must be a string, number, object, or array");
+	}
+	if (value.IsInt64())
+	{
+		return MetadataValue::FromInt64(value.GetInt64());
+	}
+	if (value.IsUint64())
+	{
+		return MetadataValue::FromUInt64(value.GetUint64());
+	}
+	if (value.IsInt())
+	{
+		return MetadataValue::FromInt64(value.GetInt());
+	}
+	if (value.IsUint())
+	{
+		return MetadataValue::FromUInt64(value.GetUint());
+	}
+	if (value.IsDouble())
+	{
+		throw std::runtime_error(path + " must be an integer");
+	}
+	if (value.IsArray())
+	{
+		std::vector<MetadataValue> items;
+		items.reserve(value.Size());
+		for (rapidjson::SizeType i = 0; i < value.Size(); ++i)
 		{
-			rapidjson::Value name(it->name.GetString(), it->name.GetStringLength(), alloc);
-			rapidjson::Value value;
-			CloneValue(it->value, value, alloc);
-			dst.AddMember(name, value, alloc);
+			const std::string childPath = path + "[" + std::to_string(i) + "]";
+			items.push_back(ParseMetadataValue(value[i], childPath));
 		}
-		return;
+		return MetadataValue::FromArray(items);
+	}
+	if (value.IsObject())
+	{
+		std::vector<std::pair<std::string, MetadataValue>> fields;
+		for (auto it = value.MemberBegin(); it != value.MemberEnd(); ++it)
+		{
+			const std::string name = it->name.GetString();
+			fields.push_back({ name, ParseMetadataValue(it->value, path + "." + name) });
+		}
+		return MetadataValue::FromStruct(fields);
 	}
 
-	if (src.IsArray())
-	{
-		dst.SetArray();
-		for (auto it = src.Begin(); it != src.End(); ++it)
-		{
-			rapidjson::Value value;
-			CloneValue(*it, value, alloc);
-			dst.PushBack(value, alloc);
-		}
-		return;
-	}
-
-	if (src.IsString()) { dst.SetString(src.GetString(), src.GetStringLength(), alloc); return; }
-	if (src.IsBool()) { dst.SetBool(src.GetBool()); return; }
-	if (src.IsInt()) { dst.SetInt(src.GetInt()); return; }
-	if (src.IsUint()) { dst.SetUint(src.GetUint()); return; }
-	if (src.IsInt64()) { dst.SetInt64(src.GetInt64()); return; }
-	if (src.IsUint64()) { dst.SetUint64(src.GetUint64()); return; }
-	if (src.IsDouble()) { dst.SetDouble(src.GetDouble()); return; }
-	dst.SetNull();
+	throw std::runtime_error(path + " must be a string, number, object, or array");
 }
 
-static void NormalizeMetadataJson(const std::string& text, const std::string& label, rapidjson::Document& out)
+static std::vector<MetadataField> ParseMetadataFields(const std::string& text, const std::string& label)
 {
-	out.SetObject();
-	if (text.empty())
-	{
-		return;
-	}
+	rapidjson::Document doc;
+	ParseJson(text, label, doc);
 
-	rapidjson::Document parsed;
-	ParseJson(text, label, parsed);
-	auto& alloc = out.GetAllocator();
-
-	if (parsed.IsObject())
+	std::vector<MetadataField> fields;
+	if (doc.IsObject())
 	{
-		for (auto it = parsed.MemberBegin(); it != parsed.MemberEnd(); ++it)
+		for (auto it = doc.MemberBegin(); it != doc.MemberEnd(); ++it)
 		{
-			rapidjson::Value name(it->name.GetString(), it->name.GetStringLength(), alloc);
-			rapidjson::Value value;
-			CloneValue(it->value, value, alloc);
-			out.AddMember(name, value, alloc);
+			const std::string name = it->name.GetString();
+			if (name.empty())
+			{
+				throw std::runtime_error(label + ": metadata field name cannot be empty");
+			}
+			fields.push_back(MetadataField{ name, ParseMetadataValue(it->value, label + "." + name) });
 		}
-		return;
+		return fields;
 	}
 
-	if (parsed.IsArray())
+	if (doc.IsArray())
 	{
-		for (auto it = parsed.Begin(); it != parsed.End(); ++it)
+		fields.reserve(doc.Size());
+		for (rapidjson::SizeType i = 0; i < doc.Size(); ++i)
 		{
-			const rapidjson::Value& entry = *it;
+			const rapidjson::Value& entry = doc[i];
 			if (!entry.IsObject() || !entry.HasMember("name") || !entry.HasMember("value") || !entry["name"].IsString())
 			{
-				throw std::runtime_error("Metadata array entry must be an object with name/value");
+				throw std::runtime_error(label + "[" + std::to_string(i) + "] must be an object with name/value");
 			}
-			const char* key = entry["name"].GetString();
-			rapidjson::Value name(key, (rapidjson::SizeType)strlen(key), alloc);
-			rapidjson::Value value;
-			CloneValue(entry["value"], value, alloc);
-			out.AddMember(name, value, alloc);
+			const std::string name = entry["name"].GetString();
+			if (name.empty())
+			{
+				throw std::runtime_error(label + "[" + std::to_string(i) + "]: metadata field name cannot be empty");
+			}
+			fields.push_back(MetadataField{ name, ParseMetadataValue(entry["value"], label + "[" + std::to_string(i) + "]." + name) });
 		}
-		return;
+		return fields;
 	}
 
-	throw std::runtime_error("Metadata for " + label + " must be an object or array");
+	throw std::runtime_error(label + " must be a JSON object or array");
 }
 
 static TokenSchemasOwned ParseTokenSchemas(const std::string& text)
 {
-	rapidjson::Document doc;
-	ParseJson(text, "token_schemas", doc);
-	if (!doc.IsObject())
-	{
-		throw std::runtime_error("token_schemas must be a JSON object");
-	}
-
-	auto parseArray = [&](const char* key) -> std::vector<FieldType>
-	{
-		if (!doc.HasMember(key) || !doc[key].IsArray())
-		{
-			throw std::runtime_error(std::string(key) + " must be an array");
-		}
-		std::vector<FieldType> fields;
-		for (auto it = doc[key].Begin(); it != doc[key].End(); ++it)
-		{
-			const rapidjson::Value& v = *it;
-			if (!v.IsObject() || !v.HasMember("name") || !v.HasMember("type") || !v["name"].IsString() || !v["type"].IsString())
-			{
-				throw std::runtime_error(std::string(key) + " entries must contain name and type");
-			}
-			bool error = false;
-			const VmType vmType = VmTypeFromString(v["type"].GetString(), &error);
-			if (error)
-			{
-				throw std::runtime_error("Unknown VmType: " + std::string(v["type"].GetString()));
-			}
-			fields.push_back(FieldType{ v["name"].GetString(), vmType });
-		}
-		return fields;
-	};
-
-	std::vector<FieldType> seriesFields = parseArray("seriesMetadata");
-	std::vector<FieldType> romFields = parseArray("rom");
-	std::vector<FieldType> ramFields = parseArray("ram");
-
-	return TokenSchemasBuilder::BuildFromFields(seriesFields, romFields, ramFields);
+#ifdef PHANTASMA_RAPIDJSON
+	return TokenSchemasBuilder::FromJson(text);
+#else
+	(void)text;
+	throw std::runtime_error("token_schemas parsing requires PHANTASMA_RAPIDJSON");
+#endif
 }
 
-static intx GenerateRandomId()
+static std::string IdToStringUnsigned(const uint256& id)
 {
-	uint8_t bytes[32];
-	CryptoRandomBuffer(bytes, sizeof(bytes));
-	return intx::FromBytes(ByteView{ bytes, sizeof(bytes) }, false);
-}
-
-static std::string IdToString(const intx& id)
-{
-	return id.ToString();
+	return intx(id).ToStringUnsigned();
 }
 
 static std::string BytesToHex(const ByteArray& b)
@@ -433,25 +382,6 @@ static std::string BytesToHex(const ByteArray& b)
 	}
 	const String s = Base16::Encode(&b.front(), (int)b.size(), false);
 	return std::string(s.begin(), s.end());
-}
-
-static std::string ValueToString(const rapidjson::Value& v)
-{
-	if (v.IsString())
-	{
-		return v.GetString();
-	}
-	if (v.IsNumber())
-	{
-		std::ostringstream ss;
-		if (v.IsUint64()) ss << v.GetUint64();
-		else if (v.IsInt64()) ss << v.GetInt64();
-		else if (v.IsUint()) ss << v.GetUint();
-		else if (v.IsInt()) ss << v.GetInt();
-		else ss << v.GetDouble();
-		return ss.str();
-	}
-	throw std::runtime_error("Expected string or number value");
 }
 
 static std::vector<std::pair<std::string, std::string>> ParseTokenMetadata(const std::string& text)
@@ -472,414 +402,6 @@ static std::vector<std::pair<std::string, std::string>> ParseTokenMetadata(const
 		meta.push_back({ it->name.GetString(), it->value.GetString() });
 	}
 	return meta;
-}
-
-static bool EqualsIgnoreCaseStr(const std::string& a, const std::string& b)
-{
-	if (a.size() != b.size())
-	{
-		return false;
-	}
-	for (size_t i = 0; i != a.size(); ++i)
-	{
-		if (tolower((unsigned char)a[i]) != tolower((unsigned char)b[i]))
-		{
-			return false;
-		}
-	}
-	return true;
-}
-
-static const rapidjson::Value* FindField(const rapidjson::Value& container, const std::string& key)
-{
-	if (container.IsObject())
-	{
-		for (auto it = container.MemberBegin(); it != container.MemberEnd(); ++it)
-		{
-			const std::string name = it->name.GetString();
-			if (name == key)
-			{
-				return &it->value;
-			}
-		}
-		for (auto it = container.MemberBegin(); it != container.MemberEnd(); ++it)
-		{
-			const std::string name = it->name.GetString();
-			if (EqualsIgnoreCaseStr(name, key))
-			{
-				throw std::runtime_error("Case mismatch for metadata field " + key + ", found " + name);
-			}
-		}
-	}
-	else if (container.IsArray())
-	{
-		// Search from the end so defaults appended later take precedence.
-		for (auto it = container.End(); it != container.Begin();)
-		{
-			--it;
-			const rapidjson::Value& entry = *it;
-			if (!entry.IsObject() || !entry.HasMember("name") || !entry.HasMember("value") || !entry["name"].IsString())
-			{
-				continue;
-			}
-			const std::string name = entry["name"].GetString();
-			if (name == key)
-			{
-				return &entry["value"];
-			}
-		}
-		for (auto it = container.End(); it != container.Begin();)
-		{
-			--it;
-			const rapidjson::Value& entry = *it;
-			if (!entry.IsObject() || !entry.HasMember("name") || !entry.HasMember("value") || !entry["name"].IsString())
-			{
-				continue;
-			}
-			const std::string name = entry["name"].GetString();
-			if (EqualsIgnoreCaseStr(name, key))
-			{
-				throw std::runtime_error("Case mismatch for metadata field " + key + ", found " + name);
-			}
-		}
-	}
-	return nullptr;
-}
-
-static VmDynamicVariable BuildValue(const VmVariableSchema& schema, const rapidjson::Value& value, Allocator& alloc);
-
-static VmDynamicStruct BuildStruct(const VmStructSchema& schema, const rapidjson::Value& json, Allocator& alloc)
-{
-	if (!json.IsObject())
-	{
-		throw std::runtime_error("Metadata entry must be an object");
-	}
-	VmDynamicStruct s{};
-	s.numFields = schema.numFields;
-	s.fields = alloc.Alloc<VmNamedDynamicVariable>(schema.numFields);
-	for (uint32_t i = 0; i != schema.numFields; ++i)
-	{
-		const SmallString& fname = schema.fields[i].name;
-		const std::string key = fname.c_str();
-		const rapidjson::Value* v = FindField(json, key);
-		if (!v)
-		{
-			throw std::runtime_error("Missing metadata field " + key);
-		}
-		s.fields[i].name = fname;
-		s.fields[i].value = BuildValue(schema.fields[i].schema, *v, alloc);
-	}
-	if (s.numFields > 1)
-	{
-		std::sort(s.fields, s.fields + s.numFields, NameLessThan<VmNamedDynamicVariable>{});
-	}
-	return s;
-}
-
-static ByteView CopyBytes(const ByteArray& source, Allocator& alloc)
-{
-	if (source.empty())
-	{
-		return ByteView{ nullptr, 0 };
-	}
-	Byte* dst = alloc.Alloc<Byte>(source.size());
-	memcpy(dst, source.data(), source.size());
-	return ByteView{ dst, source.size() };
-}
-
-static const char* CopyString(const std::string& src, Allocator& alloc)
-{
-	char* dst = alloc.Alloc<char>(src.size() + 1);
-	memcpy(dst, src.c_str(), src.size());
-	dst[src.size()] = 0;
-	return dst;
-}
-
-static VmDynamicVariable BuildScalar(VmType type, const VmStructSchema* schema, const rapidjson::Value& value, Allocator& alloc)
-{
-	switch (type)
-	{
-	case VmType::String:
-	{
-		if (!value.IsString())
-		{
-			throw std::runtime_error("Expected string value");
-		}
-		const std::string text = value.GetString();
-		VmDynamicVariable v(CopyString(text, alloc));
-		return v;
-	}
-	case VmType::Int8:
-	case VmType::Int16:
-	case VmType::Int32:
-	case VmType::Int64:
-	{
-		const bool isSigned = value.IsInt64();
-		const bool isUnsigned = value.IsUint64();
-		if (!isSigned && !isUnsigned)
-		{
-			throw std::runtime_error("Expected integer value");
-		}
-		if (type == VmType::Int8)
-		{
-			if (isSigned)
-			{
-				const int64_t num = value.GetInt64();
-				if (num < -0x80 || num > 0x7F) throw std::runtime_error("Int8 out of range");
-				return VmDynamicVariable((int8_t)num);
-			}
-			const uint64_t num = value.GetUint64();
-			if (num > 0xFF) throw std::runtime_error("Int8 out of range");
-			return VmDynamicVariable((uint8_t)num);
-		}
-		if (type == VmType::Int16)
-		{
-			if (isSigned)
-			{
-				const int64_t num = value.GetInt64();
-				if (num < -0x8000 || num > 0x7FFF) throw std::runtime_error("Int16 out of range");
-				return VmDynamicVariable((int16_t)num);
-			}
-			const uint64_t num = value.GetUint64();
-			if (num > 0xFFFF) throw std::runtime_error("Int16 out of range");
-			return VmDynamicVariable((uint16_t)num);
-		}
-		if (type == VmType::Int32)
-		{
-			if (isSigned)
-			{
-				const int64_t num = value.GetInt64();
-				if (num < INT32_MIN || num > INT32_MAX) throw std::runtime_error("Int32 out of range");
-				return VmDynamicVariable((int32_t)num);
-			}
-			const uint64_t num = value.GetUint64();
-			if (num > 0xFFFFFFFFull) throw std::runtime_error("Int32 out of range");
-			return VmDynamicVariable((uint32_t)num);
-		}
-		if (isSigned)
-		{
-			return VmDynamicVariable((int64_t)value.GetInt64());
-		}
-		return VmDynamicVariable((uint64_t)value.GetUint64());
-	}
-	case VmType::Int256:
-	{
-		if (!value.IsString() && !value.IsNumber())
-		{
-			throw std::runtime_error("Expected numeric string for Int256");
-		}
-		const std::string text = value.IsString() ? value.GetString() : ValueToString(value);
-		const intx v = ParseIntx(text, "metadata");
-		return VmDynamicVariable(v.Int256());
-	}
-	case VmType::Bytes:
-	{
-		if (!value.IsString())
-		{
-			throw std::runtime_error("Bytes fields must be hex strings");
-		}
-		const ByteArray decoded = DecodeHex(value.GetString(), "metadata bytes");
-		VmDynamicVariable v;
-		v.type = VmType::Bytes;
-		v.arrayLength = 1;
-		v.data.bytes = CopyBytes(decoded, alloc);
-		return v;
-	}
-	case VmType::Bytes16:
-	case VmType::Bytes32:
-	case VmType::Bytes64:
-	{
-		if (!value.IsString())
-		{
-			throw std::runtime_error("Fixed bytes fields must be hex strings");
-		}
-		const ByteArray decoded = DecodeHex(value.GetString(), "metadata bytes");
-		const size_t expected = type == VmType::Bytes16 ? 16 : (type == VmType::Bytes32 ? 32 : 64);
-		if (decoded.size() != expected)
-		{
-			throw std::runtime_error("Fixed bytes length mismatch");
-		}
-		if (type == VmType::Bytes16) return VmDynamicVariable(Bytes16(View(decoded)));
-		if (type == VmType::Bytes32) return VmDynamicVariable(Bytes32(View(decoded)));
-		return VmDynamicVariable(Bytes64(View(decoded)));
-	}
-	case VmType::Struct:
-	{
-		if (!schema)
-		{
-			throw std::runtime_error("Struct schema missing");
-		}
-		return VmDynamicVariable(BuildStruct(*schema, value, alloc));
-	}
-	default:
-		break;
-	}
-	throw std::runtime_error("Unsupported VmType in metadata");
-}
-
-static VmDynamicVariable BuildArray(VmType baseType, const VmStructSchema* schema, const rapidjson::Value& value, Allocator& alloc)
-{
-	if (!value.IsArray())
-	{
-		throw std::runtime_error("Expected array value");
-	}
-	const uint32_t count = (uint32_t)value.Size();
-	VmDynamicVariable out;
-	out.type = (VmType)((uint8_t)baseType | (uint8_t)VmType::Array);
-	out.arrayLength = count;
-
-	switch (baseType)
-	{
-	case VmType::Int8:
-	{
-		uint8_t* arr = alloc.Alloc<uint8_t>(count);
-		for (uint32_t i = 0; i != count; ++i)
-		{
-			VmDynamicVariable v = BuildScalar(baseType, schema, value[i], alloc);
-			arr[i] = v.data.int8;
-		}
-		out.data.int8Array = arr;
-		return out;
-	}
-	case VmType::Int16:
-	{
-		uint16_t* arr = alloc.Alloc<uint16_t>(count);
-		for (uint32_t i = 0; i != count; ++i)
-		{
-			VmDynamicVariable v = BuildScalar(baseType, schema, value[i], alloc);
-			arr[i] = v.data.int16;
-		}
-		out.data.int16Array = arr;
-		return out;
-	}
-	case VmType::Int32:
-	{
-		uint32_t* arr = alloc.Alloc<uint32_t>(count);
-		for (uint32_t i = 0; i != count; ++i)
-		{
-			VmDynamicVariable v = BuildScalar(baseType, schema, value[i], alloc);
-			arr[i] = v.data.int32;
-		}
-		out.data.int32Array = arr;
-		return out;
-	}
-	case VmType::Int64:
-	{
-		uint64_t* arr = alloc.Alloc<uint64_t>(count);
-		for (uint32_t i = 0; i != count; ++i)
-		{
-			VmDynamicVariable v = BuildScalar(baseType, schema, value[i], alloc);
-			arr[i] = v.data.int64;
-		}
-		out.data.int64Array = arr;
-		return out;
-	}
-	case VmType::Int256:
-	{
-		uint256* arr = alloc.Alloc<uint256>(count);
-		for (uint32_t i = 0; i != count; ++i)
-		{
-			VmDynamicVariable v = BuildScalar(baseType, schema, value[i], alloc);
-			arr[i] = v.data.int256;
-		}
-		out.data.int256Array = arr;
-		return out;
-	}
-	case VmType::Bytes:
-	{
-		ByteView* arr = alloc.Alloc<ByteView>(count);
-		for (uint32_t i = 0; i != count; ++i)
-		{
-			VmDynamicVariable v = BuildScalar(baseType, schema, value[i], alloc);
-			arr[i] = v.data.bytes;
-		}
-		out.data.bytesArray = arr;
-		return out;
-	}
-	case VmType::Bytes16:
-	{
-		Bytes16* arr = alloc.Alloc<Bytes16>(count);
-		for (uint32_t i = 0; i != count; ++i)
-		{
-			VmDynamicVariable v = BuildScalar(baseType, schema, value[i], alloc);
-			arr[i] = v.data.bytes16;
-		}
-		out.data.bytes16Array = arr;
-		return out;
-	}
-	case VmType::Bytes32:
-	{
-		Bytes32* arr = alloc.Alloc<Bytes32>(count);
-		for (uint32_t i = 0; i != count; ++i)
-		{
-			VmDynamicVariable v = BuildScalar(baseType, schema, value[i], alloc);
-			arr[i] = v.data.bytes32;
-		}
-		out.data.bytes32Array = arr;
-		return out;
-	}
-	case VmType::Bytes64:
-	{
-		Bytes64* arr = alloc.Alloc<Bytes64>(count);
-		for (uint32_t i = 0; i != count; ++i)
-		{
-			VmDynamicVariable v = BuildScalar(baseType, schema, value[i], alloc);
-			arr[i] = v.data.bytes64;
-		}
-		out.data.bytes64Array = arr;
-		return out;
-	}
-	case VmType::String:
-	{
-		const char** arr = alloc.Alloc<const char*>(count);
-		for (uint32_t i = 0; i != count; ++i)
-		{
-			VmDynamicVariable v = BuildScalar(baseType, schema, value[i], alloc);
-			arr[i] = v.data.string;
-		}
-		out.data.stringArray = arr;
-		return out;
-	}
-	case VmType::Struct:
-	{
-		if (!schema)
-		{
-			throw std::runtime_error("Struct schema missing");
-		}
-		VmDynamicStruct* arr = alloc.Alloc<VmDynamicStruct>(count);
-		for (uint32_t i = 0; i != count; ++i)
-		{
-			arr[i] = BuildStruct(*schema, value[i], alloc);
-		}
-		out.data.structureArray = { *schema, arr };
-		return out;
-	}
-	default:
-		break;
-	}
-	throw std::runtime_error("Unsupported array metadata type");
-}
-
-static VmDynamicVariable BuildValue(const VmVariableSchema& schema, const rapidjson::Value& value, Allocator& alloc)
-{
-	const uint8_t raw = (uint8_t)schema.type;
-	const bool isArray = (raw & (uint8_t)VmType::Array) != 0;
-	if (isArray)
-	{
-		VmType base = (VmType)(raw & ~(uint8_t)VmType::Array);
-		return BuildArray(base, schema.structure.numFields ? &schema.structure : nullptr, value, alloc);
-	}
-	return BuildScalar(schema.type, schema.structure.numFields ? &schema.structure : nullptr, value, alloc);
-}
-
-static ByteArray SerializeMetadata(const VmStructSchema& schema, const rapidjson::Value& json)
-{
-	Allocator alloc;
-	VmDynamicStruct s = BuildStruct(schema, json, alloc);
-	phantasma::carbon::vector<Byte> buffer;
-	WriteView w(buffer);
-	Write(s, schema, w);
-	return ByteArray(buffer.begin(), buffer.end());
 }
 
 static Config LoadConfig(const Args& args)
@@ -991,6 +513,7 @@ static void RunCreateToken(const Config& cfg)
 	Ensure(!cfg.nexus.empty(), "nexus is required");
 	Ensure(!cfg.wif.empty(), "wif is required");
 	Ensure(!cfg.symbol.empty(), "symbol is required");
+	Ensure(!cfg.tokenType.empty(), "token_type is required");
 	Ensure(cfg.gasFeeBase.has_value(), "gas_fee_base is required");
 	Ensure(cfg.gasFeeCreateTokenBase.has_value(), "gas_fee_create_token_base is required");
 	Ensure(cfg.gasFeeCreateTokenSymbol.has_value(), "gas_fee_create_token_symbol is required");
@@ -998,7 +521,9 @@ static void RunCreateToken(const Config& cfg)
 	Ensure(cfg.createTokenMaxData.has_value(), "create_token_max_data is required");
 	Ensure(!cfg.tokenMetadataRaw.empty(), "token_metadata is required");
 
-	const std::string tokenType = cfg.tokenType.empty() ? "nft" : cfg.tokenType;
+	std::string tokenType = cfg.tokenType;
+	std::transform(tokenType.begin(), tokenType.end(), tokenType.begin(), [](unsigned char c) { return (char)tolower(c); });
+	Ensure(tokenType == "fungible" || tokenType == "nft", "token_type must be 'fungible' or 'nft'");
 	const bool isFungible = tokenType == "fungible";
 
 	if (isFungible)
@@ -1076,52 +601,6 @@ static void RunCreateToken(const Config& cfg)
 	}
 }
 
-static ByteArray ExtractRomFromMetadata(const rapidjson::Value& meta)
-{
-	if (!meta.IsObject() || !meta.HasMember("rom") || !meta["rom"].IsString())
-	{
-		return {};
-	}
-	return DecodeHex(meta["rom"].GetString(), "rom");
-}
-
-static void InjectSeriesDefaults(rapidjson::Document& meta, const intx& seriesId, const ByteArray& romBytes)
-{
-	auto& alloc = meta.GetAllocator();
-	const std::string idStr = IdToString(seriesId);
-	meta.RemoveMember("mode");
-	meta.RemoveMember(StandardMeta::id.c_str());
-	meta.RemoveMember("rom");
-	rapidjson::Value idName(StandardMeta::id.c_str(), alloc);
-	rapidjson::Value idVal(idStr.c_str(), alloc);
-	meta.AddMember(idName, idVal, alloc);
-
-	rapidjson::Value modeName("mode", alloc);
-	rapidjson::Value modeVal(romBytes.empty() ? 0 : 1);
-	meta.AddMember(modeName, modeVal, alloc);
-
-	rapidjson::Value romName("rom", alloc);
-	const std::string romHex = romBytes.empty() ? "0x" : BytesToHex(romBytes);
-	rapidjson::Value romVal(romHex.c_str(), alloc);
-	meta.AddMember(romName, romVal, alloc);
-}
-
-static void InjectNftDefaults(rapidjson::Document& meta, const intx& nftId, const ByteArray& romBytes)
-{
-	auto& alloc = meta.GetAllocator();
-	const std::string idStr = IdToString(nftId);
-	meta.RemoveMember(StandardMeta::id.c_str());
-	meta.RemoveMember("rom");
-	rapidjson::Value idName(StandardMeta::id.c_str(), alloc);
-	rapidjson::Value idVal(idStr.c_str(), alloc);
-	meta.AddMember(idName, idVal, alloc);
-
-	rapidjson::Value romName("rom", alloc);
-	const std::string romHex = romBytes.empty() ? "0x" : BytesToHex(romBytes);
-	rapidjson::Value romVal(romHex.c_str(), alloc);
-	meta.AddMember(romName, romVal, alloc);
-}
-
 static void RunCreateSeries(const Config& cfg)
 {
 	Ensure(!cfg.rpc.empty(), "rpc is required");
@@ -1139,16 +618,12 @@ static void RunCreateSeries(const Config& cfg)
 	const Bytes32 owner(keys.GetPublicKey());
 
 	TokenSchemasOwned schemasOwned = ParseTokenSchemas(cfg.tokenSchemasRaw);
+	const std::vector<MetadataField> seriesMetadata = ParseMetadataFields(cfg.seriesMetadataRaw, "series_metadata");
+	const uint256 seriesId = IdHelper::GetRandomPhantasmaId();
 
-	rapidjson::Document metaDoc;
-	NormalizeMetadataJson(cfg.seriesMetadataRaw, "series_metadata", metaDoc);
-	const ByteArray romBytes = ExtractRomFromMetadata(metaDoc);
-	const intx seriesId = GenerateRandomId();
-	InjectSeriesDefaults(metaDoc, seriesId, romBytes);
+	std::cout << "Creating new series '" << IdToStringUnsigned(seriesId) << "'" << std::endl;
 
-	const ByteArray metadataBytes = SerializeMetadata(schemasOwned.view.seriesMetadata, metaDoc);
-
-	const SeriesInfoOwned seriesInfoOwned = SeriesInfoBuilder::Build(seriesId.Int256(), 0, 0, owner, &metadataBytes);
+	const SeriesInfoOwned seriesInfoOwned = SeriesInfoBuilder::Build(schemasOwned.view.seriesMetadata, seriesId, 0, 0, owner, seriesMetadata);
 
 	const CreateSeriesFeeOptions feeOptions(
 		cfg.gasFeeBase.value(),
@@ -1198,13 +673,12 @@ static void RunMintNft(const Config& cfg)
 	PhantasmaKeys keys = PhantasmaKeys::FromWIF(cfg.wif.c_str(), (int)cfg.wif.size());
 	const Bytes32 owner(keys.GetPublicKey());
 
-	rapidjson::Document metaDoc;
-	NormalizeMetadataJson(cfg.nftMetadataRaw, "nft_metadata", metaDoc);
-	const ByteArray romBytes = ExtractRomFromMetadata(metaDoc);
-	const intx nftId = GenerateRandomId();
-	InjectNftDefaults(metaDoc, nftId, romBytes);
+	const std::vector<MetadataField> nftMetadata = ParseMetadataFields(cfg.nftMetadataRaw, "nft_metadata");
+	const uint256 nftId = IdHelper::GetRandomPhantasmaId();
 
-	const ByteArray rom = SerializeMetadata(schemasOwned.view.rom, metaDoc);
+	std::cout << "Minting NFT with phantasma ID " << IdToStringUnsigned(nftId) << std::endl;
+
+	const ByteArray rom = NftRomBuilder::BuildAndSerialize(schemasOwned.view.rom, nftId, nftMetadata);
 
 	const MintNftFeeOptions feeOptions(cfg.gasFeeBase.value(), cfg.gasFeeMultiplier.value());
 	const TxEnvelope tx = MintNonFungibleTxHelper::BuildTx(
@@ -1240,7 +714,7 @@ static void RunMintNft(const Config& cfg)
 		if (!addresses.empty())
 		{
 			const String addr = Base16::Encode(addresses[0].bytes, (int)Bytes32::length, false);
-			std::cout << "Deployed NFT with phantasma ID " << IdToString(nftId)
+			std::cout << "Deployed NFT with phantasma ID " << IdToStringUnsigned(nftId)
 				<< " and carbon NFT address " << std::string(addr.begin(), addr.end()) << std::endl;
 		}
 	}

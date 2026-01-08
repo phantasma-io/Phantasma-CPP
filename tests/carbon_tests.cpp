@@ -2,7 +2,12 @@
 #include "../include/PhantasmaAPI.h"
 #include "../include/Adapters/PhantasmaAPI_openssl.h"
 #include "../include/Numerics/Base16.h"
+#include "../include/Numerics/BigInteger.h"
+#include "../include/Cryptography/KeyPair.h"
 #include "../include/Carbon/Carbon.h"
+#include "../include/Carbon/DataBlockchain.h"
+#include "../include/Carbon/Tx.h"
+#include "../include/Carbon/Contracts/Token.h"
 
 #include <fstream>
 #include <iostream>
@@ -536,8 +541,9 @@ static void DecodeTests(TestContext& ctx, const std::vector<Row>& rows)
 
 			const BigInteger phantasmaSeriesId = BigInteger::Parse(String("115792089237316195423570985008687907853269984665640564039457584007913129639935"));
 			const int256 seriesId = ToInt256(phantasmaSeriesId);
-			const ByteArray seriesMeta = TokenSeriesMetadataBuilder::BuildAndSerialize(seriesId, {}, nullptr);
-			SeriesInfoOwned series = SeriesInfoBuilder::Build(seriesId, 0, 0, senderPub, &seriesMeta);
+			const TokenSchemasOwned schemas = TokenSchemasBuilder::PrepareStandardTokenSchemas();
+			const std::vector<MetadataField> seriesMetadata;
+			SeriesInfoOwned series = SeriesInfoBuilder::Build(schemas.view.seriesMetadata, seriesId, 0, 0, senderPub, seriesMetadata);
 
 			CreateSeriesFeeOptions fees(10000, 2500000000ULL, 10000);
 			TxEnvelope tx = CreateTokenSeriesTxHelper::BuildTx((uint64_t)-1, series.View(), senderPub, &fees, 100000000, 1759711416000LL);
@@ -558,15 +564,20 @@ static void DecodeTests(TestContext& ctx, const std::vector<Row>& rows)
 			const int256 nftId = ToInt256(phantasmaNftId);
 			ByteArray phantasmaRomData = { (Byte)0x01, (Byte)0x42 };
 
+			const TokenSchemasOwned schemas = TokenSchemasBuilder::PrepareStandardTokenSchemas();
+			std::vector<MetadataField> nftMetadata = {
+				MetadataField{ "name", MetadataValue::FromString("My NFT #1") },
+				MetadataField{ "description", MetadataValue::FromString("This is my first NFT!") },
+				MetadataField{ "imageURL", MetadataValue::FromString("images-assets.nasa.gov/image/PIA13227/PIA13227~orig.jpg") },
+				MetadataField{ "infoURL", MetadataValue::FromString("https://images.nasa.gov/details/PIA13227") },
+				MetadataField{ "royalties", MetadataValue::FromInt64(10000000) },
+				MetadataField{ "rom", MetadataValue::FromBytes(phantasmaRomData) },
+			};
+
 			const ByteArray rom = NftRomBuilder::BuildAndSerialize(
+				schemas.view.rom,
 				nftId,
-				"My NFT #1",
-				"This is my first NFT!",
-				"images-assets.nasa.gov/image/PIA13227/PIA13227~orig.jpg",
-				"https://images.nasa.gov/details/PIA13227",
-				10000000,
-				phantasmaRomData,
-				nullptr);
+				nftMetadata);
 
 			MintNftFeeOptions fees(10000, 1000);
 			TxEnvelope tx = MintNonFungibleTxHelper::BuildTx(
