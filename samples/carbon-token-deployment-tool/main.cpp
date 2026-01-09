@@ -577,11 +577,11 @@ static void RunCreateToken(const Config& cfg)
 		cfg.gasFeeMultiplier.value());
 
 	const TxEnvelope tx = CreateTokenTxHelper::BuildTx(tokenInfoOwned.View(), owner, &feeOptions, cfg.createTokenMaxData.value());
-	const ByteArray signedBytes = SignAndSerialize(tx, keys);
-	const std::string txHex = BytesToHex(signedBytes);
 
 	if (cfg.dryRun)
 	{
+		const ByteArray signedBytes = SignAndSerialize(tx, keys);
+		const std::string txHex = BytesToHex(signedBytes);
 		std::cout << "[dry-run] Prepared tx: " << txHex << std::endl;
 		return;
 	}
@@ -589,7 +589,7 @@ static void RunCreateToken(const Config& cfg)
 	CurlClient http(cfg.rpc);
 	PhantasmaAPI api(http);
 	PhantasmaError err;
-	const String hash = api.SendCarbonTransaction(txHex.c_str(), &err);
+	const String hash = SignAndSendCarbonTransaction(api, tx.msg, keys, &err);
 	Ensure(err.code == 0, "Failed to send transaction: " + err.message);
 	std::cout << "txHash: " << hash << std::endl;
 
@@ -631,11 +631,11 @@ static void RunCreateSeries(const Config& cfg)
 		cfg.gasFeeMultiplier.value());
 
 	const TxEnvelope tx = CreateTokenSeriesTxHelper::BuildTx(cfg.carbonTokenId.value(), seriesInfoOwned.View(), owner, &feeOptions, cfg.createSeriesMaxData.value());
-	const ByteArray signedBytes = SignAndSerialize(tx, keys);
-	const std::string txHex = BytesToHex(signedBytes);
 
 	if (cfg.dryRun)
 	{
+		const ByteArray signedBytes = SignAndSerialize(tx, keys);
+		const std::string txHex = BytesToHex(signedBytes);
 		std::cout << "[dry-run] Prepared tx: " << txHex << std::endl;
 		return;
 	}
@@ -643,7 +643,7 @@ static void RunCreateSeries(const Config& cfg)
 	CurlClient http(cfg.rpc);
 	PhantasmaAPI api(http);
 	PhantasmaError err;
-	const String hash = api.SendCarbonTransaction(txHex.c_str(), &err);
+	const String hash = SignAndSendCarbonTransaction(api, tx.msg, keys, &err);
 	Ensure(err.code == 0, "Failed to send transaction: " + err.message);
 	std::cout << "txHash: " << hash << std::endl;
 
@@ -691,11 +691,10 @@ static void RunMintNft(const Config& cfg)
 		&feeOptions,
 		cfg.mintTokenMaxData.value());
 
-	const ByteArray signedBytes = SignAndSerialize(tx, keys);
-	const std::string txHex = BytesToHex(signedBytes);
-
 	if (cfg.dryRun)
 	{
+		const ByteArray signedBytes = SignAndSerialize(tx, keys);
+		const std::string txHex = BytesToHex(signedBytes);
 		std::cout << "[dry-run] Prepared tx: " << txHex << std::endl;
 		return;
 	}
@@ -703,7 +702,7 @@ static void RunMintNft(const Config& cfg)
 	CurlClient http(cfg.rpc);
 	PhantasmaAPI api(http);
 	PhantasmaError err;
-	const String hash = api.SendCarbonTransaction(txHex.c_str(), &err);
+	const String hash = SignAndSendCarbonTransaction(api, tx.msg, keys, &err);
 	Ensure(err.code == 0, "Failed to send transaction: " + err.message);
 	std::cout << "txHash: " << hash << std::endl;
 

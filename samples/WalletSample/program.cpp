@@ -367,12 +367,12 @@ public:
 		return false;
 	}
 
-	bool TrySendCarbonTransaction(const String& txHex, String& txHash)
+	bool TrySendCarbonTransaction(const cbc::TxMsg& msg, const PhantasmaKeys& keys, String& txHash)
 	{
 		rpc::PhantasmaError err{};
 		try
 		{
-			txHash = _phantasmaApiService.SendCarbonTransaction(txHex.c_str(), &err);
+			txHash = SignAndSendCarbonTransaction(_phantasmaApiService, msg, keys, &err);
 		}
 		catch (const std::exception& ex)
 		{
@@ -531,7 +531,7 @@ public:
 
 		cbc::TxMsg msg;
 		msg.type = cbc::TxTypes::TransferFungible;
-		msg.expiry = static_cast<int64_t>(nowMs + 60LL * 60LL * 1000LL);
+		msg.expiry = static_cast<int64_t>(nowMs + 60LL * 1000LL);
 		msg.maxGas = carbon::FeeOptions().CalculateMaxGas();
 		msg.maxData = 0;
 		msg.gasFrom = carbon::Bytes32(_key.GetPublicKey());
@@ -542,9 +542,8 @@ public:
 			amount
 		};
 
-		const ByteArray signedTx = cbc::TxMsgSigner::SignAndSerialize(msg, _key);
 		String txHash;
-		if (TrySendCarbonTransaction(Base16::Encode(signedTx), txHash))
+		if (TrySendCarbonTransaction(msg, _key, txHash))
 		{
 			WriteLine("Carbon transaction sent. Tx hash: ", txHash.c_str());
 		}
@@ -628,9 +627,8 @@ public:
 		try
 		{
 			WriteLine("Sending transaction...");
-			Transaction tx(_nexus.c_str(), chain.c_str(), script, Timestamp::Now() + Timespan::FromHours(1));
-			tx.Sign(_key);
-			String txResult = _phantasmaApiService.SendRawTransaction(Base16::Encode(tx.ToByteArray(true)).c_str());
+			ByteArray payload;
+			String txResult = SignAndSendTransaction(_phantasmaApiService, _key, _nexus.c_str(), chain.c_str(), script, payload);
 
 			WriteLine("Transaction sent. Tx hash: ", txResult);
 			return txResult;

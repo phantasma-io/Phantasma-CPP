@@ -2,6 +2,7 @@
 
 #include "../Domain/Event.h"
 #include "../Blockchain/Transaction.h"
+#include "../Carbon/DataBlockchain.h"
 
 namespace phantasma {
 
@@ -92,6 +93,67 @@ inline TransactionState SendTransaction(rpc::PhantasmaAPI& api, const Transactio
 {
 	String txHash;
 	return SendTransaction(api, tx, txHash);
+}
+
+inline String SignAndSendTransactionInternal(
+	rpc::PhantasmaAPI& api,
+	Transaction& tx,
+	const PhantasmaKeys& keys,
+	rpc::PhantasmaError* out_error)
+{
+	tx.Sign(keys);
+	const String expectedHash = tx.GetHash().ToString();
+	const String rawTx = Base16::Encode(tx.ToByteArray(true));
+	const String rpcHash = api.SendRawTransaction(rawTx.c_str(), out_error);
+	if (rpcHash != expectedHash)
+	{
+		String msg = PHANTASMA_LITERAL("RPC returned different hash ");
+		msg += rpcHash;
+		msg += PHANTASMA_LITERAL(", expected ");
+		msg += expectedHash;
+		PHANTASMA_EXCEPTION_MESSAGE("RPC returned different hash", msg);
+	}
+	return rpcHash;
+}
+
+// Convenience helper for the script/VM transaction flow.
+inline String SignAndSendTransaction(
+	rpc::PhantasmaAPI& api,
+	const PhantasmaKeys& keys,
+	const Char* nexus,
+	const Char* chain,
+	const ByteArray& script,
+	const ByteArray& payload,
+	rpc::PhantasmaError* out_error = nullptr)
+{
+	Transaction tx(nexus, chain, script, Timestamp::Now() + Timespan::FromMinutes(1), payload);
+	return SignAndSendTransactionInternal(api, tx, keys, out_error);
+}
+
+// Convenience helper for the script/VM transaction flow.
+inline String SignAndSendTransaction(
+	rpc::PhantasmaAPI& api,
+	const PhantasmaKeys& keys,
+	const Char* nexus,
+	const Char* chain,
+	const ByteArray& script,
+	const String& payload,
+	rpc::PhantasmaError* out_error = nullptr)
+{
+	Transaction tx(nexus, chain, script, Timestamp::Now() + Timespan::FromMinutes(1), payload);
+	return SignAndSendTransactionInternal(api, tx, keys, out_error);
+}
+
+// Convenience helper for Carbon TxMsg flow (mirrors C# SignAndSendCarbonTransaction).
+inline String SignAndSendCarbonTransaction(
+	rpc::PhantasmaAPI& api,
+	const phantasma::carbon::Blockchain::TxMsg& txMsg,
+	const PhantasmaKeys& keys,
+	rpc::PhantasmaError* out_error = nullptr)
+{
+	const ByteArray signedBytes = phantasma::carbon::Blockchain::TxMsgSigner::SignAndSerialize(txMsg, keys);
+	const String rawTx = Base16::Encode(signedBytes);
+	return api.SendCarbonTransaction(rawTx.c_str(), out_error);
 }
 
 inline TransactionState SendTransactionWaitConfirm(rpc::PhantasmaAPI* api, int numApi, const Transaction& tx, String& out_txHash, rpc::Transaction& out_confirmation, FnCallback* fnSleep)
