@@ -5,6 +5,180 @@ using namespace testutil;
 
 namespace {
 
+bool SchemaMatches(const VmStructSchema& actual, const VmStructSchema& expected)
+{
+	if (actual.numFields != expected.numFields)
+	{
+		return false;
+	}
+	if (actual.flags != expected.flags)
+	{
+		return false;
+	}
+	for (uint32_t i = 0; i < actual.numFields; ++i)
+	{
+		if (!(actual.fields[i].name == expected.fields[i].name))
+		{
+			return false;
+		}
+		if (actual.fields[i].schema.type != expected.fields[i].schema.type)
+		{
+			return false;
+		}
+	}
+	return true;
+}
+
+const VmDynamicVariable* FindField(const VmDynamicStruct& structure, const char* name)
+{
+	return structure[SmallString(name)];
+}
+
+bool ExpectStringField(const VmDynamicStruct& structure, const char* name, const std::string& expected)
+{
+	const VmDynamicVariable* field = FindField(structure, name);
+	if (!field || field->type != VmType::String || !field->data.string)
+	{
+		return false;
+	}
+	return std::string(field->data.string) == expected;
+}
+
+bool ExpectBytesField(const VmDynamicStruct& structure, const char* name, const ByteArray& expected)
+{
+	const VmDynamicVariable* field = FindField(structure, name);
+	if (!field || field->type != VmType::Bytes)
+	{
+		return false;
+	}
+	return BytesFromView(field->data.bytes) == expected;
+}
+
+bool ExpectInt256Field(const VmDynamicStruct& structure, const char* name, const int256& expected)
+{
+	const VmDynamicVariable* field = FindField(structure, name);
+	if (!field || field->type != VmType::Int256)
+	{
+		return false;
+	}
+	return field->data.int256.Signed().ToString() == expected.ToString();
+}
+
+bool ExpectInt8Field(const VmDynamicStruct& structure, const char* name, int8_t expected)
+{
+	const VmDynamicVariable* field = FindField(structure, name);
+	if (!field || field->type != VmType::Int8)
+	{
+		return false;
+	}
+	return (int8_t)field->data.int8 == expected;
+}
+
+bool ExpectInt32Field(const VmDynamicStruct& structure, const char* name, int32_t expected)
+{
+	const VmDynamicVariable* field = FindField(structure, name);
+	if (!field || field->type != VmType::Int32)
+	{
+		return false;
+	}
+	return (int32_t)field->data.int32 == expected;
+}
+
+bool ReadTokenSchemas(TokenSchemas& out, ReadView& reader, Allocator& alloc)
+{
+	return Read(out.seriesMetadata, reader, alloc)
+		&& Read(out.rom, reader, alloc)
+		&& Read(out.ram, reader, alloc);
+}
+
+// Test-only decoder: TokenInfo has no Read() overload, so decode the wire layout using existing primitives.
+bool ReadTokenInfo(TokenInfo& out, ReadView& reader, Allocator& alloc)
+{
+	intx maxSupply;
+	if (!Read(maxSupply, reader))
+	{
+		return false;
+	}
+	out.maxSupply = (const intx_pod&)maxSupply;
+	out.flags = (TokenFlags)Read1(reader);
+	out.decimals = Read1(reader);
+	if (!Read(out.owner, reader) || !Read(out.symbol, reader))
+	{
+		return false;
+	}
+	if (!ReadArray(out.metadata, reader, alloc))
+	{
+		return false;
+	}
+	if ((out.flags & TokenFlags_NonFungible) != 0)
+	{
+		return ReadArray(out.tokenSchemas, reader, alloc);
+	}
+	out.tokenSchemas = {};
+	return true;
+}
+
+// Test-only decoder: SeriesInfo has no Read() overload, so decode the wire layout using existing primitives.
+bool ReadSeriesInfo(SeriesInfo& out, ReadView& reader, Allocator& alloc)
+{
+	out.maxMint = Read4u(reader);
+	out.maxSupply = Read4u(reader);
+	if (!Read(out.owner, reader))
+	{
+		return false;
+	}
+	if (!ReadArray(out.metadata, reader, alloc))
+	{
+		return false;
+	}
+	return Read(out.rom, reader, alloc) && Read(out.ram, reader, alloc);
+}
+
+// Test-only decoder: TxMsg has no Read() overload, so decode the wire layout using existing primitives.
+bool ReadTxMsg(Blockchain::TxMsg& out, ReadView& reader, Allocator& alloc, ByteArray* romStorage, ByteArray* ramStorage)
+{
+	out.type = (Blockchain::TxTypes)Read1(reader);
+	out.expiry = Read8(reader);
+	out.maxGas = Read8u(reader);
+	out.maxData = Read8u(reader);
+	if (!Read(out.gasFrom, reader) || !Read(out.payload, reader))
+	{
+		return false;
+	}
+
+	switch (out.type)
+	{
+	case Blockchain::TxTypes::TransferFungible:
+		if (!Read(out.transferFt.to, reader))
+		{
+			return false;
+		}
+		out.transferFt.tokenId = Read8u(reader);
+		out.transferFt.amount = Read8u(reader);
+		return true;
+	case Blockchain::TxTypes::Call:
+		return Read(out.call, reader, alloc);
+	case Blockchain::TxTypes::MintNonFungible:
+		if (!romStorage || !ramStorage)
+		{
+			return false;
+		}
+		out.mintNonFungible.tokenId = Read8u(reader);
+		if (!Read(out.mintNonFungible.to, reader))
+		{
+			return false;
+		}
+		out.mintNonFungible.seriesId = Read4u(reader);
+		*romStorage = ReadArray(reader);
+		*ramStorage = ReadArray(reader);
+		out.mintNonFungible.rom = ByteView{ romStorage->data(), romStorage->size() };
+		out.mintNonFungible.ram = ByteView{ ramStorage->data(), ramStorage->size() };
+		return true;
+	default:
+		return false;
+	}
+}
+
 void EncodeTests(TestContext& ctx, const std::vector<Row>& rows)
 {
 	const std::vector<std::string> skipKinds = {
@@ -240,41 +414,60 @@ void DecodeTests(TestContext& ctx, const std::vector<Row>& rows)
 		}
 		else if (row.kind == "VMSTRUCT01")
 		{
-			const TokenSchemasOwned schemas = TokenSchemasBuilder::PrepareStandardTokenSchemas();
-			const ByteArray built = CarbonSerialize(schemas.View());
-			const std::string got = ToUpper(BytesToHex(built));
-			Report(ctx, got == ToUpper(row.hex), "VMSTRUCT01", got + " vs " + ToUpper(row.hex));
+			Allocator alloc;
+			TokenSchemas schemas{};
+			const bool decoded = ReadTokenSchemas(schemas, r, alloc);
+			const TokenSchemasOwned expected = TokenSchemasBuilder::PrepareStandardTokenSchemas();
+			const bool fieldsOk = decoded
+				&& SchemaMatches(schemas.seriesMetadata, expected.view.seriesMetadata)
+				&& SchemaMatches(schemas.rom, expected.view.rom)
+				&& SchemaMatches(schemas.ram, expected.view.ram);
+			Report(ctx, fieldsOk, "decode VMSTRUCT01");
+			if (fieldsOk)
+			{
+				const std::string got = ToUpper(BytesToHex(CarbonSerialize(schemas)));
+				Report(ctx, got == ToUpper(row.hex), "decode VMSTRUCT01 re-encode", got + " vs " + ToUpper(row.hex));
+			}
 		}
 		else if (row.kind == "VMSTRUCT02")
 		{
-			const char desc[] = "My test token description";
-			std::vector<VmNamedDynamicVariable> fields = {
-				{ SmallString("description"), VmDynamicVariable(desc) },
-				{ SmallString("icon"), VmDynamicVariable(SampleIcon().c_str()) },
-				{ SmallString("name"), VmDynamicVariable("My test token!") },
-				{ SmallString("url"), VmDynamicVariable("http://example.com") },
-			};
-			VmDynamicStruct meta = VmDynamicStruct::Sort((uint32_t)fields.size(), fields.data());
-			ByteArray buf;
-			WriteView w(buf);
-			Write(meta, w);
-			Report(ctx, ToUpper(BytesToHex(buf)) == ToUpper(row.hex), "VMSTRUCT02");
+			Allocator alloc;
+			VmDynamicStruct meta{};
+			const bool decoded = Read(meta, r, alloc);
+			const bool fieldsOk = decoded
+				&& meta.numFields == 4
+				&& ExpectStringField(meta, "description", "My test token description")
+				&& ExpectStringField(meta, "icon", SampleIcon())
+				&& ExpectStringField(meta, "name", "My test token!")
+				&& ExpectStringField(meta, "url", "http://example.com");
+			Report(ctx, fieldsOk, "decode VMSTRUCT02");
+			if (fieldsOk)
+			{
+				const std::string got = ToUpper(BytesToHex(CarbonSerialize(meta)));
+				Report(ctx, got == ToUpper(row.hex), "decode VMSTRUCT02 re-encode", got + " vs " + ToUpper(row.hex));
+			}
 		}
 		else if (row.kind == "TX1")
 		{
+			Allocator alloc;
 			Blockchain::TxMsg msg{};
-			msg.type = Blockchain::TxTypes::TransferFungible;
-			msg.expiry = 1759711416000LL;
-			msg.maxGas = 10000000;
-			msg.maxData = 1000;
-			msg.gasFrom = Bytes32();
-			msg.payload = SmallString("test-payload");
-			msg.transferFt = Blockchain::TxMsgTransferFungible{ Bytes32(), 1, 100000000 };
-
-			ByteArray buf;
-			WriteView w(buf);
-			Write(msg, w);
-			Report(ctx, ToUpper(BytesToHex(buf)) == ToUpper(row.hex), "TX1");
+			const bool decoded = ReadTxMsg(msg, r, alloc, nullptr, nullptr);
+			const bool fieldsOk = decoded
+				&& msg.type == Blockchain::TxTypes::TransferFungible
+				&& msg.expiry == 1759711416000LL
+				&& msg.maxGas == 10000000
+				&& msg.maxData == 1000
+				&& msg.gasFrom == Bytes32()
+				&& msg.payload == SmallString("test-payload")
+				&& msg.transferFt.to == Bytes32()
+				&& msg.transferFt.tokenId == 1
+				&& msg.transferFt.amount == 100000000;
+			Report(ctx, fieldsOk, "decode TX1");
+			if (fieldsOk)
+			{
+				const std::string got = ToUpper(BytesToHex(Blockchain::SerializeTx(msg)));
+				Report(ctx, got == ToUpper(row.hex), "decode TX1 re-encode", got + " vs " + ToUpper(row.hex));
+			}
 		}
 		else if (row.kind == "TX2")
 		{
@@ -286,17 +479,32 @@ void DecodeTests(TestContext& ctx, const std::vector<Row>& rows)
 			const ByteArray senderKey = sender.GetPublicKey();
 			const ByteArray receiverKey = receiver.GetPublicKey();
 
+			Allocator alloc;
 			Blockchain::TxMsg msg{};
-			msg.type = Blockchain::TxTypes::TransferFungible;
-			msg.expiry = 1759711416000LL;
-			msg.maxGas = 10000000;
-			msg.maxData = 1000;
-			msg.gasFrom = ToBytes32(senderKey);
-			msg.payload = SmallString("test-payload");
-			msg.transferFt = Blockchain::TxMsgTransferFungible{ ToBytes32(receiverKey), 1, 100000000 };
-
-			const ByteArray signedTx = Blockchain::TxMsgSigner::SignAndSerialize(msg, sender);
-			Report(ctx, ToUpper(BytesToHex(signedTx)) == ToUpper(row.hex), "TX2");
+			const bool decoded = ReadTxMsg(msg, r, alloc, nullptr, nullptr);
+			Bytes64 sig{};
+			const bool sigOk = decoded && Read(sig, r);
+			const bool fieldsOk = sigOk
+				&& msg.type == Blockchain::TxTypes::TransferFungible
+				&& msg.expiry == 1759711416000LL
+				&& msg.maxGas == 10000000
+				&& msg.maxData == 1000
+				&& msg.gasFrom == ToBytes32(senderKey)
+				&& msg.payload == SmallString("test-payload")
+				&& msg.transferFt.to == ToBytes32(receiverKey)
+				&& msg.transferFt.tokenId == 1
+				&& msg.transferFt.amount == 100000000;
+			Report(ctx, fieldsOk, "decode TX2");
+			if (fieldsOk)
+			{
+				Witness witness{ ToBytes32(senderKey), sig };
+				Witnesses witnesses{ 1, &witness };
+				Blockchain::SignedTxMsg signedMsg{};
+				signedMsg.msg = msg;
+				signedMsg.witnesses = witnesses;
+				const std::string got = ToUpper(BytesToHex(CarbonSerialize(signedMsg)));
+				Report(ctx, got == ToUpper(row.hex), "decode TX2 re-encode", got + " vs " + ToUpper(row.hex));
+			}
 		}
 		else if (row.kind == "TX-CREATE-TOKEN")
 		{
@@ -305,25 +513,73 @@ void DecodeTests(TestContext& ctx, const std::vector<Row>& rows)
 			const ByteArray senderKey = sender.GetPublicKey();
 			const Bytes32 senderPub = ToBytes32(senderKey);
 
-			std::vector<std::pair<std::string, std::string>> metaFields = {
-				{ "name", "My test token!" },
-				{ "icon", SampleIcon() },
-				{ "url", "http://example.com" },
-				{ "description", "My test token description" },
-			};
-			const ByteArray metadata = TokenMetadataBuilder::BuildAndSerialize(metaFields);
-			const TokenSchemasOwned schemas = TokenSchemasBuilder::PrepareStandardTokenSchemas();
-			const ByteArray schemasBytes = CarbonSerialize(schemas.View());
+			Allocator alloc;
+			Blockchain::TxMsg msg{};
+			const bool decoded = ReadTxMsg(msg, r, alloc, nullptr, nullptr);
+			const bool baseOk = decoded
+				&& msg.type == Blockchain::TxTypes::Call
+				&& msg.expiry == 1759711416000LL
+				&& msg.maxData == 100000000
+				&& msg.gasFrom == senderPub
+				&& msg.payload == SmallString("");
 
-			TokenInfoOwned info = TokenInfoBuilder::Build("MYNFT", intx::FromString("0", 0, 10, nullptr), true, 0, senderPub, metadata, &schemasBytes);
-			CreateTokenFeeOptions fees(10000, 10000000000ULL, 10000000000ULL, 10000);
-			TxEnvelope tx = CreateTokenTxHelper::BuildTx(info.View(), senderPub, &fees, 100000000, 1759711416000LL);
+			const bool callOk = baseOk
+				&& msg.call.moduleId == (uint32_t)ModuleId::Token
+				&& msg.call.methodId == (uint32_t)TokenContract_Methods::CreateToken
+				&& msg.call.args.length > 0;
 
-			ByteArray buf;
-			WriteView w(buf);
-			Write(tx.msg, w);
-			const std::string got = ToUpper(BytesToHex(buf));
-			Report(ctx, got == ToUpper(row.hex), "TX-CREATE-TOKEN", got + " vs " + ToUpper(row.hex));
+			bool fieldsOk = callOk;
+			if (fieldsOk)
+			{
+				ReadView argsReader(const_cast<uint8_t*>(msg.call.args.bytes), msg.call.args.length);
+				Allocator tokenAlloc;
+				TokenInfo tokenInfo{};
+				const bool tokenOk = ReadTokenInfo(tokenInfo, argsReader, tokenAlloc);
+
+				const intx maxSupply = (const intx&)tokenInfo.maxSupply;
+				fieldsOk = tokenOk
+					&& tokenInfo.symbol == SmallString("MYNFT")
+					&& tokenInfo.decimals == 0
+					&& tokenInfo.flags == TokenFlags_NonFungible
+					&& tokenInfo.owner == senderPub
+					&& !maxSupply;
+
+				VmDynamicStruct meta{};
+				if (fieldsOk)
+				{
+					ReadView metaReader(const_cast<uint8_t*>(tokenInfo.metadata.bytes), tokenInfo.metadata.length);
+					fieldsOk = Read(meta, metaReader, tokenAlloc)
+						&& meta.numFields == 4
+						&& ExpectStringField(meta, "name", "My test token!")
+						&& ExpectStringField(meta, "icon", SampleIcon())
+						&& ExpectStringField(meta, "url", "http://example.com")
+						&& ExpectStringField(meta, "description", "My test token description");
+				}
+
+				if (fieldsOk)
+				{
+					TokenSchemas schemas{};
+					ReadView schemaReader(const_cast<uint8_t*>(tokenInfo.tokenSchemas.bytes), tokenInfo.tokenSchemas.length);
+					const TokenSchemasOwned expected = TokenSchemasBuilder::PrepareStandardTokenSchemas();
+					fieldsOk = ReadTokenSchemas(schemas, schemaReader, tokenAlloc)
+						&& SchemaMatches(schemas.seriesMetadata, expected.view.seriesMetadata)
+						&& SchemaMatches(schemas.rom, expected.view.rom)
+						&& SchemaMatches(schemas.ram, expected.view.ram);
+				}
+
+				if (fieldsOk)
+				{
+					CreateTokenFeeOptions fees(10000, 10000000000ULL, 10000000000ULL, 10000);
+					fieldsOk = msg.maxGas == fees.CalculateMaxGas(tokenInfo.symbol);
+				}
+			}
+
+			Report(ctx, fieldsOk, "decode TX-CREATE-TOKEN");
+			if (fieldsOk)
+			{
+				const std::string got = ToUpper(BytesToHex(Blockchain::SerializeTx(msg)));
+				Report(ctx, got == ToUpper(row.hex), "decode TX-CREATE-TOKEN re-encode", got + " vs " + ToUpper(row.hex));
+			}
 		}
 		else if (row.kind == "TX-CREATE-TOKEN-SERIES")
 		{
@@ -332,19 +588,65 @@ void DecodeTests(TestContext& ctx, const std::vector<Row>& rows)
 			const ByteArray senderKey = sender.GetPublicKey();
 			const Bytes32 senderPub = ToBytes32(senderKey);
 
-			const BigInteger phantasmaSeriesId = BigInteger::Parse(String("115792089237316195423570985008687907853269984665640564039457584007913129639935"));
-			const int256 seriesId = ToInt256(phantasmaSeriesId);
-			const TokenSchemasOwned schemas = TokenSchemasBuilder::PrepareStandardTokenSchemas();
-			const std::vector<MetadataField> seriesMetadata;
-			SeriesInfoOwned series = SeriesInfoBuilder::Build(schemas.view.seriesMetadata, seriesId, 0, 0, senderPub, seriesMetadata);
+			Allocator alloc;
+			Blockchain::TxMsg msg{};
+			const bool decoded = ReadTxMsg(msg, r, alloc, nullptr, nullptr);
+			const bool baseOk = decoded
+				&& msg.type == Blockchain::TxTypes::Call
+				&& msg.expiry == 1759711416000LL
+				&& msg.maxData == 100000000
+				&& msg.gasFrom == senderPub
+				&& msg.payload == SmallString("");
 
-			CreateSeriesFeeOptions fees(10000, 2500000000ULL, 10000);
-			TxEnvelope tx = CreateTokenSeriesTxHelper::BuildTx((uint64_t)-1, series.View(), senderPub, &fees, 100000000, 1759711416000LL);
+			const bool callOk = baseOk
+				&& msg.call.moduleId == (uint32_t)ModuleId::Token
+				&& msg.call.methodId == (uint32_t)TokenContract_Methods::CreateTokenSeries
+				&& msg.call.args.length > 0;
 
-			ByteArray buf;
-			WriteView w(buf);
-			Write(tx.msg, w);
-			Report(ctx, ToUpper(BytesToHex(buf)) == ToUpper(row.hex), "TX-CREATE-TOKEN-SERIES");
+			bool fieldsOk = callOk;
+			if (fieldsOk)
+			{
+				ReadView argsReader(const_cast<uint8_t*>(msg.call.args.bytes), msg.call.args.length);
+				const uint64_t tokenId = Read8u(argsReader);
+				fieldsOk = tokenId == (uint64_t)-1;
+
+				Allocator seriesAlloc;
+				SeriesInfo seriesInfo{};
+				if (fieldsOk)
+				{
+					fieldsOk = ReadSeriesInfo(seriesInfo, argsReader, seriesAlloc)
+						&& seriesInfo.maxMint == 0
+						&& seriesInfo.maxSupply == 0
+						&& seriesInfo.owner == senderPub
+						&& seriesInfo.rom.numFields == 0
+						&& seriesInfo.ram.numFields == 0;
+				}
+
+				if (fieldsOk)
+				{
+					const TokenSchemasOwned schemas = TokenSchemasBuilder::PrepareStandardTokenSchemas();
+					ReadView metaReader(const_cast<uint8_t*>(seriesInfo.metadata.bytes), seriesInfo.metadata.length);
+					VmDynamicStruct meta{};
+					fieldsOk = Read(meta, schemas.view.seriesMetadata, metaReader, seriesAlloc)
+						&& meta.numFields == 3
+						&& ExpectInt256Field(meta, StandardMeta::id.c_str(), ToInt256(BigInteger::Parse(String("115792089237316195423570985008687907853269984665640564039457584007913129639935"))))
+						&& ExpectInt8Field(meta, "mode", 0)
+						&& ExpectBytesField(meta, "rom", ByteArray{});
+				}
+
+				if (fieldsOk)
+				{
+					CreateSeriesFeeOptions fees(10000, 2500000000ULL, 10000);
+					fieldsOk = msg.maxGas == fees.CalculateMaxGas();
+				}
+			}
+
+			Report(ctx, fieldsOk, "decode TX-CREATE-TOKEN-SERIES");
+			if (fieldsOk)
+			{
+				const std::string got = ToUpper(BytesToHex(Blockchain::SerializeTx(msg)));
+				Report(ctx, got == ToUpper(row.hex), "decode TX-CREATE-TOKEN-SERIES re-encode", got + " vs " + ToUpper(row.hex));
+			}
 		}
 		else if (row.kind == "TX-MINT-NON-FUNGIBLE")
 		{
@@ -353,42 +655,54 @@ void DecodeTests(TestContext& ctx, const std::vector<Row>& rows)
 			const ByteArray senderKey = sender.GetPublicKey();
 			const Bytes32 senderPub = ToBytes32(senderKey);
 
-			const BigInteger phantasmaNftId = BigInteger::Parse(String("115792089237316195423570985008687907853269984665640564039457584007913129639935"));
-			const int256 nftId = ToInt256(phantasmaNftId);
-			ByteArray phantasmaRomData = { (Byte)0x01, (Byte)0x42 };
+			ByteArray romStorage;
+			ByteArray ramStorage;
+			Allocator alloc;
+			Blockchain::TxMsg msg{};
+			const bool decoded = ReadTxMsg(msg, r, alloc, &romStorage, &ramStorage);
+			const bool baseOk = decoded
+				&& msg.type == Blockchain::TxTypes::MintNonFungible
+				&& msg.expiry == 1759711416000LL
+				&& msg.maxData == 100000000
+				&& msg.gasFrom == senderPub
+				&& msg.payload == SmallString("");
 
-			const TokenSchemasOwned schemas = TokenSchemasBuilder::PrepareStandardTokenSchemas();
-			std::vector<MetadataField> nftMetadata = {
-				MetadataField{ "name", MetadataValue::FromString("My NFT #1") },
-				MetadataField{ "description", MetadataValue::FromString("This is my first NFT!") },
-				MetadataField{ "imageURL", MetadataValue::FromString("images-assets.nasa.gov/image/PIA13227/PIA13227~orig.jpg") },
-				MetadataField{ "infoURL", MetadataValue::FromString("https://images.nasa.gov/details/PIA13227") },
-				MetadataField{ "royalties", MetadataValue::FromInt64(10000000) },
-				MetadataField{ "rom", MetadataValue::FromBytes(phantasmaRomData) },
-			};
+			bool fieldsOk = baseOk;
+			if (fieldsOk)
+			{
+				fieldsOk = msg.mintNonFungible.tokenId == (uint64_t)-1
+					&& msg.mintNonFungible.seriesId == 0xFFFFFFFFu
+					&& msg.mintNonFungible.to == senderPub
+					&& msg.mintNonFungible.ram.length == 0;
+			}
 
-			const ByteArray rom = NftRomBuilder::BuildAndSerialize(
-				schemas.view.rom,
-				nftId,
-				nftMetadata);
+			if (fieldsOk)
+			{
+				const TokenSchemasOwned schemas = TokenSchemasBuilder::PrepareStandardTokenSchemas();
+				ReadView romReader(const_cast<uint8_t*>(msg.mintNonFungible.rom.bytes), msg.mintNonFungible.rom.length);
+				VmDynamicStruct rom{};
+				fieldsOk = Read(rom, schemas.view.rom, romReader, alloc)
+					&& ExpectInt256Field(rom, StandardMeta::id.c_str(), ToInt256(BigInteger::Parse(String("115792089237316195423570985008687907853269984665640564039457584007913129639935"))))
+					&& ExpectBytesField(rom, "rom", ByteArray{ (Byte)0x01, (Byte)0x42 })
+					&& ExpectStringField(rom, "name", "My NFT #1")
+					&& ExpectStringField(rom, "description", "This is my first NFT!")
+					&& ExpectStringField(rom, "imageURL", "images-assets.nasa.gov/image/PIA13227/PIA13227~orig.jpg")
+					&& ExpectStringField(rom, "infoURL", "https://images.nasa.gov/details/PIA13227")
+					&& ExpectInt32Field(rom, "royalties", 10000000);
+			}
 
-			MintNftFeeOptions fees(10000, 1000);
-			TxEnvelope tx = MintNonFungibleTxHelper::BuildTx(
-				(uint64_t)-1,
-				0xFFFFFFFFu,
-				senderPub,
-				senderPub,
-				rom,
-				ByteArray(),
-				&fees,
-				100000000,
-				1759711416000LL);
+			if (fieldsOk)
+			{
+				MintNftFeeOptions fees(10000, 1000);
+				fieldsOk = msg.maxGas == fees.CalculateMaxGas();
+			}
 
-			ByteArray buf;
-			WriteView w(buf);
-			Write(tx.msg, w);
-			const std::string got = ToUpper(BytesToHex(buf));
-			Report(ctx, got == ToUpper(row.hex), "TX-MINT-NON-FUNGIBLE", got + " vs " + ToUpper(row.hex));
+			Report(ctx, fieldsOk, "decode TX-MINT-NON-FUNGIBLE");
+			if (fieldsOk)
+			{
+				const std::string got = ToUpper(BytesToHex(Blockchain::SerializeTx(msg)));
+				Report(ctx, got == ToUpper(row.hex), "decode TX-MINT-NON-FUNGIBLE re-encode", got + " vs " + ToUpper(row.hex));
+			}
 		}
 		else
 		{
