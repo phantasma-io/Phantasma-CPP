@@ -8,6 +8,14 @@
 #include "../include/Carbon/DataBlockchain.h"
 #include "../include/Carbon/Tx.h"
 #include "../include/Carbon/Contracts/Token.h"
+#include "../include/Carbon/Contracts/TokenSchemas.h"
+#include "../include/Carbon/DataVm.h"
+#include "../include/Utils/Timestamp.h"
+#include "../include/VM/ScriptBuilder.h"
+#include "../include/Blockchain/Transaction.h"
+#include "../include/VM/VMObject.h"
+#include "../include/Utils/BinaryWriter.h"
+#include "../include/Utils/BinaryReader.h"
 
 #include <fstream>
 #include <iostream>
@@ -16,6 +24,7 @@
 #include <vector>
 #include <algorithm>
 #include <cctype>
+#include <limits>
 
 using namespace phantasma;
 using namespace phantasma::carbon;
@@ -39,6 +48,49 @@ static void Report(TestContext& ctx, bool ok, const std::string& name, const std
 		}
 		std::cerr << std::endl;
 	}
+}
+
+template <typename Fn>
+static void ExpectNoThrow(TestContext& ctx, const std::string& name, Fn&& fn)
+{
+	try
+	{
+		fn();
+		Report(ctx, true, name);
+	}
+	catch (const std::exception& ex)
+	{
+		Report(ctx, false, name, ex.what());
+	}
+	catch (...)
+	{
+		Report(ctx, false, name, "unexpected exception");
+	}
+}
+
+template <typename Fn>
+static void ExpectThrowContains(TestContext& ctx, const std::string& name, const std::string& needle, Fn&& fn)
+{
+#ifdef PHANTASMA_EXCEPTION_ENABLE
+	try
+	{
+		fn();
+		Report(ctx, false, name, "no exception");
+	}
+	catch (const std::exception& ex)
+	{
+		const std::string msg = ex.what();
+		Report(ctx, msg.find(needle) != std::string::npos, name, msg);
+	}
+	catch (...)
+	{
+		Report(ctx, false, name, "unexpected exception");
+	}
+#else
+	(void)fn; // no-op to silence unused warning when exceptions are disabled.
+	(void)needle;
+	Report(ctx, true, name + " (exceptions disabled)");
+#endif
 }
 
 struct Row
@@ -66,6 +118,32 @@ static std::string BytesToHex(const ByteArray& bytes)
 {
 	const String s = Base16::Encode(bytes.empty() ? 0 : &bytes.front(), (int)bytes.size(), false);
 	return std::string(s.begin(), s.end());
+}
+
+static ByteArray BytesFromView(const ByteView& view)
+{
+	if (!view.length)
+	{
+		return {};
+	}
+	return ByteArray(view.bytes, view.bytes + view.length);
+}
+
+static ByteArray ParseDecBytes(const std::string& dec)
+{
+	std::stringstream ss(dec);
+	std::string token;
+	ByteArray out;
+	while (ss >> token)
+	{
+		const int value = std::stoi(token, nullptr, 10);
+		if (value < 0 || value > 255)
+		{
+			throw std::runtime_error("invalid decimal byte in fixture");
+		}
+		out.push_back((Byte)value);
+	}
+	return out;
 }
 
 static int64_t ParseNum(const std::string& s)
@@ -210,6 +288,40 @@ static Bytes32 ToBytes32(const ByteArray& bytes)
 		out = View(bytes.data(), bytes.data() + bytes.size());
 	}
 	return out;
+}
+
+static VmNamedVariableSchema MakeSchema(const char* name, VmType type, const VmStructSchema* structSchema = nullptr)
+{
+	VmNamedVariableSchema schema{};
+	schema.name = SmallString(name);
+	schema.schema.type = type;
+	if (structSchema)
+	{
+		schema.schema.structure = *structSchema;
+	}
+	return schema;
+}
+
+static VmStructSchema MakeStructSchema(VmNamedVariableSchema* fields, uint32_t count, bool allowDynamicExtras = false)
+{
+	return VmStructSchema::Sort(count, fields, allowDynamicExtras);
+}
+
+static ByteArray BuildConsensusSingleVoteScript()
+{
+	const std::string wif = "L5UEVHBjujaR1721aZM5Zm5ayjDyamMZS9W35RE9Y9giRkdf3dVx";
+	const PhantasmaKeys keys = PhantasmaKeys::FromWIF(wif.c_str(), (int)wif.size());
+	const int gasLimit = 10000;
+	const int gasPrice = 210000;
+	const char* subject = "system.nexus.protocol.version";
+
+	ScriptBuilder sb;
+	// Keep TS argument order (gasLimit, gasPrice) to match the shared vector.
+	return sb
+		.AllowGas(keys.GetAddress(), Address(), gasLimit, gasPrice)
+		.CallContract("consensus", "SingleVote", keys.GetAddress().Text(), subject, 0)
+		.SpendGas(keys.GetAddress())
+		.EndScript();
 }
 
 static void EncodeTests(TestContext& ctx, const std::vector<Row>& rows)
@@ -643,12 +755,654 @@ static void CallSectionsTests(TestContext& ctx)
 	Report(ctx, decodedOk, "CALL-ARG-SECTIONS-DECODE");
 }
 
+#if __cplusplus >= 201703L
+static void VmObjectTests(TestContext& ctx)
+{
+	{
+		BinaryWriter w;
+		w.Write((uint8_t)VMType::Bool);
+		w.Write((uint8_t)1);
+		const ByteArray bytes = w.ToArray();
+		BinaryReader r(bytes);
+		VMObject obj;
+		const bool ok = obj.DeserializeData(r) && obj.GetType() == VMType::Bool && obj.Data<bool>();
+		Report(ctx, ok, "VMObject Bool");
+	}
+	{
+		BinaryWriter w;
+		w.Write((uint8_t)VMType::Bytes);
+		const ByteArray payload = { (Byte)0x01, (Byte)0x02 };
+		w.WriteByteArray(payload);
+		const ByteArray bytes = w.ToArray();
+		BinaryReader r(bytes);
+		VMObject obj;
+		const bool ok = obj.DeserializeData(r) &&
+			obj.GetType() == VMType::Bytes &&
+			obj.Data<ByteArray>() == payload;
+		Report(ctx, ok, "VMObject Bytes");
+	}
+	{
+		BinaryWriter w;
+		w.Write((uint8_t)VMType::String);
+		w.WriteVarString(PHANTASMA_LITERAL("hello world"));
+		const ByteArray bytes = w.ToArray();
+		BinaryReader r(bytes);
+		VMObject obj;
+		const bool ok = obj.DeserializeData(r) &&
+			obj.GetType() == VMType::String &&
+			obj.Data<String>() == PHANTASMA_LITERAL("hello world");
+		Report(ctx, ok, "VMObject String");
+	}
+	{
+		BinaryWriter w;
+		w.Write((uint8_t)VMType::Number);
+		w.WriteBigInteger(BigInteger(123));
+		const ByteArray bytes = w.ToArray();
+		BinaryReader r(bytes);
+		VMObject obj;
+		const bool ok = obj.DeserializeData(r) &&
+			obj.GetType() == VMType::Number &&
+			obj.Data<BigInteger>().ToString() == PHANTASMA_LITERAL("123");
+		Report(ctx, ok, "VMObject Number");
+	}
+	{
+		BinaryWriter w;
+		w.Write((uint8_t)VMType::Struct);
+		w.WriteVarInt(1);
+		w.Write((uint8_t)VMType::String);
+		w.WriteVarString(PHANTASMA_LITERAL("name"));
+		w.Write((uint8_t)VMType::Number);
+		w.WriteBigInteger(BigInteger(7));
+		const ByteArray bytes = w.ToArray();
+		BinaryReader r(bytes);
+		VMObject obj;
+		bool ok = obj.DeserializeData(r) && obj.GetType() == VMType::Struct;
+		if (ok)
+		{
+			const VMStructure& data = obj.Data<VMStructure>();
+			ok = data.size() == 1 &&
+				data[0].first.GetType() == VMType::String &&
+				data[0].first.Data<String>() == PHANTASMA_LITERAL("name") &&
+				data[0].second.GetType() == VMType::Number &&
+				data[0].second.Data<BigInteger>().ToString() == PHANTASMA_LITERAL("7");
+		}
+		Report(ctx, ok, "VMObject Struct");
+	}
+}
+#endif
+
+static void VmDynamicVariableTests(TestContext& ctx)
+{
+	auto roundtrip = [&](const std::string& name, VmType type, const VmDynamicVariable& input, auto&& check) {
+		try
+		{
+			ByteArray buffer;
+			WriteView w(buffer);
+			Write(type, input, nullptr, w);
+			Allocator alloc;
+			ReadView r(buffer.empty() ? nullptr : (void*)buffer.data(), buffer.size());
+			VmDynamicVariable out{};
+			const bool ok = Read(type, out, nullptr, r, alloc) && check(out);
+			Report(ctx, ok, name);
+		}
+		catch (const std::exception& ex)
+		{
+			Report(ctx, false, name, ex.what());
+		}
+		catch (...)
+		{
+			Report(ctx, false, name, "unexpected exception");
+		}
+	};
+
+	for (const uint8_t value : { (uint8_t)0, (uint8_t)1, (uint8_t)255 })
+	{
+		const VmDynamicVariable input(value);
+		roundtrip("VmDynamic Int8 " + std::to_string(value), VmType::Int8, input, [&](const VmDynamicVariable& out) {
+			return out.type == VmType::Int8 && out.data.int8 == value;
+		});
+	}
+	for (const int16_t value : { (int16_t)0, (int16_t)1, (int16_t)-32768, (int16_t)32767 })
+	{
+		const VmDynamicVariable input(value);
+		roundtrip("VmDynamic Int16 " + std::to_string(value), VmType::Int16, input, [&](const VmDynamicVariable& out) {
+			return out.type == VmType::Int16 && (int16_t)out.data.int16 == value;
+		});
+	}
+	for (const int32_t value : { (int32_t)0, (int32_t)1, (int32_t)-2147483648, (int32_t)2147483647 })
+	{
+		const VmDynamicVariable input(value);
+		roundtrip("VmDynamic Int32 " + std::to_string(value), VmType::Int32, input, [&](const VmDynamicVariable& out) {
+			return out.type == VmType::Int32 && (int32_t)out.data.int32 == value;
+		});
+	}
+	for (const uint64_t value : { (uint64_t)0, (uint64_t)1, std::numeric_limits<uint64_t>::max() })
+	{
+		const VmDynamicVariable input(value);
+		roundtrip("VmDynamic Int64 " + std::to_string((unsigned long long)value), VmType::Int64, input, [&](const VmDynamicVariable& out) {
+			return out.type == VmType::Int64 && out.data.int64 == value;
+		});
+	}
+	{
+		const intx valueX = intx::FromString("1234567890123456789012345678901234567890", 0, 10, nullptr);
+		const int256 value = valueX.Int256();
+		const VmDynamicVariable input(value);
+		roundtrip("VmDynamic Int256", VmType::Int256, input, [&](const VmDynamicVariable& out) {
+			return out.type == VmType::Int256 && out.data.int256.Signed().ToString() == value.ToString();
+		});
+	}
+	{
+		ByteArray bytes(32);
+		for (size_t i = 0; i < bytes.size(); ++i)
+		{
+			bytes[i] = (Byte)i;
+		}
+		const VmDynamicVariable input(ByteView{ bytes.data(), bytes.size() });
+		roundtrip("VmDynamic Bytes", VmType::Bytes, input, [&](const VmDynamicVariable& out) {
+			return out.type == VmType::Bytes && BytesFromView(out.data.bytes) == bytes;
+		});
+	}
+	{
+		const char* text = "hello world";
+		const VmDynamicVariable input(text);
+		roundtrip("VmDynamic String", VmType::String, input, [&](const VmDynamicVariable& out) {
+			return out.type == VmType::String && std::string(out.data.string) == text;
+		});
+	}
+	{
+		Bytes16 bytes{};
+		for (int i = 0; i < Bytes16::length; ++i)
+		{
+			bytes.bytes[i] = (Byte)i;
+		}
+		const VmDynamicVariable input(bytes);
+		roundtrip("VmDynamic Bytes16", VmType::Bytes16, input, [&](const VmDynamicVariable& out) {
+			return out.type == VmType::Bytes16 && out.data.bytes16 == bytes;
+		});
+	}
+	{
+		Bytes32 bytes{};
+		for (int i = 0; i < Bytes32::length; ++i)
+		{
+			bytes.bytes[i] = (Byte)i;
+		}
+		const VmDynamicVariable input(bytes);
+		roundtrip("VmDynamic Bytes32", VmType::Bytes32, input, [&](const VmDynamicVariable& out) {
+			return out.type == VmType::Bytes32 && out.data.bytes32 == bytes;
+		});
+	}
+	{
+		Bytes64 bytes{};
+		for (int i = 0; i < Bytes64::length; ++i)
+		{
+			bytes.bytes[i] = (Byte)i;
+		}
+		const VmDynamicVariable input(bytes);
+		roundtrip("VmDynamic Bytes64", VmType::Bytes64, input, [&](const VmDynamicVariable& out) {
+			return out.type == VmType::Bytes64 && out.data.bytes64 == bytes;
+		});
+	}
+}
+
+static void MetadataHelperTests(TestContext& ctx)
+{
+	{
+		Allocator alloc;
+		const VmNamedVariableSchema schema = MakeSchema("royalties", VmType::Int32);
+		std::vector<VmNamedDynamicVariable> fields;
+		std::vector<MetadataField> metadata = { { "royalties", MetadataValue::FromInt64(42) } };
+		MetadataHelper::PushMetadataField(schema, fields, metadata, alloc);
+		const bool ok = fields.size() == 1 &&
+			fields[0].value.type == VmType::Int32 &&
+			(int32_t)fields[0].value.data.int32 == 42;
+		Report(ctx, ok, "MetadataHelper Int32 accepts");
+	}
+	{
+		Allocator alloc;
+		const VmNamedVariableSchema schema = MakeSchema("royalties", VmType::Int32);
+		std::vector<VmNamedDynamicVariable> fields;
+		std::vector<MetadataField> metadata = { { "royalties", MetadataValue::FromString("forty-two") } };
+		ExpectThrowContains(ctx, "MetadataHelper Int32 non-number", "must be a number", [&]() {
+			MetadataHelper::PushMetadataField(schema, fields, metadata, alloc);
+		});
+	}
+	{
+		Allocator alloc;
+		const VmNamedVariableSchema schema = MakeSchema("royalties", VmType::Int32);
+		std::vector<VmNamedDynamicVariable> fields;
+		std::vector<MetadataField> metadata = { { "royalties", MetadataValue::FromUInt64(0x100000000ULL) } };
+		ExpectThrowContains(ctx, "MetadataHelper Int32 range", "between -2147483648", [&]() {
+			MetadataHelper::PushMetadataField(schema, fields, metadata, alloc);
+		});
+	}
+	{
+		Allocator alloc;
+		const VmNamedVariableSchema schema = MakeSchema("payload", VmType::Bytes);
+		std::vector<VmNamedDynamicVariable> fields;
+		std::vector<MetadataField> metadata = { { "payload", MetadataValue::FromString("0a0b") } };
+		MetadataHelper::PushMetadataField(schema, fields, metadata, alloc);
+		const ByteArray got = BytesFromView(fields[0].value.data.bytes);
+		const bool ok = fields[0].value.type == VmType::Bytes && got == ByteArray({ (Byte)0x0A, (Byte)0x0B });
+		Report(ctx, ok, "MetadataHelper Bytes hex");
+	}
+	{
+		Allocator alloc;
+		const VmNamedVariableSchema schema = MakeSchema("payload", VmType::Bytes);
+		std::vector<VmNamedDynamicVariable> fields;
+		std::vector<MetadataField> metadata = { { "payload", MetadataValue::FromString("0x0a0b") } };
+		MetadataHelper::PushMetadataField(schema, fields, metadata, alloc);
+		const ByteArray got = BytesFromView(fields[0].value.data.bytes);
+		const bool ok = fields[0].value.type == VmType::Bytes && got == ByteArray({ (Byte)0x0A, (Byte)0x0B });
+		Report(ctx, ok, "MetadataHelper Bytes hex 0x");
+	}
+	{
+		Allocator alloc;
+		const VmNamedVariableSchema schema = MakeSchema("level", VmType::Int8);
+		std::vector<VmNamedDynamicVariable> fields;
+		std::vector<MetadataField> metadata = { { "level", MetadataValue::FromInt64(200) } };
+		MetadataHelper::PushMetadataField(schema, fields, metadata, alloc);
+		const bool ok = fields[0].value.type == VmType::Int8 && fields[0].value.data.int8 == 200;
+		Report(ctx, ok, "MetadataHelper Int8 unsigned");
+	}
+	{
+		Allocator alloc;
+		const VmNamedVariableSchema schema = MakeSchema("checksum", VmType::Int16);
+		std::vector<VmNamedDynamicVariable> fields;
+		std::vector<MetadataField> metadata = { { "checksum", MetadataValue::FromInt64(65535) } };
+		MetadataHelper::PushMetadataField(schema, fields, metadata, alloc);
+		const bool ok = fields[0].value.type == VmType::Int16 && fields[0].value.data.int16 == 65535;
+		Report(ctx, ok, "MetadataHelper Int16 unsigned");
+	}
+	{
+		Allocator alloc;
+		const VmNamedVariableSchema schema = MakeSchema("payload", VmType::Bytes);
+		std::vector<VmNamedDynamicVariable> fields;
+		std::vector<MetadataField> metadata = { { "payload", MetadataValue::FromString("xyz") } };
+		ExpectThrowContains(ctx, "MetadataHelper Bytes invalid hex", "byte array or hex string", [&]() {
+			MetadataHelper::PushMetadataField(schema, fields, metadata, alloc);
+		});
+	}
+	{
+		Allocator alloc;
+		const VmNamedVariableSchema schema = MakeSchema("supply", VmType::Int64);
+		std::vector<VmNamedDynamicVariable> fields;
+		std::vector<MetadataField> metadata = { { "supply", MetadataValue::FromUInt64(std::numeric_limits<uint64_t>::max()) } };
+		MetadataHelper::PushMetadataField(schema, fields, metadata, alloc);
+		const bool ok = fields[0].value.type == VmType::Int64 &&
+			fields[0].value.data.int64 == std::numeric_limits<uint64_t>::max();
+		Report(ctx, ok, "MetadataHelper Int64 unsigned");
+	}
+	{
+		Allocator alloc;
+		VmNamedVariableSchema nestedFields[] = {
+			MakeSchema("innerName", VmType::String),
+			MakeSchema("innerValue", VmType::Int32),
+		};
+		const VmStructSchema nestedSchema = MakeStructSchema(nestedFields, 2, false);
+		const VmNamedVariableSchema schema = MakeSchema("details", VmType::Struct, &nestedSchema);
+		std::vector<VmNamedDynamicVariable> fields;
+		std::vector<MetadataField> metadata = {
+			{ "details", MetadataValue::FromStruct({
+				{ "innerName", MetadataValue::FromString("demo") },
+				{ "innerValue", MetadataValue::FromInt64(5) },
+			}) }
+		};
+		MetadataHelper::PushMetadataField(schema, fields, metadata, alloc);
+		const VmDynamicStruct& nested = fields[0].value.data.structure;
+		const VmDynamicVariable* innerName = nested[SmallString("innerName")];
+		const VmDynamicVariable* innerValue = nested[SmallString("innerValue")];
+		const bool ok = innerName && innerValue &&
+			innerName->type == VmType::String &&
+			std::string(innerName->data.string) == "demo" &&
+			innerValue->type == VmType::Int32 &&
+			(int32_t)innerValue->data.int32 == 5;
+		Report(ctx, ok, "MetadataHelper Struct nested");
+	}
+	{
+		Allocator alloc;
+		VmNamedVariableSchema nestedFields[] = {
+			MakeSchema("innerName", VmType::String),
+		};
+		const VmStructSchema nestedSchema = MakeStructSchema(nestedFields, 1, false);
+		const VmNamedVariableSchema schema = MakeSchema("details", VmType::Struct, &nestedSchema);
+		std::vector<VmNamedDynamicVariable> fields;
+		std::vector<MetadataField> metadata = {
+			{ "details", MetadataValue::FromStruct({
+				{ "innerName", MetadataValue::FromString("demo") },
+				{ "extra", MetadataValue::FromString("oops") },
+			}) }
+		};
+		ExpectThrowContains(ctx, "MetadataHelper Struct unknown", "received unknown property", [&]() {
+			MetadataHelper::PushMetadataField(schema, fields, metadata, alloc);
+		});
+	}
+	{
+		Allocator alloc;
+		VmNamedVariableSchema nestedFields[] = {
+			MakeSchema("innerName", VmType::String),
+		};
+		const VmStructSchema nestedSchema = MakeStructSchema(nestedFields, 1, false);
+		const VmNamedVariableSchema schema = MakeSchema("details", VmType::Struct, &nestedSchema);
+		std::vector<VmNamedDynamicVariable> fields;
+		std::vector<MetadataField> metadata = {
+			{ "details", MetadataValue::FromStruct({}) }
+		};
+		ExpectThrowContains(ctx, "MetadataHelper Struct missing", "is mandatory", [&]() {
+			MetadataHelper::PushMetadataField(schema, fields, metadata, alloc);
+		});
+	}
+	{
+		Allocator alloc;
+		const VmNamedVariableSchema schema = MakeSchema("tags", VmType::Array_String);
+		std::vector<VmNamedDynamicVariable> fields;
+		std::vector<MetadataField> metadata = {
+			{ "tags", MetadataValue::FromArray({
+				MetadataValue::FromString("alpha"),
+				MetadataValue::FromString("beta"),
+			}) }
+		};
+		MetadataHelper::PushMetadataField(schema, fields, metadata, alloc);
+		const VmDynamicVariable& value = fields[0].value;
+		const bool ok = value.type == VmType::Array_String &&
+			value.arrayLength == 2 &&
+			std::string(value.data.stringArray[0]) == "alpha" &&
+			std::string(value.data.stringArray[1]) == "beta";
+		Report(ctx, ok, "MetadataHelper Array string");
+	}
+	{
+		Allocator alloc;
+		const VmNamedVariableSchema schema = MakeSchema("deltas", VmType::Array_Int8);
+		std::vector<VmNamedDynamicVariable> fields;
+		std::vector<MetadataField> metadata = {
+			{ "deltas", MetadataValue::FromArray({
+				MetadataValue::FromInt64(1),
+				MetadataValue::FromInt64(-1),
+				MetadataValue::FromInt64(5),
+			}) }
+		};
+		MetadataHelper::PushMetadataField(schema, fields, metadata, alloc);
+		const VmDynamicVariable& value = fields[0].value;
+		const bool ok = value.type == VmType::Array_Int8 &&
+			value.arrayLength == 3 &&
+			value.data.int8Array &&
+			value.data.int8Array[0] == 1 &&
+			value.data.int8Array[1] == 255 &&
+			value.data.int8Array[2] == 5;
+		Report(ctx, ok, "MetadataHelper Array Int8");
+	}
+	{
+		Allocator alloc;
+		VmNamedVariableSchema elementFields[] = {
+			MakeSchema("name", VmType::String),
+		};
+		const VmStructSchema elementSchema = MakeStructSchema(elementFields, 1, false);
+		const VmNamedVariableSchema schema = MakeSchema("items", VmType::Array_Struct, &elementSchema);
+		std::vector<VmNamedDynamicVariable> fields;
+		std::vector<MetadataField> metadata = {
+			{ "items", MetadataValue::FromArray({
+				MetadataValue::FromStruct({ { "name", MetadataValue::FromString("one") } }),
+				MetadataValue::FromStruct({ { "name", MetadataValue::FromString("two") } }),
+			}) }
+		};
+		MetadataHelper::PushMetadataField(schema, fields, metadata, alloc);
+		const VmDynamicVariable& value = fields[0].value;
+		const VmStructArray& arrayValue = value.data.structureArray;
+		const VmDynamicVariable* firstName = arrayValue.structs[0][SmallString("name")];
+		const VmDynamicVariable* secondName = arrayValue.structs[1][SmallString("name")];
+		const bool ok = value.type == VmType::Array_Struct &&
+			value.arrayLength == 2 &&
+			arrayValue.schema.numFields == 1 &&
+			std::string(arrayValue.schema.fields[0].name.c_str()) == "name" &&
+			firstName && secondName &&
+			std::string(firstName->data.string) == "one" &&
+			std::string(secondName->data.string) == "two";
+		Report(ctx, ok, "MetadataHelper Array struct");
+	}
+	{
+		Allocator alloc;
+		const VmNamedVariableSchema schema = MakeSchema("hash", VmType::Bytes16);
+		std::vector<VmNamedDynamicVariable> fields;
+		std::vector<MetadataField> metadata = {
+			{ "hash", MetadataValue::FromString("00112233445566778899aabbccddeeff") }
+		};
+		MetadataHelper::PushMetadataField(schema, fields, metadata, alloc);
+		const Bytes16 expected(HexToBytes("00112233445566778899aabbccddeeff"));
+		const bool ok = fields[0].value.type == VmType::Bytes16 && fields[0].value.data.bytes16 == expected;
+		Report(ctx, ok, "MetadataHelper Bytes16");
+	}
+	{
+		Allocator alloc;
+		const VmNamedVariableSchema schema = MakeSchema("roots", VmType::Array_Bytes32);
+		std::vector<VmNamedDynamicVariable> fields;
+		std::vector<MetadataField> metadata = {
+			{ "roots", MetadataValue::FromArray({
+				MetadataValue::FromString("00112233445566778899aabbccddeeff00112233445566778899aabbccddeeff"),
+				MetadataValue::FromString("ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"),
+			}) }
+		};
+		MetadataHelper::PushMetadataField(schema, fields, metadata, alloc);
+		const Bytes32 expectedA(HexToBytes("00112233445566778899aabbccddeeff00112233445566778899aabbccddeeff"));
+		const Bytes32 expectedB(HexToBytes("ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"));
+		const VmDynamicVariable& value = fields[0].value;
+		const bool ok = value.type == VmType::Array_Bytes32 &&
+			value.arrayLength == 2 &&
+			value.data.bytes32Array &&
+			value.data.bytes32Array[0] == expectedA &&
+			value.data.bytes32Array[1] == expectedB;
+		Report(ctx, ok, "MetadataHelper Array Bytes32");
+	}
+}
+
+static void TokenMetadataIconTests(TestContext& ctx)
+{
+	const std::string png = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR4nGMAAQAABQABDQottAAAAABJRU5ErkJggg==";
+	const std::string webp = "data:image/webp;base64,UklGRg==";
+	const std::string svg = "data:image/svg+xml;base64,PHN2ZyB4bWxucz0naHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmcnIHZpZXdCb3g9JzAgMCAyNCAyNCc+PHBhdGggZmlsbD0nI0Y0NDMzNicgZD0nTTcgNGg1YTUgNSAwIDAxMCAxMEg5djZIN3pNOSA2djZoM2EzIDMgMCAwMDAtNnonLz48L3N2Zz4=";
+	const std::string legacySvg = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%23F44336' d='M7 4h5a5 5 0 010 10H9v6H7zM9 6v6h3a3 3 0 000-6z'/%3E%3C/svg%3E";
+	const std::string gif = "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAAAAACH5BAAAAAAALAAAAAABAAEAAAICRAEAOw==";
+	const std::string emptyPayload = "data:image/png;base64,";
+	const std::string invalidPayload = "data:image/jpeg;base64,@@@";
+
+	auto buildFields = [&](const std::string& icon) {
+		return std::vector<std::pair<std::string, std::string>>{
+			{ "name", "My test token!" },
+			{ "icon", icon },
+			{ "url", "http://example.com" },
+			{ "description", "My test token description" },
+		};
+	};
+
+	ExpectNoThrow(ctx, "TokenMetadata icon PNG", [&]() {
+		TokenMetadataBuilder::BuildAndSerialize(buildFields(png));
+	});
+	ExpectNoThrow(ctx, "TokenMetadata icon JPEG", [&]() {
+		const std::string jpegPayload = "/9j/";
+		TokenMetadataBuilder::BuildAndSerialize(buildFields("data:image/jpeg;base64," + jpegPayload));
+	});
+	ExpectNoThrow(ctx, "TokenMetadata icon WebP", [&]() {
+		TokenMetadataBuilder::BuildAndSerialize(buildFields(webp));
+	});
+	ExpectThrowContains(ctx, "TokenMetadata icon SVG", "base64-encoded data URI", [&]() {
+		TokenMetadataBuilder::BuildAndSerialize(buildFields(svg));
+	});
+	ExpectThrowContains(ctx, "TokenMetadata icon legacy svg", "base64-encoded data URI", [&]() {
+		TokenMetadataBuilder::BuildAndSerialize(buildFields(legacySvg));
+	});
+	ExpectThrowContains(ctx, "TokenMetadata icon GIF", "base64-encoded data URI", [&]() {
+		TokenMetadataBuilder::BuildAndSerialize(buildFields(gif));
+	});
+	ExpectThrowContains(ctx, "TokenMetadata icon empty", "non-empty base64 payload", [&]() {
+		TokenMetadataBuilder::BuildAndSerialize(buildFields(emptyPayload));
+	});
+	ExpectThrowContains(ctx, "TokenMetadata icon invalid base64", "payload is not valid base64", [&]() {
+		TokenMetadataBuilder::BuildAndSerialize(buildFields(invalidPayload));
+	});
+}
+
+static void AddressTests(TestContext& ctx)
+{
+	const std::string wif = "L5UEVHBjujaR1721aZM5Zm5ayjDyamMZS9W35RE9Y9giRkdf3dVx";
+	const std::string expected = "P2KFEyFevpQfSaW8G4VjSmhWUZXR4QrG9YQR1HbMpTUCpCL";
+	const PhantasmaKeys keys = PhantasmaKeys::FromWIF(wif.c_str(), (int)wif.size());
+	const bool fromWifOk = std::string(keys.GetAddress().Text().c_str()) == expected;
+	Report(ctx, fromWifOk, "Address from WIF");
+	const Address addr = Address::FromText(expected.c_str(), (int)expected.size());
+	const bool fromTextOk = std::string(addr.Text().c_str()) == expected;
+	Report(ctx, fromTextOk, "Address from text");
+	const Address fromKey = Address::FromKey(keys);
+	const bool fromKeyOk = std::string(fromKey.Text().c_str()) == expected;
+	Report(ctx, fromKeyOk, "Address from key");
+	const Address nullAddr;
+	Report(ctx, nullAddr.IsNull(), "Address null");
+	const bool nullLabelOk = nullAddr.ToString() == PHANTASMA_LITERAL("[Null address]");
+	Report(ctx, nullLabelOk, "Address null label");
+}
+
+static void ScriptBuilderTransactionTests(TestContext& ctx)
+{
+	const std::string expectedScriptHex =
+		"0D00030350340303000D000302102703000D000223220000000000000000000000000000000000000000000000000000000000000000000003000D000223220100AA53BE71FC41BC0889B694F4D6D03F7906A3D9A21705943CAF9632EEAFBB489503000D000408416C6C6F7747617303000D0004036761732D00012E010D0003010003000D00041D73797374656D2E6E657875732E70726F746F636F6C2E76657273696F6E03000D00042F50324B464579466576705166536157384734566A536D6857555A585234517247395951523148624D7054554370434C03000D00040A53696E676C65566F746503000D000409636F6E73656E7375732D00012E010D000223220100AA53BE71FC41BC0889B694F4D6D03F7906A3D9A21705943CAF9632EEAFBB489503000D0004085370656E6447617303000D0004036761732D00012E010B";
+	const std::string expectedSignedTxHex =
+		"07746573746E6574046D61696EFD42010D00030350340303000D000302102703000D000223220000000000000000000000000000000000000000000000000000000000000000000003000D000223220100AA53BE71FC41BC0889B694F4D6D03F7906A3D9A21705943CAF9632EEAFBB489503000D000408416C6C6F7747617303000D0004036761732D00012E010D0003010003000D00041D73797374656D2E6E657875732E70726F746F636F6C2E76657273696F6E03000D00042F50324B464579466576705166536157384734566A536D6857555A585234517247395951523148624D7054554370434C03000D00040A53696E676C65566F746503000D000409636F6E73656E7375732D00012E010D000223220100AA53BE71FC41BC0889B694F4D6D03F7906A3D9A21705943CAF9632EEAFBB489503000D0004085370656E6447617303000D0004036761732D00012E010BD202964909436F6E73656E737573010140F1C0410D49A5EDF0945B0EE9FAFDF6CA1FC315118D545E07824BEF1BA1F00881C29419648FD0B8200A356D21FAF45C60F4B77279D931CE4D732F5896E93BFE0D";
+	const std::string knownTxHex =
+		"07746573746E6574046D61696E03010203D2029649077061796C6F61640101404C033859A20A4FC2E469B3741FB05ACEDFEC24BFE92E07633680488665D79F916773FF40D0E81C4468E1C1487E6E1E6EEFDA5C5D7C53C15C4FB349C2349A1802";
+
+	const ByteArray script = BuildConsensusSingleVoteScript();
+	const std::string scriptHex = ToUpper(BytesToHex(script));
+	const std::string expectedScript = ToUpper(expectedScriptHex);
+	Report(ctx, scriptHex == expectedScript, "ScriptBuilder vector", scriptHex + " vs " + expectedScript);
+
+	const std::string wif = "L5UEVHBjujaR1721aZM5Zm5ayjDyamMZS9W35RE9Y9giRkdf3dVx";
+	const PhantasmaKeys keys = PhantasmaKeys::FromWIF(wif.c_str(), (int)wif.size());
+	const Timestamp expiration(1234567890);
+	const char payloadText[] = "Consensus";
+	const ByteArray payload(payloadText, payloadText + sizeof(payloadText) - 1);
+
+	Transaction tx("testnet", "main", script, expiration, payload);
+	tx.Sign(keys);
+	const ByteArray signedTx = tx.ToByteArray(true);
+	const std::string signedHex = ToUpper(BytesToHex(signedTx));
+	const std::string expectedSigned = ToUpper(expectedSignedTxHex);
+	Report(ctx, signedHex == expectedSigned, "Transaction signed vector", signedHex + " vs " + expectedSigned);
+
+	const ByteArray knownBytes = HexToBytes(knownTxHex);
+	BinaryReader reader(knownBytes);
+	const Transaction knownTx = Transaction::Unserialize(reader);
+	const bool knownOk =
+		knownTx.NexusName() == PHANTASMA_LITERAL("testnet") &&
+		knownTx.ChainName() == PHANTASMA_LITERAL("main") &&
+		ToUpper(BytesToHex(knownTx.Script())) == "010203" &&
+		ToUpper(BytesToHex(knownTx.Payload())) == "7061796C6F6164" &&
+		knownTx.Expiration().Value == 1234567890u &&
+		knownTx.Signatures().size() == 1;
+	Report(ctx, knownOk, "Transaction unserialize");
+}
+
+static void BigIntSerializationTests(TestContext& ctx)
+{
+	std::ifstream file("tests/fixtures/phantasma_bigint_vectors.tsv");
+	if (!file.is_open())
+	{
+		file.open("fixtures/phantasma_bigint_vectors.tsv");
+	}
+	if (!file.is_open())
+	{
+		Report(ctx, false, "BigInt fixture", "missing phantasma_bigint_vectors.tsv");
+		return;
+	}
+
+	std::string line;
+	bool header = true;
+	while (std::getline(file, line))
+	{
+		if (line.empty())
+		{
+			continue;
+		}
+		if (header)
+		{
+			header = false;
+			continue;
+		}
+		std::vector<std::string> cols;
+		std::stringstream ss(line);
+		std::string col;
+		while (std::getline(ss, col, '\t'))
+		{
+			cols.push_back(col);
+		}
+		if (cols.size() < 3)
+		{
+			continue;
+		}
+
+		const std::string& number = cols[0];
+		const ByteArray expectedCsharp = ParseDecBytes(cols[2]);
+		const BigInteger n = BigInteger::Parse(String(number.c_str()));
+
+		BinaryWriter writer;
+		writer.WriteBigInteger(n);
+		const ByteArray serialized = writer.ToArray();
+		BinaryReader reader(serialized);
+		BigInteger roundtripPha;
+		reader.ReadBigInteger(roundtripPha);
+		Report(ctx, roundtripPha.ToString() == String(number.c_str()), "BigInt PHA roundtrip " + number);
+
+		ScriptBuilder sb;
+		sb.EmitLoad(0, n);
+		const ByteArray script = sb.ToScript();
+		BinaryReader scriptReader(script);
+		Byte opcode = 0;
+		Byte reg = 0;
+		Byte type = 0;
+		scriptReader.Read(opcode);
+		scriptReader.Read(reg);
+		scriptReader.Read(type);
+		(void)reg;
+		Int64 len = 0;
+		scriptReader.ReadVarInt(len);
+		ByteArray csharpBytes;
+		scriptReader.Read(csharpBytes, (int)len);
+		Report(ctx, opcode == (Byte)Opcode::LOAD, "BigInt C# opcode " + number);
+		Report(ctx, type == (Byte)VMType::Number, "BigInt C# type " + number);
+		Report(ctx, csharpBytes == expectedCsharp, "BigInt C# " + number);
+	}
+}
+
+static void IntXIs8ByteSafeTests(TestContext& ctx)
+{
+	const intx zero((int64_t)0);
+	const intx minI64((int64_t)std::numeric_limits<int64_t>::min());
+	const intx maxI64((int64_t)std::numeric_limits<int64_t>::max());
+	Report(ctx, zero.Int256().Is8ByteSafe(), "IntX safe zero");
+	Report(ctx, minI64.Int256().Is8ByteSafe(), "IntX safe min");
+	Report(ctx, maxI64.Int256().Is8ByteSafe(), "IntX safe max");
+
+	const intx tooLarge = intx::FromString("9223372036854775808", 0, 10, nullptr);
+	Report(ctx, !tooLarge.Int256().Is8ByteSafe(), "IntX unsafe max+1");
+	const intx tooSmall = intx::FromString("-9223372036854775809", 0, 10, nullptr);
+	Report(ctx, !tooSmall.Int256().Is8ByteSafe(), "IntX unsafe min-1");
+
+	const intx bigBacked(uint256::FromString("42", 0, 10, nullptr));
+	Report(ctx, bigBacked.Int256().Is8ByteSafe(), "IntX safe big-backed");
+}
+
 int main()
 {
 	TestContext ctx;
 	const auto rows = LoadRows("fixtures/carbon_vectors.tsv");
 	EncodeTests(ctx, rows);
 	DecodeTests(ctx, rows);
+	MetadataHelperTests(ctx);
+	TokenMetadataIconTests(ctx);
+	AddressTests(ctx);
+	VmDynamicVariableTests(ctx);
+#if __cplusplus >= 201703L
+	VmObjectTests(ctx);
+#endif
+	ScriptBuilderTransactionTests(ctx);
+	BigIntSerializationTests(ctx);
+	IntXIs8ByteSafeTests(ctx);
 	CallSectionsTests(ctx);
 
 	if (ctx.failed == 0)

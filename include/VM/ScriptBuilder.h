@@ -19,6 +19,52 @@ private:
 	PHANTASMA_MAP<int, String> _jumpLocations;
 	PHANTASMA_MAP<String, int> _labelLocations;
 
+	static ByteArray ToCsharpBytes(const BigInteger& n)
+	{
+		if (n.IsZero())
+		{
+			return ByteArray{ (Byte)0x00 };
+		}
+
+		const bool negative = n.IsNegative();
+		const BigInteger absValue = negative ? BigInteger::Abs(n) : n;
+		ByteArray bytes = absValue.ToUnsignedByteArray();
+		if (bytes.empty())
+		{
+			bytes.push_back(0x00);
+		}
+
+		if (!negative)
+		{
+			if (bytes.back() & 0x80)
+			{
+				bytes.push_back(0x00);
+			}
+			return bytes;
+		}
+
+		for (auto& b : bytes)
+		{
+			b = (Byte)~b;
+		}
+		uint16_t carry = 1;
+		for (size_t i = 0; i < bytes.size() && carry; ++i)
+		{
+			const uint16_t sum = (uint16_t)bytes[i] + carry;
+			bytes[i] = (Byte)sum;
+			carry = (sum >> 8);
+		}
+		if (carry)
+		{
+			bytes.push_back((Byte)carry);
+		}
+		if ((bytes.back() & 0x80) == 0)
+		{
+			bytes.push_back(0xFF);
+		}
+		return bytes;
+	}
+
 public:
 
 	ScriptBuilder& Emit( Opcode opcode, const Byte* bytes=0, int numBytes=0 )
@@ -248,7 +294,7 @@ public:
 
 	ScriptBuilder& EmitLoad( Byte reg, const BigInteger& val )
 	{
-		auto bytes = val.ToSignedByteArray();
+		auto bytes = ToCsharpBytes(val);
 		EmitLoad( reg, bytes.empty()?0:&bytes.front(), (int)bytes.size(), VMType::Number );
 		return *this;
 	}
