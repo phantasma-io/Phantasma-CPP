@@ -1,0 +1,77 @@
+#include "test_cases.h"
+
+namespace testcases {
+using namespace testutil;
+
+void RunBigIntSerializationTests(TestContext& ctx)
+{
+	std::ifstream file("tests/fixtures/phantasma_bigint_vectors.tsv");
+	if (!file.is_open())
+	{
+		file.open("fixtures/phantasma_bigint_vectors.tsv");
+	}
+	if (!file.is_open())
+	{
+		Report(ctx, false, "BigInt fixture", "missing phantasma_bigint_vectors.tsv");
+		return;
+	}
+
+	std::string line;
+	bool header = true;
+	while (std::getline(file, line))
+	{
+		if (line.empty())
+		{
+			continue;
+		}
+		if (header)
+		{
+			header = false;
+			continue;
+		}
+		std::vector<std::string> cols;
+		std::stringstream ss(line);
+		std::string col;
+		while (std::getline(ss, col, '\t'))
+		{
+			cols.push_back(col);
+		}
+		if (cols.size() < 3)
+		{
+			continue;
+		}
+
+		const std::string& number = cols[0];
+		const ByteArray expectedCsharp = ParseDecBytes(cols[2]);
+		const BigInteger n = BigInteger::Parse(String(number.c_str()));
+
+		BinaryWriter writer;
+		writer.WriteBigInteger(n);
+		const ByteArray serialized = writer.ToArray();
+		BinaryReader reader(serialized);
+		BigInteger roundtripPha;
+		reader.ReadBigInteger(roundtripPha);
+		Report(ctx, roundtripPha.ToString() == String(number.c_str()), "BigInt PHA roundtrip " + number);
+
+		ScriptBuilder sb;
+		sb.EmitLoad(0, n);
+		const ByteArray script = sb.ToScript();
+		BinaryReader scriptReader(script);
+		Byte opcode = 0;
+		Byte reg = 0;
+		Byte type = 0;
+		scriptReader.Read(opcode);
+		scriptReader.Read(reg);
+		scriptReader.Read(type);
+		(void)reg;
+		Int64 len = 0;
+		scriptReader.ReadVarInt(len);
+		ByteArray csharpBytes;
+		scriptReader.Read(csharpBytes, (int)len);
+		Report(ctx, opcode == (Byte)Opcode::LOAD, "BigInt C# opcode " + number);
+		Report(ctx, type == (Byte)VMType::Number, "BigInt C# type " + number);
+		Report(ctx, csharpBytes == expectedCsharp, "BigInt C# " + number);
+	}
+}
+
+} // namespace testcases

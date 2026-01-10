@@ -21,8 +21,8 @@ extern "C"
 }
 static_assert(sizeof(bn) == sizeof(uint256));
 static_assert(sizeof(bn) == sizeof(int256));
-struct bn* B(const uint256& u) { return (bn*)&u; }
-struct bn* B(const  int256& u) { return (bn*)&u; }
+inline struct bn* B(const uint256& u) { return (bn*)&u; }
+inline struct bn* B(const  int256& u) { return (bn*)&u; }
 #ifdef THIS
 #undef THIS
 #endif

@@ -1,10 +1,14 @@
-b:
-    g++ -std=c++17 -I../include carbon_tests.cpp -lcrypto -o carbon_tests
+build:
+    make build
 
-c:
-    rm --force carbon_tests
+run:
+    make run
 
-r:
-    just c
-    just b
-    ./carbon_tests
+clean:
+    make clean
+
+b: build
+
+r: run
+
+c: clean
