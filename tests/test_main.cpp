@@ -6,10 +6,14 @@ int main()
 	testcases::RunCarbonVectorTests(ctx);
 	testcases::RunMetadataHelperTests(ctx);
 	testcases::RunTokenMetadataIconTests(ctx);
+	testcases::RunTokenBuilderValidationTests(ctx);
 	testcases::RunAddressTests(ctx);
+	testcases::RunKeyPairTests(ctx);
+	testcases::RunEncodingRoundtripTests(ctx);
 	testcases::RunVmDynamicVariableTests(ctx);
 	testcases::RunVmObjectTests(ctx);
 	testcases::RunScriptBuilderTransactionTests(ctx);
+	testcases::RunCarbonTxExtraTests(ctx);
 	testcases::RunBigIntSerializationTests(ctx);
 	testcases::RunIntXIs8ByteSafeTests(ctx);
 	testcases::RunCallSectionsTests(ctx);
