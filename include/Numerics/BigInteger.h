@@ -138,23 +138,9 @@ public:
 		}
 
 		Byte msb = bytes[bytes.size() - 1];
-
-		int sign = 0;
-
-        switch (msb)
-        {
-            case 0xFF:
-                sign = -1;
-                break;
-
-            case 0x00:
-                sign = 1;
-                break;
-
-            default:
-                PHANTASMA_EXCEPTION("unexpected sign byte value");
-				break;
-        }
+		// Two's complement uses the sign bit, not a strict 0x00/0xFF guard.
+		// Example: -257 is encoded as FF FE (LSB..MSB). Last byte is 0xFE, but the sign bit is set.
+		int sign = (msb & 0x80) ? -1 : 1;
 		
 		if (sign == -1)
 		{
@@ -177,23 +163,9 @@ public:
 		}
 
 		Byte msb = bytes[bytes.size() - 1];
-
-		int sign = 0;
-
-		switch (msb)
-		{
-		case 0xFF:
-			sign = -1;
-			break;
-
-		case 0x00:
-			sign = 1;
-			break;
-
-		default:
-			PHANTASMA_EXCEPTION("unexpected sign byte value");
-			break;
-		}
+		// Two's complement uses the sign bit, not a strict 0x00/0xFF guard.
+		// Example: -257 is encoded as FF FE (LSB..MSB). Last byte is 0xFE, but the sign bit is set.
+		int sign = (msb & 0x80) ? -1 : 1;
 
 		if (sign == -1)
 		{
@@ -216,23 +188,9 @@ public:
 		}
 
 		Byte msb = bytes[bytes.size() - 1];
-
-		int sign = 0;
-
-		switch (msb)
-		{
-		case 0xFF:
-			sign = -1;
-			break;
-
-		case 0x00:
-			sign = 1;
-			break;
-
-		default:
-			PHANTASMA_EXCEPTION("unexpected sign byte value");
-			break;
-		}
+		// Two's complement uses the sign bit, not a strict 0x00/0xFF guard.
+		// Example: -257 is encoded as FF FE (LSB..MSB). Last byte is 0xFE, but the sign bit is set.
+		int sign = (msb & 0x80) ? -1 : 1;
 
 		if (sign == -1)
 		{
@@ -1563,43 +1521,88 @@ public:
 	}
 	
 
-    //The returned byte array is signed by applying the Two's complement technique for negative numbers
+    //The returned byte array is signed by applying the Two's complement technique for negative numbers.
+    //It also follows the historical Phantasma/C# tail-guard rules (0x00 for positives, 0xFF for negatives).
+    //
+    //Key points (compatibility with the Initial Phantasma C# implementation):
+    //- Representation is little-endian two's complement (C# BigInteger byte layout).
+    //- Positives must be guarded so the MSB sign bit is not interpreted as negative.
+    //- Negatives must keep the sign bit set and follow Phantasma's trailing guard rule.
+    //- The output must be parseable by BigInteger(signed bytes) without losing width or sign.
 	ByteArray ToSignedByteArray() const
 	{
-		int bitLength = GetBitLength();
-		UInt32 byteArraySize = (bitLength / 8) + (UInt32)((bitLength % 8 > 0) ? 1 : 0) + 1; //the extra byte is for sign carrying purposes
-		ByteArray result;
-		result.resize(byteArraySize);
-
-		bool applyTwosComplement = _sign == -1;    //only apply two's complement if this number is negative
-
-		for (UInt32 i = 0, j = 0, end = (UInt32)_data.size(); i < end; i++, j += 4)
+		if (_sign == 0)
 		{
-			Byte bytes[4];
-			memcpy(bytes, &_data[i], 4);
-			for (int k = 0; k < 4; k++)
-			{
-				if (!applyTwosComplement && bytes[k] == 0)
-					continue;
-				if (j + k >= byteArraySize)
-					break;
+			return ByteArray{ (Byte)0x00 };
+		}
 
-				if (applyTwosComplement)
-					result[j + k] = (Byte) ~bytes[k];
-				else
-					result[j + k] = bytes[k];
+		const bool applyTwosComplement = _sign < 0;
+		ByteArray result;
+		if (!applyTwosComplement)
+		{
+			// Positive path: emit magnitude bytes and add a sign guard if MSB could be interpreted as negative.
+			result = ToUnsignedByteArray();
+			if (result.empty())
+			{
+				result.push_back(0x00);
+			}
+			if (result.back() & 0x80)
+			{
+				result.push_back(0x00);
+			}
+		}
+		else
+		{
+			// Negative path: build two's complement from the magnitude of |n|.
+			// We invert the magnitude bytes, add 1, and then ensure the sign bit stays set.
+			const TBigInteger tmp = Abs(*this);
+			result = tmp.ToUnsignedByteArray();
+			if (result.empty())
+			{
+				result.push_back(0x00);
+			}
+			for (auto& b : result)
+			{
+				b = (Byte)~b;
+			}
+			uint16_t carry = 1;
+			for (size_t i = 0; i < result.size() && carry; ++i)
+			{
+				const uint16_t sum = (uint16_t)result[i] + carry;
+				result[i] = (Byte)sum;
+				carry = (sum >> 8);
+			}
+			if (carry)
+			{
+				result.push_back((Byte)carry);
+			}
+			if ((result.back() & 0x80) == 0)
+			{
+				result.push_back(0xFF);
 			}
 		}
 
-		//this could be optimized if needed, but likely not worth it for now
 		if (applyTwosComplement)
 		{
-			TBigInteger tmp = TBigInteger(result, 1) + 1; //create a biginteger with the inverted bits but with positive sign, and add 1.
-
-			result = tmp.ToSignedByteArray();     //when we call the ToByteArray, we will get an extra byte on the array to keep sign information while in byte[] format
-												//but the twos complement logic won't get applied again given the bigint has positive sign.
-
-			result[result.size() - 1] = 0xFF;      //sets the MSB to 1's, as this array represents a negative number.
+			// Phantasma tail guard: negatives keep a trailing 0xFF extension.
+			// This matches the Initial Phantasma C# implementation (e.g., -1 => [FF, FF, FF]).
+			if (result.size() == 1)
+			{
+				result.push_back(0xFF);
+				result.push_back(0xFF);
+			}
+			else if (result.back() == 0xFF)
+			{
+				result.push_back(0xFF);
+			}
+		}
+		else
+		{
+			// Phantasma tail guard: positives must end with 0x00.
+			if (result.back() != 0x00)
+			{
+				result.push_back(0x00);
+			}
 		}
 
 		return result;

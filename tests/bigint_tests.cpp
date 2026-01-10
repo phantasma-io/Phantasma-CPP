@@ -42,12 +42,26 @@ void RunBigIntSerializationTests(TestContext& ctx)
 		}
 
 		const std::string& number = cols[0];
+		const ByteArray expectedPha = ParseDecBytes(cols[1]);
 		const ByteArray expectedCsharp = ParseDecBytes(cols[2]);
 		const BigInteger n = BigInteger::Parse(String(number.c_str()));
+
+		const ByteArray phaBytes = n.ToSignedByteArray();
+		Report(ctx, phaBytes == expectedPha, "BigInt PHA " + number);
 
 		BinaryWriter writer;
 		writer.WriteBigInteger(n);
 		const ByteArray serialized = writer.ToArray();
+		const bool lengthOk = serialized.size() == expectedPha.size() + 1 &&
+			!serialized.empty() &&
+			serialized[0] == (Byte)expectedPha.size();
+		Report(ctx, lengthOk, "BigInt PHA length " + number);
+		if (lengthOk)
+		{
+			ByteArray serializedBytes;
+			serializedBytes.assign(serialized.begin() + 1, serialized.end());
+			Report(ctx, serializedBytes == expectedPha, "BigInt PHA bytes " + number);
+		}
 		BinaryReader reader(serialized);
 		BigInteger roundtripPha;
 		reader.ReadBigInteger(roundtripPha);
