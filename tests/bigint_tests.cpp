@@ -45,9 +45,37 @@ void RunBigIntSerializationTests(TestContext& ctx)
 		const ByteArray expectedPha = ParseDecBytes(cols[1]);
 		const ByteArray expectedCsharp = ParseDecBytes(cols[2]);
 		const BigInteger n = BigInteger::Parse(String(number.c_str()));
+		const bool isNegative = !number.empty() && number[0] == '-';
+		const bool isZero = number == "0";
+		const std::string absText = isNegative ? number.substr(1) : number;
 
 		const ByteArray phaBytes = n.ToSignedByteArray();
 		Report(ctx, phaBytes == expectedPha, "BigInt PHA " + number);
+
+		const BigInteger fromSigned = BigInteger::FromSignedArray(expectedPha);
+		Report(ctx, fromSigned.ToString() == String(number.c_str()), "BigInt FromSignedArray " + number);
+
+		const BigInteger fromSignedPtr = BigInteger::FromSignedArray(
+			expectedPha.empty() ? nullptr : expectedPha.data(),
+			(int)expectedPha.size());
+		Report(ctx, fromSignedPtr.ToString() == String(number.c_str()), "BigInt FromSignedArray ptr " + number);
+
+		Report(ctx, n.IsZero() == isZero, "BigInt IsZero " + number);
+		Report(ctx, n.IsNegative() == isNegative, "BigInt IsNegative " + number);
+
+		const BigInteger absVal = BigInteger::Abs(n);
+		Report(ctx, absVal.ToString() == String(absText.c_str()), "BigInt Abs " + number);
+
+		const BigInteger neg = -n;
+		if (isZero)
+		{
+			Report(ctx, neg == n, "BigInt Negate zero " + number);
+		}
+		else
+		{
+			Report(ctx, neg != n, "BigInt Negate sign " + number);
+			Report(ctx, (-neg).ToString() == String(number.c_str()), "BigInt Double negate " + number);
+		}
 
 		BinaryWriter writer;
 		writer.WriteBigInteger(n);
