@@ -23,6 +23,8 @@ int main()
 	testcases::RunBigIntParseFormatTests(ctx);
 	testcases::RunBigIntByteArrayTests(ctx);
 	testcases::RunBigIntBitHelperTests(ctx);
+	testcases::RunBigIntConstructorTests(ctx);
+	testcases::RunBigIntOperatorTests(ctx);
 	testcases::RunIntXIs8ByteSafeTests(ctx);
 	testcases::RunCallSectionsTests(ctx);
 
