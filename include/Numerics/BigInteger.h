@@ -716,7 +716,8 @@ public:
 
 	static void DivideAndModulus(const TBigInteger& a, const TBigInteger& b, TBigInteger& quot, TBigInteger& rem)
 	{
-		if ((int)b == 0)
+		// Avoid operator int(): the low word can be zero for non-zero values (e.g., 2^32).
+		if (b._sign == 0)
 		{
 			quot = Zero();
 			rem = Zero();

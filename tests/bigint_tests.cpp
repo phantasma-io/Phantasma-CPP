@@ -502,8 +502,16 @@ void RunBigIntByteArrayTests(TestContext& ctx)
 	const BigInteger negTwo(-2);
 	Report(ctx, negTwo.ToSignedByteArray() == ByteArray{ (Byte)0xFE, (Byte)0xFF, (Byte)0xFF }, "BigInt ToSignedByteArray -2");
 
+	// Values that flip the sign-bit guard logic (sign bit not set after two's complement).
+	const BigInteger neg255(-255);
+	Report(ctx, neg255.ToSignedByteArray() == ByteArray{ (Byte)0x01, (Byte)0xFF, (Byte)0xFF }, "BigInt ToSignedByteArray -255");
+
 	const BigInteger val128(128);
 	Report(ctx, val128.ToSignedByteArray() == ByteArray{ (Byte)0x80, (Byte)0x00 }, "BigInt ToSignedByteArray 128");
+
+	const BigInteger valSparse(0x01000000);
+	const ByteArray expectedSparse = { (Byte)0x00, (Byte)0x00, (Byte)0x00, (Byte)0x01 };
+	Report(ctx, valSparse.ToUnsignedByteArray() == expectedSparse, "BigInt ToUnsignedByteArray sparse");
 
 	const ByteArray unsignedBytes = { (Byte)0x78, (Byte)0x56, (Byte)0x34, (Byte)0x12 };
 	const BigInteger unsignedPos = BigInteger::FromUnsignedArray(unsignedBytes, true);
@@ -533,6 +541,10 @@ void RunBigIntByteArrayTests(TestContext& ctx)
 	Report(ctx, written == 4, "BigInt ToUnsignedByteArray write size");
 	Report(ctx, memcmp(buffer, expectedUnsigned.data(), expectedUnsigned.size()) == 0, "BigInt ToUnsignedByteArray write bytes");
 
+	ExpectThrowContains(ctx, "BigInt ToUnsignedByteArray short buffer", "invalid argument", [&]() {
+		(void)n.ToUnsignedByteArray(buffer, 1);
+	});
+
 	const int zeroSize = BigInteger(0).ToUnsignedByteArray(nullptr, 0);
 	Report(ctx, zeroSize == 0, "BigInt ToUnsignedByteArray size zero");
 }
@@ -560,6 +572,9 @@ void RunBigIntBitHelperTests(TestContext& ctx)
 	Report(ctx, BigInteger(1).GetLowestSetBit() == 0, "BigInt GetLowestSetBit 1");
 	Report(ctx, BigInteger(2).GetLowestSetBit() == 1, "BigInt GetLowestSetBit 2");
 	Report(ctx, BigInteger(40).GetLowestSetBit() == 3, "BigInt GetLowestSetBit 40");
+	Report(ctx, BigInteger(256).GetLowestSetBit() == 8, "BigInt GetLowestSetBit 256");
+	Report(ctx, BigInteger(-1).GetLowestSetBit() == 0, "BigInt GetLowestSetBit -1");
+	Report(ctx, BigInteger(-2).GetLowestSetBit() == 1, "BigInt GetLowestSetBit -2");
 
 	Report(ctx, BigInteger(0).CalcIsEven(), "BigInt CalcIsEven 0");
 	Report(ctx, !BigInteger(1).CalcIsEven(), "BigInt CalcIsEven 1");
@@ -576,6 +591,11 @@ void RunBigIntBitHelperTests(TestContext& ctx)
 	const auto words = wordsValue.ToUintArray();
 	const bool wordsMatch = words.size() == 2 && words[0] == 0x55667788 && words[1] == 0x11223344;
 	Report(ctx, wordsMatch, "BigInt ToUintArray 64-bit");
+
+	const BigInteger bigShift = BigInteger(1) << 100;
+	Report(ctx, bigShift.GetBitLength() == 101, "BigInt GetBitLength large");
+	Report(ctx, bigShift.TestBit(100), "BigInt TestBit large on");
+	Report(ctx, !bigShift.TestBit(99), "BigInt TestBit large off");
 
 	ExpectThrowContains(ctx, "BigInt Sqrt negative", "cannot be negative", []() {
 		(void)BigInteger(-1).Sqrt();
@@ -643,6 +663,15 @@ void RunBigIntOperatorTests(TestContext& ctx)
 	shr >>= 3;
 	Report(ctx, shr.ToString() == String(PHANTASMA_LITERAL("4")), "BigInt operator >>=");
 
+	const BigInteger shlWide = BigInteger(0x80000000) << 1;
+	Report(ctx, shlWide.ToString() == String(PHANTASMA_LITERAL("4294967296")), "BigInt operator << wide");
+
+	const BigInteger shlWord = BigInteger(1) << 32;
+	Report(ctx, shlWord.ToString() == String(PHANTASMA_LITERAL("4294967296")), "BigInt operator << 32");
+
+	const BigInteger shrLarge = BigInteger(1) >> 100;
+	Report(ctx, shrLarge.ToString() == String(PHANTASMA_LITERAL("0")), "BigInt operator >> large");
+
 	BigInteger inc(1);
 	BigInteger postInc = inc++;
 	Report(ctx, postInc.ToString() == String(PHANTASMA_LITERAL("1")), "BigInt operator post++");
@@ -689,6 +718,18 @@ void RunBigIntOperatorTests(TestContext& ctx)
 	BigInteger::DivideAndModulus(BigInteger(3), BigInteger(10), quot, rem);
 	Report(ctx, quot.ToString() == String(PHANTASMA_LITERAL("0")), "BigInt DivideAndModulus small quot");
 	Report(ctx, rem.ToString() == String(PHANTASMA_LITERAL("3")), "BigInt DivideAndModulus small rem");
+
+	const BigInteger denomWide = BigInteger::Parse(String(PHANTASMA_LITERAL("18446744073709551616")));
+	const BigInteger numerWide = BigInteger::Parse(String(PHANTASMA_LITERAL("4294967296")));
+	BigInteger::DivideAndModulus(numerWide, denomWide, quot, rem);
+	Report(ctx, quot.ToString() == String(PHANTASMA_LITERAL("0")), "BigInt DivideAndModulus wide quot");
+	Report(ctx, rem.ToString() == String(PHANTASMA_LITERAL("4294967296")), "BigInt DivideAndModulus wide rem");
+
+	const BigInteger numerBig = BigInteger::Parse(String(PHANTASMA_LITERAL("18446744073709551621")));
+	const BigInteger denomBig = BigInteger::Parse(String(PHANTASMA_LITERAL("4294967296")));
+	BigInteger::DivideAndModulus(numerBig, denomBig, quot, rem);
+	Report(ctx, quot.ToString() == String(PHANTASMA_LITERAL("4294967296")), "BigInt DivideAndModulus multi-digit quot");
+	Report(ctx, rem.ToString() == String(PHANTASMA_LITERAL("5")), "BigInt DivideAndModulus multi-digit rem");
 
 	quot = BigInteger(99);
 	rem = BigInteger(88);
