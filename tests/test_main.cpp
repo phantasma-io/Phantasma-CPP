@@ -20,6 +20,9 @@ int main()
 	testcases::RunBigIntPowFixtureTests(ctx);
 	testcases::RunBigIntModPowFixtureTests(ctx);
 	testcases::RunBigIntModInverseFixtureTests(ctx);
+	testcases::RunBigIntParseFormatTests(ctx);
+	testcases::RunBigIntByteArrayTests(ctx);
+	testcases::RunBigIntBitHelperTests(ctx);
 	testcases::RunIntXIs8ByteSafeTests(ctx);
 	testcases::RunCallSectionsTests(ctx);
 

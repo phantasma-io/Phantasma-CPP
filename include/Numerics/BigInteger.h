@@ -5,6 +5,7 @@
 
 #include <ctype.h>
 #include <math.h>
+#include <cstdio>
 #include <utility>
 #include "../Security/SecureString.h"
 
@@ -477,7 +478,7 @@ public:
 		for (UInt32 i = (UInt32)_data.size(); i --> 0;)
 		{
 			Char buffer[10];
-			sprintf_s(buffer, "%08x", _data[i]);
+			snprintf(buffer, sizeof(buffer), "%08x", _data[i]);
 			builder << buffer;
 		}
 
