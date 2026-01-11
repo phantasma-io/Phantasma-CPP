@@ -4,11 +4,19 @@ build:
 run:
     make run
 
+cov:
+    ./scripts/coverage.sh
+
+cov-a:
+    ./scripts/coverage_analyze.py
+
 clean:
     make clean
 
 b: build
 
 r: run
+
+cv: cov
 
 c: clean

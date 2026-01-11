@@ -33,3 +33,10 @@
 
 carbon-token-deployment-tool
 config.toml
+
+# Coverage/build artifacts
+*.gcda
+*.gcno
+*.gcov
+tests/build/
+tests/coverage/

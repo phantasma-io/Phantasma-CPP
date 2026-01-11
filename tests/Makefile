@@ -6,16 +6,27 @@ LDFLAGS ?= -lcrypto
 
 TARGET := carbon_tests
 SRCS := $(wildcard *.cpp)
+BUILD_DIR ?= build
+BUILD_STAMP := $(BUILD_DIR)/.dir
+OBJS := $(patsubst %.cpp,$(BUILD_DIR)/%.o,$(SRCS))
+TARGET_PATH := $(BUILD_DIR)/$(TARGET)
 
 all: build
 
-build: $(TARGET)
+build: $(TARGET_PATH)
 
-$(TARGET): $(SRCS)
-	$(CXX) $(CXXFLAGS) $(SRCS) -o $(TARGET) $(LDFLAGS)
+$(TARGET_PATH): $(OBJS) | $(BUILD_STAMP)
+	$(CXX) $(CXXFLAGS) $(OBJS) -o $(TARGET_PATH) $(LDFLAGS)
 
-run: $(TARGET)
-	./$(TARGET)
+$(BUILD_DIR)/%.o: %.cpp | $(BUILD_STAMP)
+	$(CXX) $(CXXFLAGS) -c $< -o $@
+
+$(BUILD_STAMP):
+	mkdir -p $(BUILD_DIR)
+	touch $(BUILD_STAMP)
+
+run: $(TARGET_PATH)
+	./$(TARGET_PATH)
 
 clean:
-	rm -f $(TARGET)
+	rm -rf $(BUILD_DIR)
