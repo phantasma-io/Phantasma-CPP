@@ -703,7 +703,9 @@ public:
 	{
 		const TBigInteger& a = *this;
 		TBigInteger quot, rem;
-		TBigInteger::DivideAndModulus(a, b, quot, rem);
+		// Match C# BigInteger semantics: remainder keeps dividend sign.
+		TBigInteger::DivideAndModulus(Abs(a), Abs(b), quot, rem);
+		rem._sign = rem.GetBitLength() == 0 ? 0 : a._sign;
 		return rem;
 	}
 	TBigInteger& operator %=(const TBigInteger& b)
@@ -892,9 +894,25 @@ public:
 		if (_data.empty())
 			return *this;
 		bits = bits < 0 ? -bits : bits;
+		if (_sign < 0)
+		{
+			// Arithmetic shift for negative values (C# BigInteger semantics).
+			TBigInteger adjust = One() << bits;
+			TBigInteger temp = Abs(*this) + (adjust - One());
+			TBigInteger r = temp;
+			ShiftRight(r._data, bits);
+			// ShiftRight can reduce the buffer to empty (e.g., shifting zero), so guard index access.
+			if (!r._data.empty() && r._data[0] == 0 && r._data.size() == 1)
+				r._sign = 0;
+			else
+				r._sign = -1;
+			r.Trim();
+			return r;
+		}
 		TBigInteger r = *this;
 		ShiftRight(r._data, bits);
-		if (r._data[0] == 0 && r._data.size() == 1)
+		// ShiftRight can reduce the buffer to empty (e.g., shifting zero), so guard index access.
+		if (!r._data.empty() && r._data[0] == 0 && r._data.size() == 1)
 			r._sign = 0;
 		r.Trim();
 		return r;
@@ -904,8 +922,23 @@ public:
 		if (_data.empty())
 			return *this;
 		bits = bits < 0 ? -bits : bits;
+		if (_sign < 0)
+		{
+			// Arithmetic shift for negative values (C# BigInteger semantics).
+			TBigInteger adjust = One() << bits;
+			TBigInteger temp = Abs(*this) + (adjust - One());
+			ShiftRight(temp._data, bits);
+			// ShiftRight can reduce the buffer to empty (e.g., shifting zero), so guard index access.
+			if (!temp._data.empty() && temp._data[0] == 0 && temp._data.size() == 1)
+				temp._sign = 0;
+			else
+				temp._sign = -1;
+			temp.Trim();
+			return (*this = temp);
+		}
 		ShiftRight(_data, bits);
-		if (_data[0] == 0 && _data.size() == 1)
+		// ShiftRight can reduce the buffer to empty (e.g., shifting zero), so guard index access.
+		if (!_data.empty() && _data[0] == 0 && _data.size() == 1)
 			_sign = 0;
 		Trim();
 		return *this;
@@ -1074,6 +1107,12 @@ private:
 			return !op;
 		}
 
+		if (a._sign < 0)
+		{
+			// For negative values, reverse magnitude comparison.
+			op = !op;
+		}
+
 		if (a._data.size() < b._data.size())
 		{
 			return op;
@@ -1199,8 +1238,8 @@ public:
 	bool Equals(TBigInteger other) const
 	{
 		//BH!!!
-		//this doesn't compare _signs!?!?!?!
-		if (other._data.size() != _data.size())
+		//this used to ignore _sign and broke comparisons for negative values.
+		if (other._sign != _sign || other._data.size() != _data.size())
 		{
 			return false;
 		}
