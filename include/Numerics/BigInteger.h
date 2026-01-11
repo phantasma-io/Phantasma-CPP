@@ -703,7 +703,7 @@ public:
 	{
 		const TBigInteger& a = *this;
 		TBigInteger quot, rem;
-		// Match C# BigInteger semantics: remainder keeps dividend sign.
+		// Match C# BigInteger semantics: remainder keeps dividend sign and division truncates toward zero.
 		TBigInteger::DivideAndModulus(Abs(a), Abs(b), quot, rem);
 		rem._sign = rem.GetBitLength() == 0 ? 0 : a._sign;
 		return rem;
@@ -897,6 +897,7 @@ public:
 		if (_sign < 0)
 		{
 			// Arithmetic shift for negative values (C# BigInteger semantics).
+			// Equivalent to floor(a / 2^bits) via |a| + (2^bits - 1).
 			TBigInteger adjust = One() << bits;
 			TBigInteger temp = Abs(*this) + (adjust - One());
 			TBigInteger r = temp;
@@ -915,6 +916,13 @@ public:
 		if (!r._data.empty() && r._data[0] == 0 && r._data.size() == 1)
 			r._sign = 0;
 		r.Trim();
+		if (r._data.empty())
+		{
+			// Keep zero normalized for comparisons (Zero() uses size 1 with 0).
+			// Empty buffers previously caused ModPow to never terminate.
+			r._data.push_back(0);
+			r._sign = 0;
+		}
 		return r;
 	}
 	TBigInteger& operator >>=(int bits)
@@ -925,6 +933,7 @@ public:
 		if (_sign < 0)
 		{
 			// Arithmetic shift for negative values (C# BigInteger semantics).
+			// Equivalent to floor(a / 2^bits) via |a| + (2^bits - 1).
 			TBigInteger adjust = One() << bits;
 			TBigInteger temp = Abs(*this) + (adjust - One());
 			ShiftRight(temp._data, bits);
@@ -941,6 +950,13 @@ public:
 		if (!_data.empty() && _data[0] == 0 && _data.size() == 1)
 			_sign = 0;
 		Trim();
+		if (_data.empty())
+		{
+			// Keep zero normalized for comparisons (Zero() uses size 1 with 0).
+			// Empty buffers previously caused ModPow to never terminate.
+			_data.push_back(0);
+			_sign = 0;
+		}
 		return *this;
 	}
 private:
@@ -1110,6 +1126,7 @@ private:
 		if (a._sign < 0)
 		{
 			// For negative values, reverse magnitude comparison.
+			// Example: -5 < -3, so larger magnitude means smaller numeric value.
 			op = !op;
 		}
 
@@ -1166,79 +1183,86 @@ public:
 		return (a == b || a > b);
 	}
 
+private:
+	static void PrepareBitwiseOperands(const TBigInteger& a, const TBigInteger& b, ByteArray& aBytes, ByteArray& bBytes)
+	{
+		// Match .NET BigInteger semantics: operate on two's complement with sign extension.
+		// This ensures negative values behave like infinite sign bits (C# BigInteger).
+		aBytes = a.ToSignedByteArray();
+		bBytes = b.ToSignedByteArray();
+
+		const auto len = PHANTASMA_MAX(aBytes.size(), bBytes.size());
+		const Byte aPad = (aBytes.back() & 0x80) ? (Byte)0xFF : (Byte)0x00;
+		const Byte bPad = (bBytes.back() & 0x80) ? (Byte)0xFF : (Byte)0x00;
+
+		aBytes.resize(len, aPad);
+		bBytes.resize(len, bPad);
+	}
+
+public:
 	TBigInteger operator ^(const TBigInteger& b) const
 	{
 		const TBigInteger& a = *this;
-		auto aSize = a._data.size();
-		auto bSize = b._data.size();
-		auto len = PHANTASMA_MAX(aSize, bSize);
-		Data temp;
-		temp.resize(len);
+		ByteArray aBytes;
+		ByteArray bBytes;
+		PrepareBitwiseOperands(a, b, aBytes, bBytes);
 
-		for (UInt32 i = 0; i < len; i++)
+		ByteArray result;
+		result.resize(aBytes.size());
+		for (size_t i = 0; i < result.size(); ++i)
 		{
-			UInt32 A = i < aSize ? a._data[i] : 0;
-			UInt32 B = i < bSize ? b._data[i] : 0;
-			temp[i] = (A ^ B);
+			result[i] = (Byte)(aBytes[i] ^ bBytes[i]);
 		}
 
-		return TBigInteger(std::move(temp));
+		return TBigInteger(result);
 	}
 
 	TBigInteger operator |(const TBigInteger& b) const
 	{
 		const TBigInteger& a = *this;
-		auto aSize = a._data.size();
-		auto bSize = b._data.size();
-		auto len = PHANTASMA_MAX(aSize, bSize);
-		Data temp;
-		temp.resize(len);
+		ByteArray aBytes;
+		ByteArray bBytes;
+		PrepareBitwiseOperands(a, b, aBytes, bBytes);
 
-		for (UInt32 i = 0; i < len; i++)
+		ByteArray result;
+		result.resize(aBytes.size());
+		for (size_t i = 0; i < result.size(); ++i)
 		{
-			UInt32 A = i < aSize ? a._data[i] : 0;
-			UInt32 B = i < bSize ? b._data[i] : 0;
-			temp[i] = A | B;
+			result[i] = (Byte)(aBytes[i] | bBytes[i]);
 		}
 
-		return TBigInteger(std::move(temp));
+		return TBigInteger(result);
 	}
 
 	TBigInteger operator ~() const
 	{
-		Data buffer;
-		buffer.resize(_data.size());
-		for (int i = 0, end = (int)buffer.size(); i < end; i++)
-		{
-			buffer[i] = ~_data[i];
-		}
-
-		return TBigInteger(std::move(buffer));
+		// Two's complement identity: ~x == -(x + 1).
+		// Keeps results consistent with C# BigInteger for negative values.
+		return -(*this + One());
 	}
 
 	TBigInteger operator &(const TBigInteger& b) const
 	{
 		const TBigInteger& a = *this;
-		auto aSize = a._data.size();
-		auto bSize = b._data.size();
-		auto len = PHANTASMA_MAX(aSize, bSize);
-		Data temp;
-		temp.resize(len);
+		ByteArray aBytes;
+		ByteArray bBytes;
+		PrepareBitwiseOperands(a, b, aBytes, bBytes);
 
-		for (UInt32 i = 0; i < len; i++)
+		ByteArray result;
+		result.resize(aBytes.size());
+		for (size_t i = 0; i < result.size(); ++i)
 		{
-			UInt32 A = i < aSize ? a._data[i] : 0;
-			UInt32 B = i < bSize ? b._data[i] : 0;
-			temp[i] = A & B;
+			result[i] = (Byte)(aBytes[i] & bBytes[i]);
 		}
 
-		return TBigInteger(std::move(temp));
+		return TBigInteger(result);
 	}
 
 	bool Equals(TBigInteger other) const
 	{
 		//BH!!!
 		//this used to ignore _sign and broke comparisons for negative values.
+		//C# BigInteger equality includes sign, so comparisons must too.
 		if (other._sign != _sign || other._data.size() != _data.size())
 		{
 			return false;
@@ -1332,6 +1356,13 @@ public:
 		int num = 0;
 		TBigInteger bi = modulus;
 		TBigInteger bigInteger = *this;
+		// Normalize to positive residue to match C# BigInteger.ModInverse semantics.
+		// The extended Euclid loop expects a in [0, modulus).
+		bigInteger = bigInteger % modulus;
+		if (bigInteger._sign < 0)
+		{
+			bigInteger += modulus;
+		}
 		while (bigInteger._data.size() > 1 || (bigInteger._data.size() == 1 && bigInteger._data[0] != 0))
 		{
 			TBigInteger bigInteger2;
@@ -1558,16 +1589,15 @@ public:
 
 		return result;
 	}
-	
 
-    //The returned byte array is signed by applying the Two's complement technique for negative numbers.
-    //It also follows the historical Phantasma/C# tail-guard rules (0x00 for positives, 0xFF for negatives).
-    //
-    //Key points (compatibility with the Initial Phantasma C# implementation):
-    //- Representation is little-endian two's complement (C# BigInteger byte layout).
-    //- Positives must be guarded so the MSB sign bit is not interpreted as negative.
-    //- Negatives must keep the sign bit set and follow Phantasma's trailing guard rule.
-    //- The output must be parseable by BigInteger(signed bytes) without losing width or sign.
+	// The returned byte array is signed by applying the Two's complement technique for negative numbers.
+	// It also follows the historical Phantasma/C# tail-guard rules (0x00 for positives, 0xFF for negatives).
+	//
+	// Key points (compatibility with the Initial Phantasma C# implementation):
+	// - Representation is little-endian two's complement (C# BigInteger byte layout).
+	// - Positives must be guarded so the MSB sign bit is not interpreted as negative.
+	// - Negatives must keep the sign bit set and follow Phantasma's trailing guard rule.
+	// - The output must be parseable by BigInteger(signed bytes) without losing width or sign.
 	ByteArray ToSignedByteArray() const
 	{
 		if (_sign == 0)
@@ -1660,8 +1690,8 @@ public:
 
 		TBigInteger tmp = TBigInteger(buffer, 1) + 1; //create a biginteger with the inverted bits but with positive sign, and add 1. result will remain with positive sign
 
-		buffer = tmp.ToSignedByteArray(); //when we call the ToByteArray asking to include sign, we will get an extra Byte on the array to make sure sign is correct 
-										//but the twos complement logic won't get applied again given the bigint has positive sign.
+		// ToSignedByteArray adds a sign guard byte; since tmp is positive, two's complement is not applied twice.
+		buffer = tmp.ToSignedByteArray();
 
 		return buffer;
 	}

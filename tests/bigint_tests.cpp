@@ -13,6 +13,19 @@ static bool TryOpenFixture(std::ifstream& file, const char* name)
 	return file.is_open();
 }
 
+static bool SplitColumns(const std::string& line, std::vector<std::string>& cols)
+{
+	// TSV helper for fixture rows; columns are consumed by per-fixture parsers.
+	cols.clear();
+	std::stringstream ss(line);
+	std::string col;
+	while (std::getline(ss, col, '\t'))
+	{
+		cols.push_back(col);
+	}
+	return !cols.empty();
+}
+
 void RunBigIntSerializationTests(TestContext& ctx)
 {
 	std::ifstream file;
@@ -36,11 +49,9 @@ void RunBigIntSerializationTests(TestContext& ctx)
 			continue;
 		}
 		std::vector<std::string> cols;
-		std::stringstream ss(line);
-		std::string col;
-		while (std::getline(ss, col, '\t'))
+		if (!SplitColumns(line, cols))
 		{
-			cols.push_back(col);
+			continue;
 		}
 		if (cols.size() < 3)
 		{
@@ -124,6 +135,8 @@ void RunBigIntSerializationTests(TestContext& ctx)
 
 void RunBigIntOperationFixtureTests(TestContext& ctx)
 {
+	// Fixture: phantasma_bigint_ops.tsv
+	// Columns: a, b, shift, cmp, add, sub, mul, div, mod, shl, shr (C# BigInteger semantics).
 	std::ifstream file;
 	if (!TryOpenFixture(file, "phantasma_bigint_ops.tsv"))
 	{
@@ -133,7 +146,6 @@ void RunBigIntOperationFixtureTests(TestContext& ctx)
 
 	std::string line;
 	bool header = true;
-	int rowIndex = 0;
 	while (std::getline(file, line))
 	{
 		if (line.empty())
@@ -147,11 +159,9 @@ void RunBigIntOperationFixtureTests(TestContext& ctx)
 		}
 
 		std::vector<std::string> cols;
-		std::stringstream ss(line);
-		std::string col;
-		while (std::getline(ss, col, '\t'))
+		if (!SplitColumns(line, cols))
 		{
-			cols.push_back(col);
+			continue;
 		}
 
 		if (cols.size() < 11)
@@ -184,6 +194,208 @@ void RunBigIntOperationFixtureTests(TestContext& ctx)
 		Report(ctx, (a % b).ToString() == modExpected.ToString(), "BigInt Ops mod " + key);
 		Report(ctx, (a << shift).ToString() == shlExpected.ToString(), "BigInt Ops shl " + key);
 		Report(ctx, (a >> shift).ToString() == shrExpected.ToString(), "BigInt Ops shr " + key);
+	}
+}
+
+void RunBigIntBitwiseFixtureTests(TestContext& ctx)
+{
+	// Fixture: phantasma_bigint_bitwise.tsv
+	// Columns: a, b, and, or, xor, notA, notB (two's complement semantics).
+	std::ifstream file;
+	if (!TryOpenFixture(file, "phantasma_bigint_bitwise.tsv"))
+	{
+		Report(ctx, false, "BigInt bitwise fixture", "missing phantasma_bigint_bitwise.tsv");
+		return;
+	}
+
+	std::string line;
+	bool header = true;
+	while (std::getline(file, line))
+	{
+		if (line.empty())
+		{
+			continue;
+		}
+		if (header)
+		{
+			header = false;
+			continue;
+		}
+
+		std::vector<std::string> cols;
+		if (!SplitColumns(line, cols))
+		{
+			continue;
+		}
+		if (cols.size() < 7)
+		{
+			continue;
+		}
+
+		const std::string& aText = cols[0];
+		const std::string& bText = cols[1];
+
+		const BigInteger a = BigInteger::Parse(String(aText.c_str()));
+		const BigInteger b = BigInteger::Parse(String(bText.c_str()));
+
+		const BigInteger andExpected = BigInteger::Parse(String(cols[2].c_str()));
+		const BigInteger orExpected = BigInteger::Parse(String(cols[3].c_str()));
+		const BigInteger xorExpected = BigInteger::Parse(String(cols[4].c_str()));
+		const BigInteger notAExpected = BigInteger::Parse(String(cols[5].c_str()));
+		const BigInteger notBExpected = BigInteger::Parse(String(cols[6].c_str()));
+
+		const std::string key = aText + " | " + bText;
+		Report(ctx, (a & b).ToString() == andExpected.ToString(), "BigInt Bitwise and " + key);
+		Report(ctx, (a | b).ToString() == orExpected.ToString(), "BigInt Bitwise or " + key);
+		Report(ctx, (a ^ b).ToString() == xorExpected.ToString(), "BigInt Bitwise xor " + key);
+		Report(ctx, (~a).ToString() == notAExpected.ToString(), "BigInt Bitwise notA " + key);
+		Report(ctx, (~b).ToString() == notBExpected.ToString(), "BigInt Bitwise notB " + key);
+	}
+}
+
+void RunBigIntPowFixtureTests(TestContext& ctx)
+{
+	// Fixture: phantasma_bigint_pow.tsv
+	// Columns: a, exp, pow (BigInteger.Pow with non-negative exponent).
+	std::ifstream file;
+	if (!TryOpenFixture(file, "phantasma_bigint_pow.tsv"))
+	{
+		Report(ctx, false, "BigInt pow fixture", "missing phantasma_bigint_pow.tsv");
+		return;
+	}
+
+	std::string line;
+	bool header = true;
+	while (std::getline(file, line))
+	{
+		if (line.empty())
+		{
+			continue;
+		}
+		if (header)
+		{
+			header = false;
+			continue;
+		}
+
+		std::vector<std::string> cols;
+		if (!SplitColumns(line, cols))
+		{
+			continue;
+		}
+		if (cols.size() < 3)
+		{
+			continue;
+		}
+
+		const std::string& aText = cols[0];
+		const int exp = std::stoi(cols[1]);
+
+		const BigInteger a = BigInteger::Parse(String(aText.c_str()));
+		const BigInteger powExpected = BigInteger::Parse(String(cols[2].c_str()));
+
+		const BigInteger expValue = BigInteger(exp);
+		const BigInteger powActual = BigInteger::Pow(a, expValue);
+		const std::string key = aText + " ^ " + std::to_string(exp);
+		Report(ctx, powActual.ToString() == powExpected.ToString(), "BigInt Pow " + key);
+	}
+}
+
+void RunBigIntModPowFixtureTests(TestContext& ctx)
+{
+	// Fixture: phantasma_bigint_modpow.tsv
+	// Columns: a, exp, mod, modpow (supports negative exp via ModInverse path).
+	std::ifstream file;
+	if (!TryOpenFixture(file, "phantasma_bigint_modpow.tsv"))
+	{
+		Report(ctx, false, "BigInt modpow fixture", "missing phantasma_bigint_modpow.tsv");
+		return;
+	}
+
+	std::string line;
+	bool header = true;
+	while (std::getline(file, line))
+	{
+		if (line.empty())
+		{
+			continue;
+		}
+		if (header)
+		{
+			header = false;
+			continue;
+		}
+
+		std::vector<std::string> cols;
+		if (!SplitColumns(line, cols))
+		{
+			continue;
+		}
+		if (cols.size() < 4)
+		{
+			continue;
+		}
+
+		const std::string& aText = cols[0];
+		const std::string& expText = cols[1];
+		const std::string& modText = cols[2];
+
+		const BigInteger a = BigInteger::Parse(String(aText.c_str()));
+		const BigInteger exp = BigInteger::Parse(String(expText.c_str()));
+		const BigInteger mod = BigInteger::Parse(String(modText.c_str()));
+		const BigInteger modPowExpected = BigInteger::Parse(String(cols[3].c_str()));
+
+		const std::string key = aText + " ^ " + expText + " % " + modText;
+		const BigInteger modPowActual = a.ModPow(exp, mod);
+		Report(ctx, modPowActual.ToString() == modPowExpected.ToString(), "BigInt ModPow " + key);
+	}
+}
+
+void RunBigIntModInverseFixtureTests(TestContext& ctx)
+{
+	// Fixture: phantasma_bigint_modinv.tsv
+	// Columns: a, mod, inv (inverse defined for coprime values).
+	std::ifstream file;
+	if (!TryOpenFixture(file, "phantasma_bigint_modinv.tsv"))
+	{
+		Report(ctx, false, "BigInt modinv fixture", "missing phantasma_bigint_modinv.tsv");
+		return;
+	}
+
+	std::string line;
+	bool header = true;
+	while (std::getline(file, line))
+	{
+		if (line.empty())
+		{
+			continue;
+		}
+		if (header)
+		{
+			header = false;
+			continue;
+		}
+
+		std::vector<std::string> cols;
+		if (!SplitColumns(line, cols))
+		{
+			continue;
+		}
+		if (cols.size() < 3)
+		{
+			continue;
+		}
+
+		const std::string& aText = cols[0];
+		const std::string& modText = cols[1];
+
+		const BigInteger a = BigInteger::Parse(String(aText.c_str()));
+		const BigInteger mod = BigInteger::Parse(String(modText.c_str()));
+		const BigInteger invExpected = BigInteger::Parse(String(cols[2].c_str()));
+
+		const BigInteger invActual = a.ModInverse(mod);
+		const std::string key = aText + " mod " + modText;
+		Report(ctx, invActual.ToString() == invExpected.ToString(), "BigInt ModInverse " + key);
 	}
 }
 

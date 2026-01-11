@@ -16,6 +16,10 @@ int main()
 	testcases::RunCarbonTxExtraTests(ctx);
 	testcases::RunBigIntSerializationTests(ctx);
 	testcases::RunBigIntOperationFixtureTests(ctx);
+	testcases::RunBigIntBitwiseFixtureTests(ctx);
+	testcases::RunBigIntPowFixtureTests(ctx);
+	testcases::RunBigIntModPowFixtureTests(ctx);
+	testcases::RunBigIntModInverseFixtureTests(ctx);
 	testcases::RunIntXIs8ByteSafeTests(ctx);
 	testcases::RunCallSectionsTests(ctx);
 
