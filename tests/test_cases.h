@@ -23,6 +23,8 @@ void RunBigIntByteArrayTests(testutil::TestContext& ctx);
 void RunBigIntBitHelperTests(testutil::TestContext& ctx);
 void RunBigIntConstructorTests(testutil::TestContext& ctx);
 void RunBigIntOperatorTests(testutil::TestContext& ctx);
+void RunSecureBigIntTests(testutil::TestContext& ctx);
+void RunBigIntMultiWordTests(testutil::TestContext& ctx);
 void RunIntXIs8ByteSafeTests(testutil::TestContext& ctx);
 void RunTokenBuilderValidationTests(testutil::TestContext& ctx);
 void RunEncodingRoundtripTests(testutil::TestContext& ctx);

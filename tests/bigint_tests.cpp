@@ -442,6 +442,8 @@ void RunBigIntParseFormatTests(TestContext& ctx)
 		{ PHANTASMA_LITERAL("-80000000"), 16, PHANTASMA_LITERAL("-2147483648"), true, -2147483648LL },
 		{ PHANTASMA_LITERAL("123456789012345678901234567890"), 10, PHANTASMA_LITERAL("123456789012345678901234567890"), false, 0 },
 		{ PHANTASMA_LITERAL("123\n"), 10, PHANTASMA_LITERAL("123"), true, 123 },
+		// Trim leading/trailing line breaks.
+		{ PHANTASMA_LITERAL("\n\r-42\r\n"), 10, PHANTASMA_LITERAL("-42"), true, -42 },
 	};
 
 	for (size_t i = 0; i < sizeof(parseCases) / sizeof(parseCases[0]); ++i)
@@ -465,6 +467,21 @@ void RunBigIntParseFormatTests(TestContext& ctx)
 	const bool tryParseInvalid = BigInteger::_TryParse(String(PHANTASMA_LITERAL("12X")), tryParseInvalidValue);
 	// Invalid input should fail without throwing and without altering control flow.
 	Report(ctx, !tryParseInvalid, "BigInt TryParse invalid");
+
+	// Explicit constructor error path with auto-length and invalid characters.
+	bool parseError = false;
+	const BigInteger lenAuto(PHANTASMA_LITERAL("321"), 0, 10, &parseError);
+	Report(ctx, !parseError, "BigInt ctor len auto error");
+	Report(ctx, lenAuto.ToString() == String(PHANTASMA_LITERAL("321")), "BigInt ctor len auto value");
+
+	parseError = false;
+	const BigInteger emptyInput(PHANTASMA_LITERAL(""), 0, 10, &parseError);
+	Report(ctx, !parseError, "BigInt ctor empty error");
+	Report(ctx, emptyInput.ToString() == String(PHANTASMA_LITERAL("0")), "BigInt ctor empty value");
+
+	parseError = false;
+	(void)BigInteger(PHANTASMA_LITERAL("12X"), 3, 10, &parseError);
+	Report(ctx, parseError, "BigInt ctor invalid error");
 
 	const BigInteger hexValue = BigInteger::FromHex(String(PHANTASMA_LITERAL("0001")));
 	Report(ctx, hexValue.ToString() == String(PHANTASMA_LITERAL("1")), "BigInt FromHex 0001");
@@ -630,6 +647,20 @@ void RunBigIntConstructorTests(TestContext& ctx)
 
 	BigInteger fromMove(std::move(buffer), 1);
 	Report(ctx, fromMove.ToString() == String(PHANTASMA_LITERAL("1234605616436508552")), "BigInt ctor buffer move");
+
+	// All-zero input should normalize to zero.
+	const UInt32 zeroWords[2] = { 0, 0 };
+	const BigInteger zeroFromWords(zeroWords, 2, 1);
+	Report(ctx, zeroFromWords.ToString() == String(PHANTASMA_LITERAL("0")), "BigInt ctor words zero");
+
+	// Move and assignment should preserve value.
+	BigInteger moveSource(777);
+	BigInteger moveTarget(std::move(moveSource));
+	Report(ctx, moveTarget.ToString() == String(PHANTASMA_LITERAL("777")), "BigInt ctor move");
+
+	BigInteger assignTarget;
+	assignTarget = BigInteger(888);
+	Report(ctx, assignTarget.ToString() == String(PHANTASMA_LITERAL("888")), "BigInt operator=");
 }
 
 void RunBigIntOperatorTests(TestContext& ctx)
@@ -672,6 +703,18 @@ void RunBigIntOperatorTests(TestContext& ctx)
 	const BigInteger shrLarge = BigInteger(1) >> 100;
 	Report(ctx, shrLarge.ToString() == String(PHANTASMA_LITERAL("0")), "BigInt operator >> large");
 
+	// Arithmetic shift for negative values.
+	const BigInteger shrNegative = BigInteger(-7) >> 1;
+	Report(ctx, shrNegative.ToString() == String(PHANTASMA_LITERAL("-4")), "BigInt operator >> negative");
+
+	// ShiftRight extra shrinkage when the MSD becomes zero after shifting.
+	const BigInteger shrExtra = shlWord >> 1;
+	Report(ctx, shrExtra.ToString() == String(PHANTASMA_LITERAL("2147483648")), "BigInt operator >> extra shrinkage");
+
+	// Multiply with a zero low word to exercise the skip branch in Multiply.
+	const BigInteger mulZeroWord = shlWord * BigInteger(123456);
+	Report(ctx, mulZeroWord.ToString() == String(PHANTASMA_LITERAL("530239482494976")), "BigInt operator * zero word");
+
 	BigInteger inc(1);
 	BigInteger postInc = inc++;
 	Report(ctx, postInc.ToString() == String(PHANTASMA_LITERAL("1")), "BigInt operator post++");
@@ -701,6 +744,9 @@ void RunBigIntOperatorTests(TestContext& ctx)
 	Report(ctx, BigInteger(6) > BigInteger(5), "BigInt operator >");
 	Report(ctx, BigInteger(5) <= BigInteger(5), "BigInt operator <=");
 	Report(ctx, BigInteger(6) >= BigInteger(6), "BigInt operator >=");
+
+	// CompareTo should return 0 for equal values.
+	Report(ctx, BigInteger(7).CompareTo(BigInteger(7)) == 0, "BigInt CompareTo equal");
 
 	const BigInteger modMethod = BigInteger(-7).Mod(BigInteger(5));
 	Report(ctx, modMethod.ToString() == String(PHANTASMA_LITERAL("-2")), "BigInt Mod method");
@@ -750,6 +796,13 @@ void RunBigIntOperatorTests(TestContext& ctx)
 	const BigInteger modPowZero = BigInteger::ModPow(BigInteger(5), BigInteger(0), BigInteger(13));
 	Report(ctx, modPowZero.ToString() == String(PHANTASMA_LITERAL("1")), "BigInt ModPow static exp0");
 
+	// Pow uses a simple loop; non-positive exponent yields 1 in this implementation.
+	const BigInteger powZero = BigInteger::Pow(BigInteger(123), BigInteger(0));
+	Report(ctx, powZero.ToString() == String(PHANTASMA_LITERAL("1")), "BigInt Pow exp0");
+
+	const BigInteger powNegative = BigInteger::Pow(BigInteger(123), BigInteger(-1));
+	Report(ctx, powNegative.ToString() == String(PHANTASMA_LITERAL("1")), "BigInt Pow exp negative");
+
 	const int intValue = (int)BigInteger(12345);
 	Report(ctx, intValue == 12345, "BigInt operator int +");
 
@@ -763,6 +816,124 @@ void RunBigIntOperatorTests(TestContext& ctx)
 	const int hashA = hashRef.GetHashCode();
 	const int hashB = BigInteger(123456).GetHashCode();
 	Report(ctx, hashA == hashB, "BigInt GetHashCode stable");
+}
+
+void RunSecureBigIntTests(TestContext& ctx)
+{
+	// Exercise SecureBigInteger to cover UseSecureMemory code paths in the template.
+	SecureBigInteger a(12345);
+	SecureBigInteger b(-6789);
+	Report(ctx, a.ToString() == String(PHANTASMA_LITERAL("12345")), "SecureBigInt ToString");
+
+	const SecureBigInteger sum = a + b;
+	Report(ctx, sum.ToString() == String(PHANTASMA_LITERAL("5556")), "SecureBigInt add");
+
+	const SecureBigInteger prod = a * SecureBigInteger(2);
+	Report(ctx, prod.ToString() == String(PHANTASMA_LITERAL("24690")), "SecureBigInt mul");
+
+	const SecureBigInteger div = a / SecureBigInteger(10);
+	Report(ctx, div.ToString() == String(PHANTASMA_LITERAL("1234")), "SecureBigInt div");
+
+	const SecureBigInteger mod = a % SecureBigInteger(10);
+	Report(ctx, mod.ToString() == String(PHANTASMA_LITERAL("5")), "SecureBigInt mod");
+
+	const SecureBigInteger shifted = (a << 40) >> 40;
+	Report(ctx, shifted.ToString() == String(PHANTASMA_LITERAL("12345")), "SecureBigInt shift roundtrip");
+
+	// ShiftRight with extra shrinkage and loop work for secure storage.
+	const SecureBigInteger secShiftBase = (SecureBigInteger(1) << 64) + (SecureBigInteger(1) << 32);
+	const SecureBigInteger secShift = secShiftBase >> 1;
+	Report(ctx, secShift.ToString() == String(PHANTASMA_LITERAL("9223372039002259456")), "SecureBigInt shift extra shrinkage");
+
+	const ByteArray signedBytes = a.ToSignedByteArray();
+	Report(ctx, !signedBytes.empty(), "SecureBigInt ToSignedByteArray");
+
+	Byte buffer[16] = {};
+	const int written = a.ToUnsignedByteArray(buffer, (int)sizeof(buffer));
+	Report(ctx, written > 0, "SecureBigInt ToUnsignedByteArray");
+
+	PHANTASMA_VECTOR<Byte> bytes = { (Byte)0x01, (Byte)0x00 };
+	const SecureBigInteger fromBytes(bytes);
+	Report(ctx, fromBytes.ToString() == String(PHANTASMA_LITERAL("1")), "SecureBigInt ctor bytes");
+
+	// SecureVector constructor path (two's complement for negative values).
+	SecureVector<Byte> secureBytes;
+	secureBytes.resize(3);
+	secureBytes[0] = (Byte)0xFF;
+	secureBytes[1] = (Byte)0xFF;
+	secureBytes[2] = (Byte)0xFF;
+	const SecureBigInteger fromSecureBytes(secureBytes);
+	Report(ctx, fromSecureBytes.ToString() == String(PHANTASMA_LITERAL("-1")), "SecureBigInt ctor secure bytes");
+
+	SecureBigInteger assigned;
+	assigned = a;
+	Report(ctx, assigned.ToString() == String(PHANTASMA_LITERAL("12345")), "SecureBigInt operator=");
+
+	SecureBigInteger moved(std::move(assigned));
+	Report(ctx, moved.ToString() == String(PHANTASMA_LITERAL("12345")), "SecureBigInt ctor move");
+
+	const SecureBigInteger zero = a - a;
+	Report(ctx, zero.ToString() == String(PHANTASMA_LITERAL("0")), "SecureBigInt zero");
+
+	const SecureBigInteger modPow = SecureBigInteger::ModPow(SecureBigInteger(2), SecureBigInteger(5), SecureBigInteger(13));
+	Report(ctx, modPow.ToString() == String(PHANTASMA_LITERAL("6")), "SecureBigInt ModPow");
+
+	// Multi-word division to exercise MultiDigitDivMod on the secure path.
+	const SecureBigInteger secNumer = SecureBigInteger::Parse(String(PHANTASMA_LITERAL("1118186285554272804292416")));
+	const SecureBigInteger secDen = SecureBigInteger::Parse(String(PHANTASMA_LITERAL("260348032599872")));
+	SecureBigInteger secQuot;
+	SecureBigInteger secRem;
+	SecureBigInteger::DivideAndModulus(secNumer, secDen, secQuot, secRem);
+	Report(ctx, secQuot.ToString() == String(PHANTASMA_LITERAL("4294967295")), "SecureBigInt multi div quot");
+	Report(ctx, secRem.ToString() == String(PHANTASMA_LITERAL("220228743106176")), "SecureBigInt multi div rem");
+}
+
+void RunBigIntMultiWordTests(TestContext& ctx)
+{
+	// Multi-word fixtures computed via Python big ints to hit deeper arithmetic branches.
+	const BigInteger A = BigInteger::Parse(String(PHANTASMA_LITERAL("340282366920938463481821351505477763073")));
+	const BigInteger B = BigInteger::Parse(String(PHANTASMA_LITERAL("79228162514264337597838917633")));
+	Report(ctx, (A + B).ToString() == String(PHANTASMA_LITERAL("340282367000166625996085689103316680706")), "BigInt multi A+B");
+	Report(ctx, (A - B).ToString() == String(PHANTASMA_LITERAL("340282366841710300967557013907638845440")), "BigInt multi A-B");
+	Report(ctx, (A * B).ToString() == String(PHANTASMA_LITERAL("26959946667150639797590018362021718877123908876483488547112335966209")), "BigInt multi A*B");
+
+	BigInteger quot;
+	BigInteger rem;
+	BigInteger::DivideAndModulus(A, B, quot, rem);
+	Report(ctx, quot.ToString() == String(PHANTASMA_LITERAL("4294967295")), "BigInt multi A/B quot");
+	Report(ctx, rem.ToString() == String(PHANTASMA_LITERAL("79228162514264337593543950338")), "BigInt multi A/B rem");
+
+	const BigInteger C = BigInteger::Parse(String(PHANTASMA_LITERAL("1461501637330902918203686041642102634285107261497")));
+	const BigInteger D = BigInteger::Parse(String(PHANTASMA_LITERAL("1329227995784915872903808159792026673")));
+	Report(ctx, (C + D).ToString() == String(PHANTASMA_LITERAL("1461501637332232146199470957515006442444899288170")), "BigInt multi C+D");
+	Report(ctx, (C - D).ToString() == String(PHANTASMA_LITERAL("1461501637329573690207901125769198826125315234824")), "BigInt multi C-D");
+	Report(ctx, (C * D).ToString() == String(PHANTASMA_LITERAL("1942668892225729070919465120699686814853399391364392781967056861672504391794609909481")), "BigInt multi C*D");
+
+	BigInteger::DivideAndModulus(C, D, quot, rem);
+	Report(ctx, quot.ToString() == String(PHANTASMA_LITERAL("1099511627775")), "BigInt multi C/D quot");
+	Report(ctx, rem.ToString() == String(PHANTASMA_LITERAL("1329227995784915872844081588659618922")), "BigInt multi C/D rem");
+
+	const BigInteger E = BigInteger::Parse(String(PHANTASMA_LITERAL("79228162514264337593543950459")));
+	const BigInteger F = BigInteger::Parse(String(PHANTASMA_LITERAL("340282366920938463463374607431768211912")));
+	BigInteger::DivideAndModulus(E, F, quot, rem);
+	Report(ctx, quot.ToString() == String(PHANTASMA_LITERAL("0")), "BigInt multi E/F quot");
+	Report(ctx, rem.ToString() == String(PHANTASMA_LITERAL("79228162514264337593543950459")), "BigInt multi E/F rem");
+
+	const BigInteger G = BigInteger::Parse(String(PHANTASMA_LITERAL("18446744073709551615")));
+	const BigInteger H = BigInteger::Parse(String(PHANTASMA_LITERAL("4294967311")));
+	BigInteger::DivideAndModulus(G, H, quot, rem);
+	Report(ctx, quot.ToString() == String(PHANTASMA_LITERAL("4294967281")), "BigInt multi G/H quot");
+	Report(ctx, rem.ToString() == String(PHANTASMA_LITERAL("224")), "BigInt multi G/H rem");
+
+	// Crafted to trigger qHat correction and estimation loop in MultiDigitDivMod.
+	const BigInteger I = BigInteger::Parse(String(PHANTASMA_LITERAL("1118186285554272804292416")));
+	const BigInteger J = BigInteger::Parse(String(PHANTASMA_LITERAL("260348032599872")));
+	BigInteger::DivideAndModulus(I, J, quot, rem);
+	Report(ctx, quot.ToString() == String(PHANTASMA_LITERAL("4294967295")), "BigInt multi I/J quot");
+	Report(ctx, rem.ToString() == String(PHANTASMA_LITERAL("220228743106176")), "BigInt multi I/J rem");
+
+	Report(ctx, (A >> 73).ToString() == String(PHANTASMA_LITERAL("36028797018963968")), "BigInt multi A>>73");
+	Report(ctx, (A << 19).ToString() == String(PHANTASMA_LITERAL("178405961588244985141957152738103925446017024")), "BigInt multi A<<19");
 }
 
 } // namespace testcases

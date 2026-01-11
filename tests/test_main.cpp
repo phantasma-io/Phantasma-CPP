@@ -25,6 +25,8 @@ int main()
 	testcases::RunBigIntBitHelperTests(ctx);
 	testcases::RunBigIntConstructorTests(ctx);
 	testcases::RunBigIntOperatorTests(ctx);
+	testcases::RunSecureBigIntTests(ctx);
+	testcases::RunBigIntMultiWordTests(ctx);
 	testcases::RunIntXIs8ByteSafeTests(ctx);
 	testcases::RunCallSectionsTests(ctx);
 
