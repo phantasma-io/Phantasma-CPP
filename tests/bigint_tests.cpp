@@ -550,6 +550,11 @@ void RunBigIntByteArrayTests(TestContext& ctx)
 	const BigInteger signedPtr = BigInteger::FromSignedArray(signedNegTwo.data(), (int)signedNegTwo.size());
 	Report(ctx, signedPtr.ToString() == String(PHANTASMA_LITERAL("-2")), "BigInt FromSignedArray ptr");
 
+	// Empty signed arrays should normalize to zero.
+	const Byte* nullSigned = nullptr;
+	const BigInteger signedEmpty = BigInteger::FromSignedArray(nullSigned, 0);
+	Report(ctx, signedEmpty.ToString() == String(PHANTASMA_LITERAL("0")), "BigInt FromSignedArray empty");
+
 	Byte buffer[8] = {};
 	const int byteCount = n.ToUnsignedByteArray(nullptr, 0);
 	// Size-only call should report required length without writing.
@@ -636,6 +641,11 @@ void RunBigIntConstructorTests(TestContext& ctx)
 	const BigInteger fromRawNeg(rawBytes, 4, -1);
 	Report(ctx, fromRawNeg.ToString() == String(PHANTASMA_LITERAL("-305419896")), "BigInt ctor bytes -");
 
+	// Non-4-byte input should pack bytes manually.
+	const Byte rawBytes3[3] = { 0xAA, 0xBB, 0xCC };
+	const BigInteger fromRaw3(rawBytes3, 3, 1);
+	Report(ctx, fromRaw3.ToString() == String(PHANTASMA_LITERAL("13417386")), "BigInt ctor bytes 3");
+
 	PHANTASMA_VECTOR<UInt32> buffer;
 	buffer.push_back(0x55667788);
 	buffer.push_back(0x11223344);
@@ -652,6 +662,37 @@ void RunBigIntConstructorTests(TestContext& ctx)
 	const UInt32 zeroWords[2] = { 0, 0 };
 	const BigInteger zeroFromWords(zeroWords, 2, 1);
 	Report(ctx, zeroFromWords.ToString() == String(PHANTASMA_LITERAL("0")), "BigInt ctor words zero");
+
+	// Trailing zero words should be trimmed during initialization.
+	const UInt32 trimmedWords[3] = { 0xABCD1234, 0, 0 };
+	const BigInteger trimmedFromWords(trimmedWords, 3, 1);
+	Report(ctx, trimmedFromWords.ToString() == String(PHANTASMA_LITERAL("2882343476")), "BigInt ctor words trim");
+
+	// Null word pointer with length 0 should normalize to zero.
+	const UInt32* emptyWords = nullptr;
+	const BigInteger emptyFromWords(emptyWords, 0, 1);
+	Report(ctx, emptyFromWords.ToString() == String(PHANTASMA_LITERAL("0")), "BigInt ctor words empty");
+
+	// Empty byte vectors should normalize to zero.
+	PHANTASMA_VECTOR<Byte> emptyBytes;
+	const BigInteger emptyVec(emptyBytes);
+	Report(ctx, emptyVec.ToString() == String(PHANTASMA_LITERAL("0")), "BigInt ctor vector empty");
+
+	// Signed byte vectors use two's complement (FF FE == -257).
+	PHANTASMA_VECTOR<Byte> signedBytes;
+	signedBytes.push_back((Byte)0xFF);
+	signedBytes.push_back((Byte)0xFE);
+	const BigInteger signedVec(signedBytes);
+	Report(ctx, signedVec.ToString() == String(PHANTASMA_LITERAL("-257")), "BigInt ctor vector signed");
+
+	// Vector inputs with 4-byte length should use the fast InitFromArray path.
+	PHANTASMA_VECTOR<Byte> alignedBytes;
+	alignedBytes.push_back((Byte)0x78);
+	alignedBytes.push_back((Byte)0x56);
+	alignedBytes.push_back((Byte)0x34);
+	alignedBytes.push_back((Byte)0x12);
+	const BigInteger alignedVec(alignedBytes);
+	Report(ctx, alignedVec.ToString() == String(PHANTASMA_LITERAL("305419896")), "BigInt ctor vector aligned");
 
 	// Move and assignment should preserve value.
 	BigInteger moveSource(777);
@@ -715,6 +756,20 @@ void RunBigIntOperatorTests(TestContext& ctx)
 	const BigInteger mulZeroWord = shlWord * BigInteger(123456);
 	Report(ctx, mulZeroWord.ToString() == String(PHANTASMA_LITERAL("530239482494976")), "BigInt operator * zero word");
 
+	// Shift-assign for negatives should round toward -inf (arithmetic shift).
+	BigInteger shrAssignNeg(-7);
+	shrAssignNeg >>= 1;
+	Report(ctx, shrAssignNeg.ToString() == String(PHANTASMA_LITERAL("-4")), "BigInt operator >>= negative");
+
+	// Shift-assign beyond bit length should normalize to zero.
+	BigInteger shrAssignZero(1);
+	shrAssignZero >>= 100;
+	Report(ctx, shrAssignZero.ToString() == String(PHANTASMA_LITERAL("0")), "BigInt operator >>= zero");
+
+	// Zero/One factories should return normalized values.
+	Report(ctx, BigInteger::Zero().ToString() == String(PHANTASMA_LITERAL("0")), "BigInt Zero()");
+	Report(ctx, BigInteger::One().ToString() == String(PHANTASMA_LITERAL("1")), "BigInt One()");
+
 	BigInteger inc(1);
 	BigInteger postInc = inc++;
 	Report(ctx, postInc.ToString() == String(PHANTASMA_LITERAL("1")), "BigInt operator post++");
@@ -747,6 +802,9 @@ void RunBigIntOperatorTests(TestContext& ctx)
 
 	// CompareTo should return 0 for equal values.
 	Report(ctx, BigInteger(7).CompareTo(BigInteger(7)) == 0, "BigInt CompareTo equal");
+
+	// Subtraction should handle both-negative operands with |a| < |b|.
+	Report(ctx, (BigInteger(-5) - BigInteger(-9)).ToString() == String(PHANTASMA_LITERAL("4")), "BigInt operator - both negative");
 
 	const BigInteger modMethod = BigInteger(-7).Mod(BigInteger(5));
 	Report(ctx, modMethod.ToString() == String(PHANTASMA_LITERAL("-2")), "BigInt Mod method");
@@ -828,6 +886,24 @@ void RunSecureBigIntTests(TestContext& ctx)
 	const SecureBigInteger sum = a + b;
 	Report(ctx, sum.ToString() == String(PHANTASMA_LITERAL("5556")), "SecureBigInt add");
 
+	// Secure addition/subtraction should cover negative operand branches.
+	const SecureBigInteger negA(-50);
+	const SecureBigInteger negB(-20);
+	Report(ctx, (negA + negB).ToString() == String(PHANTASMA_LITERAL("-70")), "SecureBigInt add negative");
+	Report(ctx, (negA - negB).ToString() == String(PHANTASMA_LITERAL("-30")), "SecureBigInt sub negative");
+
+	const SecureBigInteger negSmall(-5);
+	const SecureBigInteger posBig(20);
+	Report(ctx, (negSmall + posBig).ToString() == String(PHANTASMA_LITERAL("15")), "SecureBigInt add mixed");
+	Report(ctx, (posBig - negSmall).ToString() == String(PHANTASMA_LITERAL("25")), "SecureBigInt sub mixed");
+
+	// Exercise remaining sign/magnitude branches in + and - (neg dominates or pos<abs(neg)).
+	Report(ctx, (SecureBigInteger(-30) + SecureBigInteger(5)).ToString() == String(PHANTASMA_LITERAL("-25")), "SecureBigInt add neg dominates");
+	Report(ctx, (SecureBigInteger(5) + SecureBigInteger(-30)).ToString() == String(PHANTASMA_LITERAL("-25")), "SecureBigInt add pos<abs(neg)");
+	Report(ctx, (SecureBigInteger(-5) - SecureBigInteger(-20)).ToString() == String(PHANTASMA_LITERAL("15")), "SecureBigInt sub neg abs");
+	Report(ctx, (SecureBigInteger(-10) - SecureBigInteger(3)).ToString() == String(PHANTASMA_LITERAL("-13")), "SecureBigInt sub neg-pos");
+	Report(ctx, (SecureBigInteger(3) - SecureBigInteger(10)).ToString() == String(PHANTASMA_LITERAL("-7")), "SecureBigInt sub pos-pos");
+
 	const SecureBigInteger prod = a * SecureBigInteger(2);
 	Report(ctx, prod.ToString() == String(PHANTASMA_LITERAL("24690")), "SecureBigInt mul");
 
@@ -845,6 +921,20 @@ void RunSecureBigIntTests(TestContext& ctx)
 	const SecureBigInteger secShift = secShiftBase >> 1;
 	Report(ctx, secShift.ToString() == String(PHANTASMA_LITERAL("9223372039002259456")), "SecureBigInt shift extra shrinkage");
 
+	// Secure shift-assign on negative values should round toward -inf.
+	SecureBigInteger secShiftNeg(-7);
+	secShiftNeg >>= 1;
+	Report(ctx, secShiftNeg.ToString() == String(PHANTASMA_LITERAL("-4")), "SecureBigInt >>= negative");
+
+	// Secure shift-assign beyond bit length should normalize to zero.
+	SecureBigInteger secShiftZero(1);
+	secShiftZero >>= 100;
+	Report(ctx, secShiftZero.ToString() == String(PHANTASMA_LITERAL("0")), "SecureBigInt >>= zero");
+
+	// Secure Zero/One factories should return normalized values.
+	Report(ctx, SecureBigInteger::Zero().ToString() == String(PHANTASMA_LITERAL("0")), "SecureBigInt Zero()");
+	Report(ctx, SecureBigInteger::One().ToString() == String(PHANTASMA_LITERAL("1")), "SecureBigInt One()");
+
 	const ByteArray signedBytes = a.ToSignedByteArray();
 	Report(ctx, !signedBytes.empty(), "SecureBigInt ToSignedByteArray");
 
@@ -856,6 +946,11 @@ void RunSecureBigIntTests(TestContext& ctx)
 	const SecureBigInteger fromBytes(bytes);
 	Report(ctx, fromBytes.ToString() == String(PHANTASMA_LITERAL("1")), "SecureBigInt ctor bytes");
 
+	// Empty vector inputs should normalize to zero.
+	PHANTASMA_VECTOR<Byte> emptyVec;
+	const SecureBigInteger emptyVector(emptyVec);
+	Report(ctx, emptyVector.ToString() == String(PHANTASMA_LITERAL("0")), "SecureBigInt ctor vector empty");
+
 	// SecureVector constructor path (two's complement for negative values).
 	SecureVector<Byte> secureBytes;
 	secureBytes.resize(3);
@@ -864,6 +959,37 @@ void RunSecureBigIntTests(TestContext& ctx)
 	secureBytes[2] = (Byte)0xFF;
 	const SecureBigInteger fromSecureBytes(secureBytes);
 	Report(ctx, fromSecureBytes.ToString() == String(PHANTASMA_LITERAL("-1")), "SecureBigInt ctor secure bytes");
+
+	// Empty secure byte vectors should normalize to zero.
+	SecureVector<Byte> emptySecure;
+	const SecureBigInteger emptySecureBytes(emptySecure);
+	Report(ctx, emptySecureBytes.ToString() == String(PHANTASMA_LITERAL("0")), "SecureBigInt ctor secure empty");
+
+	// Signed byte vectors use two's complement (FF FE == -257).
+	PHANTASMA_VECTOR<Byte> signedVec;
+	signedVec.push_back((Byte)0xFF);
+	signedVec.push_back((Byte)0xFE);
+	const SecureBigInteger fromSignedVec(signedVec);
+	Report(ctx, fromSignedVec.ToString() == String(PHANTASMA_LITERAL("-257")), "SecureBigInt ctor vector signed");
+
+	// 4-byte vector input should take the aligned InitFromArray path.
+	PHANTASMA_VECTOR<Byte> alignedVec;
+	alignedVec.push_back((Byte)0x78);
+	alignedVec.push_back((Byte)0x56);
+	alignedVec.push_back((Byte)0x34);
+	alignedVec.push_back((Byte)0x12);
+	const SecureBigInteger alignedVector(alignedVec);
+	Report(ctx, alignedVector.ToString() == String(PHANTASMA_LITERAL("305419896")), "SecureBigInt ctor vector aligned");
+
+	// 4-byte vector input should take the aligned InitFromArray path.
+	SecureVector<Byte> alignedSecure;
+	alignedSecure.resize(4);
+	alignedSecure[0] = (Byte)0x78;
+	alignedSecure[1] = (Byte)0x56;
+	alignedSecure[2] = (Byte)0x34;
+	alignedSecure[3] = (Byte)0x12;
+	const SecureBigInteger alignedSecureBytes(alignedSecure);
+	Report(ctx, alignedSecureBytes.ToString() == String(PHANTASMA_LITERAL("305419896")), "SecureBigInt ctor secure aligned");
 
 	SecureBigInteger assigned;
 	assigned = a;
@@ -877,6 +1003,45 @@ void RunSecureBigIntTests(TestContext& ctx)
 
 	const SecureBigInteger modPow = SecureBigInteger::ModPow(SecureBigInteger(2), SecureBigInteger(5), SecureBigInteger(13));
 	Report(ctx, modPow.ToString() == String(PHANTASMA_LITERAL("6")), "SecureBigInt ModPow");
+
+	// DivideAndModulus should handle div-by-zero and a<b cases.
+	SecureBigInteger divQuot;
+	SecureBigInteger divRem;
+	SecureBigInteger::DivideAndModulus(SecureBigInteger(5), SecureBigInteger(0), divQuot, divRem);
+	Report(ctx, divQuot.ToString() == String(PHANTASMA_LITERAL("0")), "SecureBigInt div0 quot");
+	Report(ctx, divRem.ToString() == String(PHANTASMA_LITERAL("0")), "SecureBigInt div0 rem");
+
+	SecureBigInteger::DivideAndModulus(SecureBigInteger(3), SecureBigInteger(10), divQuot, divRem);
+	Report(ctx, divQuot.ToString() == String(PHANTASMA_LITERAL("0")), "SecureBigInt div small quot");
+	Report(ctx, divRem.ToString() == String(PHANTASMA_LITERAL("3")), "SecureBigInt div small rem");
+
+	// Secure string constructor should auto-size input and accept negatives.
+	bool secError = false;
+	const SecureBigInteger secFromChars(PHANTASMA_LITERAL("123"), 0, 10, &secError);
+	Report(ctx, secFromChars.ToString() == String(PHANTASMA_LITERAL("123")), "SecureBigInt ctor chars");
+	Report(ctx, !secError, "SecureBigInt ctor chars error");
+
+	secError = false;
+	const SecureBigInteger secTrimmed(PHANTASMA_LITERAL("\n-77\r"), 0, 10, &secError);
+	Report(ctx, secTrimmed.ToString() == String(PHANTASMA_LITERAL("-77")), "SecureBigInt ctor chars trim");
+	Report(ctx, !secError, "SecureBigInt ctor chars trim error");
+
+	bool secEmptyError = false;
+	const SecureBigInteger secEmpty(PHANTASMA_LITERAL(""), 0, 10, &secEmptyError);
+	Report(ctx, secEmpty.ToString() == String(PHANTASMA_LITERAL("0")), "SecureBigInt ctor chars empty");
+	Report(ctx, !secEmptyError, "SecureBigInt ctor chars empty error");
+
+	// Invalid chars should set out_error; exceptions may be disabled in this build.
+	bool secInvalidError = false;
+#ifdef PHANTASMA_EXCEPTION_ENABLE
+	ExpectThrowContains(ctx, "SecureBigInt ctor chars invalid", "Invalid string", [&]() {
+		SecureBigInteger invalid(PHANTASMA_LITERAL("12Z"), 0, 10, &secInvalidError);
+	});
+	Report(ctx, secInvalidError, "SecureBigInt ctor chars invalid error");
+#else
+	SecureBigInteger invalid(PHANTASMA_LITERAL("12Z"), 0, 10, &secInvalidError);
+	Report(ctx, secInvalidError, "SecureBigInt ctor chars invalid error (no exceptions)");
+#endif
 
 	// Multi-word division to exercise MultiDigitDivMod on the secure path.
 	const SecureBigInteger secNumer = SecureBigInteger::Parse(String(PHANTASMA_LITERAL("1118186285554272804292416")));
