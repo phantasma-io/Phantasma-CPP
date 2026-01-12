@@ -3,6 +3,7 @@
 CXX ?= g++
 CXXFLAGS ?= -std=c++17 -I../include
 LDFLAGS ?= -lcrypto
+LDFLAGS += -lsodium
 
 TARGET := carbon_tests
 SRCS := $(wildcard *.cpp)

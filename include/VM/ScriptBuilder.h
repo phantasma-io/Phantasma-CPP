@@ -672,6 +672,14 @@ private:
 	}
 public:
 
+	// Public helper for argument pushing; supports scalars/ByteArray/Timestamp/Serializable. Arrays require custom handling.
+	template<class... Args>
+	ScriptBuilder& PushArgs( const Args&... args )
+	{
+		PushArgsInternal( *this, args... );
+		return *this;
+	}
+
 	template<class... Args>
 	ScriptBuilder& CallInterop( const Char* method, const Args&... args )
 	{
@@ -706,6 +714,75 @@ public:
 
 		Emit( Opcode::SWITCH, &dest_reg, 1 );
 		return *this;
+	}
+
+private:
+	static void PushArgsInternal( ScriptBuilder& )
+	{
+	}
+
+	template<class T, class... Args>
+	static void PushArgsInternal( ScriptBuilder& sb, const T& arg, const Args&... args )
+	{
+		// Push in reverse order so the first argument ends up on top of the stack.
+		PushArgsInternal( sb, args... );
+		PushArgSafe( sb, arg );
+	}
+
+	static void PushArgSafe( ScriptBuilder& sb, const String& arg )
+	{
+		Byte temp_reg = 0;
+		LoadIntoReg( sb, temp_reg, arg );
+		sb.EmitPush( temp_reg );
+	}
+	static void PushArgSafe( ScriptBuilder& sb, const Char* arg )
+	{
+		Byte temp_reg = 0;
+		LoadIntoReg( sb, temp_reg, arg );
+		sb.EmitPush( temp_reg );
+	}
+	static void PushArgSafe( ScriptBuilder& sb, Int32 arg )
+	{
+		Byte temp_reg = 0;
+		LoadIntoReg( sb, temp_reg, arg );
+		sb.EmitPush( temp_reg );
+	}
+	static void PushArgSafe( ScriptBuilder& sb, Int64 arg )
+	{
+		Byte temp_reg = 0;
+		LoadIntoReg( sb, temp_reg, arg );
+		sb.EmitPush( temp_reg );
+	}
+	static void PushArgSafe( ScriptBuilder& sb, const BigInteger& arg )
+	{
+		Byte temp_reg = 0;
+		LoadIntoReg( sb, temp_reg, arg );
+		sb.EmitPush( temp_reg );
+	}
+	static void PushArgSafe( ScriptBuilder& sb, bool arg )
+	{
+		Byte temp_reg = 0;
+		LoadIntoReg( sb, temp_reg, arg );
+		sb.EmitPush( temp_reg );
+	}
+	static void PushArgSafe( ScriptBuilder& sb, const ByteArray& arg )
+	{
+		Byte temp_reg = 0;
+		LoadIntoReg( sb, temp_reg, arg );
+		sb.EmitPush( temp_reg );
+	}
+	static void PushArgSafe( ScriptBuilder& sb, const Timestamp& arg )
+	{
+		Byte temp_reg = 0;
+		LoadIntoReg( sb, temp_reg, arg );
+		sb.EmitPush( temp_reg );
+	}
+	template<class T, typename std::enable_if<std::is_base_of<Serializable, T>::value>::type* = nullptr>
+	static void PushArgSafe( ScriptBuilder& sb, const T& arg )
+	{
+		Byte temp_reg = 0;
+		LoadIntoReg( sb, temp_reg, arg );
+		sb.EmitPush( temp_reg );
 	}
 };
 
