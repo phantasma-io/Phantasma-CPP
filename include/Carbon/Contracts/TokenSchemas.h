@@ -947,7 +947,9 @@ private:
 				return false;
 			}
 		}
-		dest.push_back(VmNamedVariableSchema{ SmallString(f.name.c_str(), f.name.size()), VmVariableSchema{ f.type } });
+		dest.push_back(VmNamedVariableSchema{
+			SmallString(f.name.c_str(), (phantasma::carbon::size_t)f.name.size()),
+			VmVariableSchema{ f.type } });
 		return true;
 	}
 
@@ -981,7 +983,9 @@ public:
 		{
 			for (const auto& f : MetadataHelper::StandardMetadataFields)
 			{
-				owned.seriesFields.push_back(VmNamedVariableSchema{ SmallString(f.name.c_str(), f.name.size()), VmVariableSchema{ f.type } });
+				owned.seriesFields.push_back(VmNamedVariableSchema{
+					SmallString(f.name.c_str(), (phantasma::carbon::size_t)f.name.size()),
+					VmVariableSchema{ f.type } });
 			}
 		}
 		owned.romFields = {
@@ -992,7 +996,9 @@ public:
 		{
 			for (const auto& f : MetadataHelper::StandardMetadataFields)
 			{
-				owned.romFields.push_back(VmNamedVariableSchema{ SmallString(f.name.c_str(), f.name.size()), VmVariableSchema{ f.type } });
+				owned.romFields.push_back(VmNamedVariableSchema{
+					SmallString(f.name.c_str(), (phantasma::carbon::size_t)f.name.size()),
+					VmVariableSchema{ f.type } });
 			}
 		}
 		owned.ramFields.clear();

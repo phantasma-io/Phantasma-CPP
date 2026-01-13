@@ -421,7 +421,7 @@ public:
 				if (i > 0) list += ", ";
 				list += missing[i];
 			}
-			PHANTASMA_EXCEPTION("Token metadata is missing required fields: " + list);
+			PHANTASMA_EXCEPTION_MESSAGE("Token metadata is missing required fields", list.c_str());
 		}
 		ValidateIcon(lookup.at("icon"));
 
@@ -432,7 +432,9 @@ public:
 		for (const auto& kv : lookup)
 		{
 			storage.push_back(kv.second);
-			fields.push_back(VmNamedDynamicVariable{ SmallString(kv.first.c_str(), kv.first.size()), VmDynamicVariable(storage.back().c_str()) });
+			fields.push_back(VmNamedDynamicVariable{
+				SmallString(kv.first.c_str(), (phantasma::carbon::size_t)kv.first.size()),
+				VmDynamicVariable(storage.back().c_str()) });
 		}
 
 		VmDynamicStruct meta = VmDynamicStruct::Sort((uint32_t)fields.size(), fields.data());
@@ -664,7 +666,7 @@ struct TokenInfoBuilder
 		}
 		owned.view.decimals = decimals;
 		owned.view.owner = creatorPublicKey;
-		owned.view.symbol = SmallString(symbol.c_str(), symbol.size());
+		owned.view.symbol = SmallString(symbol.c_str(), (phantasma::carbon::size_t)symbol.size());
 		owned.metadataStorage = metadata;
 		if (isNFT)
 		{
