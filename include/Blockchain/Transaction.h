@@ -33,7 +33,7 @@ public:
 	const Timestamp  Expiration() const { return m_expiration; }
 	const ByteArray& Payload() const { return m_payload; }
 	const Hash       GetHash() const { return m_hash; }
-	const PHANTASMA_VECTOR<Signature> Signatures() const { return m_signatures; }
+	const PHANTASMA_VECTOR<Signature>& Signatures() const { return m_signatures; }
 
 	template<class BinaryReader>
 	static Transaction Unserialize( Byte* bytes, int numBytes )
@@ -136,9 +136,28 @@ public:
 		m_signatures.push_back( Signature{keypair.Sign( msg )} );
 	}
 
-	bool IsSignedBy( Address address )
+	bool IsSignedBy( const Address& address )
 	{
 		return IsSignedBy( &address, 1 );
+	}
+	int SignatureIndex( const Address& address )
+	{
+		if( !HasSignatures() )
+		{
+			return -1;
+		}
+
+		auto msg = ToByteArray( false ); //todo cache this?
+
+		for(int i=0, end=(int)m_signatures.size(); i!=end; ++i)
+		{
+			if(m_signatures[i].Verify( &msg.front(), (int)msg.size(), address ))
+			{
+				return i;
+			}
+		}
+
+		return -1;
 	}
 
 	bool IsSignedBy( const Address* addresses, int numAddresses )
