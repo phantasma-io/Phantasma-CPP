@@ -28,6 +28,7 @@ public:
 		m_kind = o.m_kind;
 		switch(m_kind)
 		{
+		default: PHANTASMA_ASSERT(false); break;
 		case SignatureKind::Ed25519: m_signature.ed25519 = o.m_signature.ed25519; break;
 		case SignatureKind::Ring:    m_signature.ring    = o.m_signature.ring;	  break;
 		}
@@ -40,15 +41,24 @@ public:
 
 	bool Verify( const Byte* message, int messageLength, const Address& address ) const
 	{
-		return _Verify(message, messageLength, &address, 1);
+		return _Verify(message, messageLength, &address, 1) >= 0;
 	}
 	bool Verify( const Byte* message, int messageLength, const Address* addresses, int numAddresses ) const
+	{
+		return _Verify(message, messageLength, addresses, numAddresses) >= 0;
+	}
+	int VerifyIndex( const Byte* message, int messageLength, const Address* addresses, int numAddresses ) const
 	{
 		return _Verify(message, messageLength, addresses, numAddresses);
 	}
 
+	const Ed25519Signature& GetEd25519Signature() const
+	{
+		return m_signature.ed25519;
+	}
+
 private:
-	struct RingSignature { BigInteger Y0, S; constexpr static int Length = 42; bool operator==( const RingSignature& o ) const {return false;} bool Verify(...)const{return 0;} template<class T>void SerializeData(T&) const {} }; //todo
+	struct RingSignature { BigInteger Y0, S; constexpr static int Length = 42; bool operator==( const RingSignature& o ) const {return false;} int Verify(...)const{return -1;} template<class T>void SerializeData(T&) const {} }; //todo
 
 	SignatureKind m_kind;
 	//I'm implementing polymorphism via a union/switch so that Signatures can be copied around by value and stored in arrays without dynamic memory management
@@ -59,6 +69,7 @@ private:
 		{
 			switch(k)
 			{
+			default: PHANTASMA_ASSERT(false); break;
 			case SignatureKind::Ed25519: new(&ed25519)Ed25519Signature(v.ed25519); break;
 			case SignatureKind::Ring:    new(&ring)   RingSignature(   v.ring);    break;
 			}
@@ -77,6 +88,7 @@ private:
 		{
 			switch(m_kind)
 			{
+			default: PHANTASMA_ASSERT(false); break;
 			case SignatureKind::Ed25519: return m_signature.ed25519 == o.m_signature.ed25519;
 			case SignatureKind::Ring:    return m_signature.ring    == o.m_signature.ring;
 			}
@@ -84,20 +96,22 @@ private:
 		return false; 
 	}
 
-	bool _Verify( const Byte* message, int messageLength, const Address* addresses, int numAddresses ) const
+	int _Verify( const Byte* message, int messageLength, const Address* addresses, int numAddresses ) const
 	{
 		switch(m_kind)
 		{
+		default: PHANTASMA_ASSERT(false); break;
 		case SignatureKind::Ed25519: return m_signature.ed25519.Verify(message, messageLength, addresses, numAddresses);
 		case SignatureKind::Ring:    return m_signature.ring   .Verify(message, messageLength, addresses, numAddresses);
 		}
-		return false;
+		return -1;
 	}
 public:
 	~Signature()
 	{
 		switch(m_kind)
 		{
+		default: break;
 		case SignatureKind::Ed25519: m_signature.ed25519.~Ed25519Signature(); break;
 		case SignatureKind::Ring:    m_signature.ring.   ~RingSignature();    break;
 		}
@@ -110,6 +124,7 @@ public:
 		writer.Write((Byte)m_kind);
 		switch(m_kind)
 		{
+		default: PHANTASMA_ASSERT(false); break;
 		case SignatureKind::Ed25519: m_signature.ed25519.SerializeData(writer); break;
 		case SignatureKind::Ring:    m_signature.ring   .SerializeData(writer); break;
 		}
@@ -127,8 +142,11 @@ public:
 				temp.UnserializeData(reader);
 				this->~Signature();
 				new(this)Signature{temp};
+				break;
 			}
-			//case SignatureKind::Ring:
+			default:
+				PHANTASMA_EXCEPTION("todo");
+				break;
 			//{
 			//	RingSignature temp;
 			//	temp.UnserializeData(reader);

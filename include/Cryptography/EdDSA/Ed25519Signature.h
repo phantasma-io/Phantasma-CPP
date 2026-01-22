@@ -42,10 +42,10 @@ public:
 
 	const Byte* Bytes() const { return bytes; }
 	
-	bool Verify(const Byte* message, int messageLength, const Address* addresses, int numAddresses) const
+	int Verify(const Byte* message, int messageLength, const Address* addresses, int numAddresses) const
 	{
 		if( messageLength <= 0 )
-			return false;
+			return -1;
 
 		for(int i=0; i<numAddresses; ++i)
 		{
@@ -57,11 +57,11 @@ public:
 			int pubKeyLength = address.GetSize() - 2;
 			if (Ed25519::Verify(bytes, Length, message, messageLength, pubKey, pubKeyLength))
 			{
-				return true;
+				return i;
 			}
 		}
 	
-		return false;
+		return -1;
 	}
 
 	bool operator==( const Ed25519Signature& o ) const
@@ -78,7 +78,7 @@ public:
 	template<class BinaryReader>
 	void UnserializeData(BinaryReader& reader)
 	{
-		reader.ReadByteArray(bytes, Length);
+		reader.ReadFixedByteArray(bytes);
 	}
 	
 	template<class IKeyPair>
