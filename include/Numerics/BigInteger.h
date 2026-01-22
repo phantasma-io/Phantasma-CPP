@@ -277,6 +277,21 @@ public:
 		InitFromArray(uintBytes, 2);
 	}
 
+	TBigInteger(UInt64 val)
+	{
+		if (val == 0)
+		{
+			_sign = 0;
+			_data.push_back(0);
+			return;
+		}
+
+		_sign = 1;
+		UInt32 uintBytes[2];
+		memcpy(uintBytes, &val, 8);
+		InitFromArray(uintBytes, 2);
+	}
+
 private:
 	void InitFromArray(const UInt32* digits, int length)
 	{
@@ -409,6 +424,11 @@ public:
 	static TBigInteger Abs(const TBigInteger& x)
 	{
 		return TBigInteger(&x._data.front(), (int)x._data.size(), 1);
+	}
+
+	TBigInteger Abs()
+	{
+		return TBigInteger(&_data.front(), (int)_data.size(), 1);
 	}
 
 	String ToString() const
@@ -1288,15 +1308,15 @@ public:
 		return 1;
 	}
 
-	static TBigInteger Pow(TBigInteger powBase, TBigInteger powExp)
+	static TBigInteger Pow(TBigInteger powBase, UInt32 powExp)
 	{
 		TBigInteger val = One();
-		TBigInteger i = Zero();
+		UInt32 i = 0;
 
 		while (i < powExp)
 		{
 			val *= powBase;
-			i = i + One();
+			i++;
 		}
 		return val;
 	}
