@@ -272,7 +272,7 @@ public:
 				}
 				else
 				{
-					payloadSize = m_payload.size() + 5;
+					payloadSize = (UInt32)m_payload.size() + 5;
 					m_payload.resize(payloadSize);
 				}
 			}

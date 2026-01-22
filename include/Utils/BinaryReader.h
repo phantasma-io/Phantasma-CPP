@@ -19,13 +19,23 @@ public:
 		: stream(stream)
 		, cursor((UInt32)cursor)
 	{
+		error = (cursor >= stream.size());
 	}
 
+	bool Finished() const { return cursor == stream.size(); }
 	bool Error() const { return error; }
-
-	UInt32 Position() const { return cursor; }
-
 	const ByteArray& ToArray() { return stream; }
+	UInt32 Position() const { return cursor; }
+	void Seek(UInt32 position)
+	{
+		cursor = position;
+		if(cursor >= stream.size())
+		{
+			error = true;
+			PHANTASMA_EXCEPTION("stream error");
+		}
+	}
+
 
 	Byte ReadByte() 
 	{
@@ -169,14 +179,21 @@ public:
 		Read(n);
 	}
 	
-	void ReadByteArray(ByteArray& bytes) 
+	void ReadByteArray(ByteArray& bytes, int maxToRead=0) 
 	{
 		Int64 numBytes = 0;
 		ReadVarInt(numBytes);
 		if (numBytes == 0)
 			bytes.resize(0);
 		else
+		{
+			if( maxToRead && numBytes > maxToRead )
+			{
+				error = true;
+				PHANTASMA_EXCEPTION("Unexpected byte array size");
+			}
 			Read(bytes, (int)numBytes);
+		}
 	}
 	int ReadByteArray(Byte* bytes, int maxToRead)
 	{
@@ -202,6 +219,18 @@ public:
 			error = true;
 			PHANTASMA_EXCEPTION("Unexpected byte array size");
 		}
+	}
+	template<int N> 
+	int ReadFixedByteArray(Byte(&bytes)[N])
+	{
+		Int64 numBytes = 0;
+		ReadVarInt(numBytes);
+		if(numBytes != N)
+		{
+			//Support buggy TS SDK: incorrect number but we'll tolerate it...
+		}
+		Read(bytes, N);
+		return (int)numBytes;
 	}
 	
 	void ReadVarString(String& text)

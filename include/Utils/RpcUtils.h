@@ -6,7 +6,8 @@
 
 namespace phantasma {
 
-const static BigInteger MinimumGasFee = 100000;
+//const static BigInteger MinimumGasFee = 100000;
+inline BigInteger MinimumGasFee() { return BigInteger(100000); }
 constexpr static int PaginationMaxResults = 50;
 static const Char* PlatformName = PHANTASMA_LITERAL("phantasma");
 typedef void(FnCallback)(void);
@@ -19,6 +20,7 @@ enum class TransactionState
 	Confirmed,
 };
 
+#if defined(PHANTASMA_HTTPCLIENT)
 inline TransactionState CheckConfirmation(rpc::PhantasmaAPI& api, const Char* txHash, rpc::Transaction& output, rpc::PhantasmaError& err)
 {
 	PHANTASMA_TRY
@@ -191,6 +193,7 @@ inline TransactionState SendTransactionWaitConfirm(rpc::PhantasmaAPI& api, const
 	rpc::Transaction confirmation;
 	return SendTransactionWaitConfirm(&api, 1, tx, txHash, confirmation, fnSleep);
 }
+#endif
 
 struct TxTokenEvent
 {
@@ -228,8 +231,8 @@ inline bool GetTxTokensReceived(
 			for (int j=i-1; j>=0; --j)
 			{
 				const auto& evtB = tx.events[j];
-				EventKind eventKind = StringToEventKind(evtB.kind);
-				if(eventKind == EventKind::TokenSend)
+				EventKind eventKind2 = StringToEventKind(evtB.kind);
+				if(eventKind2 == EventKind::TokenSend)
 				{
 					TokenEventData sendData = Serialization<TokenEventData>::Unserialize(Base16::Decode(evtB.data));
 					if( rcvData.symbol != sendData.symbol ||
@@ -302,8 +305,8 @@ inline bool GetTxTokensSent(
 			for (int j=i+1; j<end; ++j)
 			{
 				const auto& evtB = tx.events[j];
-				EventKind eventKind = StringToEventKind(evtB.kind);
-				if(eventKind == EventKind::TokenReceive)
+				EventKind eventKind2 = StringToEventKind(evtB.kind);
+				if(eventKind2 == EventKind::TokenReceive)
 				{
 					TokenEventData rcvData = Serialization<TokenEventData>::Unserialize(Base16::Decode(evtB.data));
 					if( rcvData.symbol != sendData.symbol ||
@@ -491,7 +494,7 @@ inline String GetTxDescription(
 		auto eventKind = StringToEventKind(evt.kind);
 		switch (eventKind)
 		{
-
+		default: break;
 		case EventKind::TokenClaim:
 		{
 			TokenEventData data = Serialization<TokenEventData>::Unserialize(Base16::Decode(evt.data));
@@ -501,7 +504,6 @@ inline String GetTxDescription(
 			}
 		}
 		break;
-
 
 		case EventKind::TokenStake:
 		{

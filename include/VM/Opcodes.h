@@ -1,12 +1,5 @@
 ﻿#pragma once
 
-#ifdef THIS
-# undef THIS
-#endif
-#ifdef DEBUG
-# undef DEBUG
-#endif
-
 namespace phantasma {
 
 enum class Opcode
@@ -33,7 +26,7 @@ enum class Opcode
 	LOAD,
 	CAST,
 	CAT,
-	SUBSTR, //TODO: needs to be implemented
+	RANGE,
 	LEFT,
 	RIGHT,
 	SIZE,
@@ -79,7 +72,7 @@ enum class Opcode
 	PACK, // unused for now
 
 	//  debugger
-	DEBUG
+	DEBUG_ // underscore because projects often have a #define DEBUG
 };
 
 }

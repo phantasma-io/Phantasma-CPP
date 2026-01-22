@@ -15,8 +15,9 @@ enum class TokenFlags : UInt32
 	Fuel         = 1 << 4,
 	Stakable     = 1 << 5,
 	Fiat         = 1 << 6,
-	Foreign      = 1 << 7,
+	Swappable    = 1 << 7,
 	Burnable     = 1 << 8,
+	Mintable     = 1 << 9,
 };
 
 inline constexpr TokenFlags operator  | (TokenFlags a, TokenFlags b) { return  TokenFlags  ( ((UInt32 )a) |  ((UInt32)b)); } 
@@ -26,5 +27,6 @@ inline           TokenFlags &operator &=(TokenFlags&a, TokenFlags b) { return (T
 inline constexpr TokenFlags operator  ~ (TokenFlags a              ) { return  TokenFlags  (~((UInt32 )a)               ); }
 inline constexpr TokenFlags operator  ^ (TokenFlags a, TokenFlags b) { return  TokenFlags  ( ((UInt32 )a) ^  ((UInt32)b)); } 
 inline           TokenFlags &operator ^=(TokenFlags&a, TokenFlags b) { return (TokenFlags&)( ((UInt32&)a) ^= ((UInt32)b)); } 
+inline constexpr bool       operator  ! (TokenFlags a) { return !(UInt32 )a; } 
 
 }

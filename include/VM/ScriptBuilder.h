@@ -657,6 +657,7 @@ private:
 		}
 	}
 
+public:
 	template<class T>
 	static void InsertMethodArgs( ScriptBuilder& sb, const T& arg )
 	{
@@ -670,7 +671,6 @@ private:
 		InsertMethodArgs(sb, args...);
 		InsertMethodArgs(sb, arg);
 	}
-public:
 
 	// Public helper for argument pushing; supports scalars/ByteArray/Timestamp/Serializable. Arrays require custom handling.
 	template<class... Args>
@@ -684,7 +684,10 @@ public:
 	ScriptBuilder& CallInterop( const Char* method, const Args&... args )
 	{
 		InsertMethodArgs( *this, args... );
-
+		return CallInterop(method);
+	}
+	ScriptBuilder& CallInterop( const Char* method )
+	{
 		Byte dest_reg = 0;
 		EmitLoad( dest_reg, method );
 

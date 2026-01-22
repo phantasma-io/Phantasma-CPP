@@ -60,7 +60,7 @@ inline bool IsValid(const Char* sz, int inputLength = 0)
 
 	if(lengthDown != length)
 	{
-		int B = AlphabetIndexOf(toupper(sz[0]));
+		int B = AlphabetIndexOf((Char)toupper(sz[0]));
 		if(B < 0)
 		{
 			PHANTASMA_EXCEPTION("invalid character");
@@ -71,8 +71,8 @@ inline bool IsValid(const Char* sz, int inputLength = 0)
 
 	for (int i = 0; i < lengthDown; i++)
 	{
-		int A = AlphabetIndexOf(toupper(sz[i * 2 + 0]));
-		int B = AlphabetIndexOf(toupper(sz[i * 2 + 1]));
+		int A = AlphabetIndexOf((Char)toupper(sz[i * 2 + 0]));
+		int B = AlphabetIndexOf((Char)toupper(sz[i * 2 + 1]));
 
 		if (A < 0 || B < 0)
 		{
@@ -135,7 +135,7 @@ inline int Decode(Byte* output, int outputLength, const Char* sz, int inputLengt
 		length = PHANTASMA_MIN(length, outputLength);
 		lengthDown = length-1;
 
-		int B = AlphabetIndexOf(toupper(sz[0]));
+		int B = AlphabetIndexOf((Char)toupper(sz[0]));
 		if(B < 0)
 		{
 			PHANTASMA_EXCEPTION("invalid character");
@@ -153,8 +153,8 @@ inline int Decode(Byte* output, int outputLength, const Char* sz, int inputLengt
 
 	for (int i = 0; i < lengthDown; i++)
 	{
-		int A = AlphabetIndexOf(toupper(sz[i * 2 + 0]));
-		int B = AlphabetIndexOf(toupper(sz[i * 2 + 1]));
+		int A = AlphabetIndexOf((Char)toupper(sz[i * 2 + 0]));
+		int B = AlphabetIndexOf((Char)toupper(sz[i * 2 + 1]));
 
 		if(A < 0 || B < 0)
 		{
@@ -212,7 +212,7 @@ inline String Encode(const Byte* input, int length, bool lowercase=false)
 	if(lowercase)
 	{
 		for( Char* i = &c.front(); *i != '\0'; ++i )
-			*i = tolower(*i);
+			*i = (Char)tolower(*i);
 	}
 
 	return String(&c.front());

@@ -461,8 +461,8 @@
 #if !defined(PHANTASMA_TRY)
 # if !defined(PHANTASMA_EXCEPTION) && !defined(PHANTASMA_EXCEPTION_ENABLE)
 #  define PHANTASMA_TRY         if(true)
-#  define PHANTASMA_CATCH( x )  else
-#  define PHANTASMA_CATCH_ALL() else
+#  define PHANTASMA_CATCH( x )  else if(false)
+#  define PHANTASMA_CATCH_ALL() else if(false)
 # else
 #  define PHANTASMA_TRY		    try
 #  define PHANTASMA_CATCH( x )  catch(std::runtime_error& x)
@@ -485,6 +485,9 @@
 #   define PHANTASMA_EXCEPTION(literal)                 do { (void)sizeof(literal); } while(0)
 #   define PHANTASMA_EXCEPTION_MESSAGE(literal, string) do { (void)sizeof(literal); (void)sizeof(string); } while(0)
 # endif
+#endif
+#ifndef PHANTASMA_PROFILE
+#define PHANTASMA_PROFILE(name)
 #endif
 
 #if !defined(PHANTASMA_LITERAL)
@@ -527,13 +530,31 @@ typedef char Char;
 # endif
 #endif
 
+#ifndef PHANTASMA_ARRAY_SIZE
+template<int N> struct PhSizer_ { char elems[N]; };
+template<class Type, int N> PhSizer_<N> PhArraySize_( Type(&)[N] );
+#define PHANTASMA_ARRAY_SIZE( a ) sizeof( PhArraySize_( a ).elems )
+#endif
+
+#ifndef PHANTASMA_ASSERT
+#define PHANTASMA_ASSERT(condition, ...)
+#endif
+
+#ifndef PHANTASMA_BREAKPOINT
+#define PHANTASMA_BREAKPOINT
+#endif
+
 #ifdef PHANTASMA_BYTE
 typedef PHANTASMA_BYTE Byte;
 #else
 typedef uint8_t Byte;
 #endif
 
+#ifdef PHANTASMA_BYTES
+typedef PHANTASMA_BYTES ByteArray;
+#else
 typedef PHANTASMA_VECTOR<Byte> ByteArray;
+#endif
 
 #ifdef PHANTASMA_INT32
 typedef PHANTASMA_INT32 Int32;
