@@ -17,6 +17,26 @@ inline int AlphabetIndexOf( Char in )
 	return -1;
 }
 
+inline const BigInteger* GetBase58Powers(UInt32& out_length)
+{
+	static BigInteger powers[48] =
+	{
+		BigInteger::One(),
+		BigInteger(58),
+	};
+	static bool init = false;
+	if( !init )
+	{
+		for( int i=2; i < ARRAY_SIZE(powers); ++i )
+		{
+			powers[i] = powers[i-1] * powers[1];
+		}
+		init = true;
+	}
+	out_length = ARRAY_SIZE(powers);
+	return powers;
+}
+
 inline int Decode(Byte* output, int outputLength, const Char* input, int inputLength)
 {
 	if(!input || inputLength < 0 || outputLength < 0)
@@ -31,6 +51,9 @@ inline int Decode(Byte* output, int outputLength, const Char* input, int inputLe
 			return 0;
 	}
 
+	UInt32 numPrecomputed = 0;
+	const BigInteger* powers = GetBase58Powers(numPrecomputed);
+
 	BigInteger bi = BigInteger::Zero();
 	for (int i = inputLength - 1; i >= 0; i--)
 	{
@@ -40,8 +63,11 @@ inline int Decode(Byte* output, int outputLength, const Char* input, int inputLe
 			PHANTASMA_EXCEPTION("invalid character");
 			return -1;
 		}
-
-		bi += BigInteger(index) * BigInteger::Pow(58, inputLength - 1 - i);
+		UInt32 power = inputLength - 1 - i;
+		if( power < numPrecomputed )
+			bi += BigInteger(index) * powers[power];
+		else
+			bi += BigInteger(index) * BigInteger::Pow(58, power);
 	}
 
 	int leadingZeros = 0;
@@ -73,6 +99,9 @@ inline ByteArray Decode(const String& input)
 		return tmp;
 	}
 
+	UInt32 numPrecomputed = 0;
+	const BigInteger* powers = GetBase58Powers(numPrecomputed);
+
 	BigInteger bi = BigInteger::Zero();
 	for (int i = (int)input.length() - 1; i >= 0; i--)
 	{
@@ -83,7 +112,11 @@ inline ByteArray Decode(const String& input)
 			return tmp;
 		}
 
-		bi += BigInteger(index) * BigInteger::Pow(58, (int)input.length() - 1 - i);
+		UInt32 power = (UInt32)input.length() - 1 - i;
+		if( power < numPrecomputed )
+			bi += BigInteger(index) * powers[power];
+		else
+			bi += BigInteger(index) * BigInteger::Pow(58, power);
 	}
 
 	ByteArray bytes = bi.ToUnsignedByteArray();
