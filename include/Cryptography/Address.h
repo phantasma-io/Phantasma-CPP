@@ -89,10 +89,10 @@ public:
 		}
 		return FromKey(&input.front(), (int)input.size());
 	}
-	static Address FromKey(const Byte* publicKeyBytes, int publicKeyLength)
+	static Address FromKey(const Byte* publicKeyBytes, int publicKeyLength, AddressKind defaultType = AddressKind::User)
 	{
 		Byte bytes[LengthInBytes] = {};
-		bytes[0] = (Byte)AddressKind::User;
+		bytes[0] = (Byte)defaultType;
 		if (publicKeyLength == 32)
 		{
 			PHANTASMA_COPY(publicKeyBytes, publicKeyBytes+publicKeyLength, bytes+2);
@@ -167,6 +167,7 @@ public:
 	}
 	static Address FromText(const Char* text, int textLength=0, bool* out_error=0)
 	{
+		PHANTASMA_PROFILE(Address_FromText);
 		if(textLength == 0)
 		{
 			textLength = (int)PHANTASMA_STRLEN(text);
@@ -203,7 +204,6 @@ public:
 					*out_error = true;
 				else
 					PHANTASMA_EXCEPTION("address should be user");
-				return {};
 			}
 			break;
 
@@ -214,7 +214,6 @@ public:
 					*out_error = true;
 				else
 					PHANTASMA_EXCEPTION("address should be system");
-				return {};
 			}
 			break;
 
@@ -225,7 +224,6 @@ public:
 					*out_error = true;
 				else
 					PHANTASMA_EXCEPTION("address should be interop");
-				return {};
 			}
 			break;
 		default:
