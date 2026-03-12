@@ -142,6 +142,26 @@ void RunVmDynamicVariableTests(TestContext& ctx)
 		});
 	}
 	{
+		const uint256 value = uint256::FromString("342701406799689386264365071881606655601301200422094937311139938246178500459");
+		const VmDynamicVariable input(value);
+		ByteArray buffer;
+		WriteView w(buffer);
+		// This exact live validator-backed sample used to drift by one byte in both SDK lines.
+		Write(input, w);
+		Report(ctx,
+			BytesToHex(buffer) == "0E1F6BEF11AE0FCA02D9B4B755ED7520861D2424EC2EE58931065269D5A84DF6C1",
+			"VmDynamic Int256 validator problematic encode");
+
+		Allocator alloc;
+		const ByteArray expected = HexToBytes("0E1F6BEF11AE0FCA02D9B4B755ED7520861D2424EC2EE58931065269D5A84DF6C1");
+		ReadView r((void*)expected.data(), expected.size());
+		VmDynamicVariable out{};
+		const bool ok = Read(out, r, alloc)
+			&& out.type == VmType::Int256
+			&& out.data.int256 == value;
+		Report(ctx, ok, "VmDynamic Int256 validator problematic decode");
+	}
+	{
 		ByteArray bytes(32);
 		for (size_t i = 0; i < bytes.size(); ++i)
 		{

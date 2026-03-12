@@ -36,6 +36,10 @@ inline bool Read(uint256& out, ReadView& reader)
 	uint8_t header = 0;
 	if (!reader.ReadBytes(header))
 		return false;
+	// Header layout matches the validator runtime:
+	// bit 7 = sign of the reconstructed 256-bit word,
+	// bit 6 = reserved and must stay 0,
+	// bits 0-5 = number of serialized low-order bytes.
 	uint8_t fill = header & 0x80 ? 0xFF : 0x00;
 	uint8_t length = header & 0x3F;
 	if (length > 32 || (header & 0x40)) // non-standard header
@@ -43,8 +47,10 @@ inline bool Read(uint256& out, ReadView& reader)
 	uint8_t* dst = (uint8_t*)&out;
 	if (length > 0 && !reader.ReadBytes(dst, length))
 		return false;
+	// Reconstruct the omitted high bytes from the sign fill.
 	for (uint8_t* p = dst + length, *end = dst + 32; p != end; ++p)
 		*p = fill;
+	// After reconstruction, the sign bit of the highest byte must still agree with the header sign bit.
 	if ((dst[31] & 0x80) != (header & 0x80)) // non-standard header
 		return false;
 	return true;
@@ -53,10 +59,21 @@ inline void Write(const uint256& in, WriteView& writer)
 {
 	if (!in)
 		return writer.WriteByte(0);
+	// The in-memory value is always a fixed 256-bit word, so trimming starts from that full representation.
 	const uint8_t fill = in.Signed().IsNegative() ? 0xFF : 0x00;
 	const uint8_t* const src = (uint8_t*)&in;
-	const uint32_t length = CarbonComputeSerializedLength(src, 32, fill);
+	// Match the validator runtime exactly: trim only contiguous high fill bytes from the fixed 256-bit word.
+	// Do not use the SDK's older sign-safe minimal form here, because storage keys and VM payload bytes must
+	// stay byte-identical to the chain implementation.
+	uint32_t countLeadingBytes = 0;
+	for (int i = 32; i-- > 0; ++countLeadingBytes)
+		if (src[i] != fill)
+			break;
+	const uint32_t length = 32 - countLeadingBytes;
 	CarbonAssert(length <= 32);
+	// If nothing was trimmed, the sign bit of the full word still has to agree with the fill we chose.
+	CarbonAssert(length < 32 || (fill & 0x80) == (src[31] & 0x80));
+	// Header layout is identical to the validator/runtime writer.
 	uint8_t header = (uint8_t)(length & 0x3F) | (fill & 0x80);
 	writer.WriteByte(header);
 	for (const uint8_t* p = src, *end = src + length; p != end; ++p)
@@ -85,7 +102,8 @@ inline bool Read(intx& out, ReadView& reader)
 		uint64_t value = 0;
 		if (!test.ReadBytes(value))
 			return false;
-		// check if 64bit interpretation preserves the sign of the original value
+		// Fast path: if the serialized 8-byte payload already has the same sign that the header declares,
+		// then the value fits cleanly into the compact int64-backed intx representation.
 		bool headerIsNegative = header & 0x80;
 		bool valueIsNegative = ((int64_t)value) < 0;
 		if (headerIsNegative == valueIsNegative)
@@ -96,8 +114,9 @@ inline bool Read(intx& out, ReadView& reader)
 			out.isBig = false;
 			return ok;
 		}
-		// else we need 65 bits to represent this value
-		// what's happened is a sign extension mismatch. Either:
+		// Otherwise the serialized value came from the validator's 256-bit form and cannot be represented
+		// safely as a plain int64 without reconstructing the omitted high bytes.
+		// What's happened is a sign extension mismatch. Either:
 		//  -  bytes[8..31] == 0x00 && value & 0x80... == 0x80...
 		//  -  bytes[8..31] == 0xff && value & 0x7F... == value
 		// so store as bigint
