@@ -105,6 +105,24 @@ class TBigInteger
 	{
 	}
 
+	// Existing validator/runtime bridge code sometimes materializes VM numbers directly from
+	// native unsigned ids. Keep this constructor so those call sites continue to build the same
+	// positive mathematical value; it does not alter VM opcode/serialization semantics.
+	TBigInteger(UInt64 val)
+	{
+		if( val == 0 )
+		{
+			_sign = 0;
+			_data.push_back(0);
+			return;
+		}
+
+		_sign = 1;
+		UInt32 uintBytes[2];
+		memcpy(uintBytes, &val, 8);
+		InitFromArray(uintBytes, 2);
+	}
+
 	template<class Bytes>
 	static TBigInteger FromUnsignedArray(const Bytes& unsignedArray, bool isPositive)
 	{
@@ -387,15 +405,39 @@ class TBigInteger
 
 	explicit operator int() const
 	{
-		if( _data.empty() )
+		// VM opcode semantics in Gen2 C# depend on checked BigInteger -> Int32 narrowing.
+		// Truncating to the low word silently changes SHL/SHR/POW behavior for wide counts.
+		if( _sign == 0 || _data.empty() )
 			return 0;
 
-		int result = (int)(_data[0] & 0x7FFFFFFF);
+		static const TBigInteger kInt32Max((Int64)INT32_MAX);
+		// Int32.MinValue has one extra unit of magnitude compared to Int32.MaxValue.
+		static const TBigInteger kInt32MinMagnitude((Int64)INT32_MAX + 1);
 
-		if( _sign < 0 )
-			result *= -1;
+		if( _sign > 0 )
+		{
+			if( *this > kInt32Max )
+			{
+				PHANTASMA_EXCEPTION_MESSAGE("overflow", PHANTASMA_LITERAL("Value was either too large or too small for an Int32."));
+				return 0;
+			}
+		}
+		else
+		{
+			const TBigInteger magnitude = Abs(*this);
+			if( magnitude > kInt32MinMagnitude )
+			{
+				PHANTASMA_EXCEPTION_MESSAGE("overflow", PHANTASMA_LITERAL("Value was either too large or too small for an Int32."));
+				return 0;
+			}
+			if( magnitude == kInt32MinMagnitude )
+			{
+				return INT32_MIN;
+			}
+		}
 
-		return result;
+		int result = (int)_data[0];
+		return _sign < 0 ? -result : result;
 	}
 
 	explicit operator Int64() const
@@ -417,6 +459,13 @@ class TBigInteger
 	static TBigInteger Abs(const TBigInteger& x)
 	{
 		return TBigInteger(&x._data.front(), (int)x._data.size(), 1);
+	}
+
+	// ExecutionContext opcode ABS still calls `value.Abs()`. Keep that instance-form surface
+	// area for source compatibility while routing through the canonical static helper.
+	TBigInteger Abs() const
+	{
+		return Abs(*this);
 	}
 
 	String ToString() const
@@ -586,7 +635,9 @@ class TBigInteger
 		if( a._sign < 0 && b._sign < 0 )
 		{
 			result._data = Add(a._data, b._data);
-			result._sign = (int)result == 0 ? 0 : -1;
+			// Checked BigInteger->Int32 narrowing is used for VM parity, so bigint internals
+			// must never rely on `(int)result` just to detect zero.
+			result._sign = result.GetBitLength() == 0 ? 0 : -1;
 		}
 		else if( a._sign < 0 )
 		{
@@ -723,11 +774,11 @@ class TBigInteger
 
 	static void DivideAndModulus(const TBigInteger& a, const TBigInteger& b, TBigInteger& quot, TBigInteger& rem)
 	{
-		// Avoid operator int(): the low word can be zero for non-zero values (e.g., 2^32).
 		if( b._sign == 0 )
 		{
-			quot = Zero();
-			rem = Zero();
+			// Gen2 C# delegates to System.Numerics.BigInteger and throws on division by zero.
+			// Returning zero here hides VM faults for DIV/MOD and breaks contract execution parity.
+			PHANTASMA_EXCEPTION_MESSAGE("divide by zero", PHANTASMA_LITERAL("Attempted to divide by zero."));
 			return;
 		}
 
@@ -744,7 +795,10 @@ class TBigInteger
 			MultiDigitDivMod(a, b, quot, rem);
 
 		rem._sign = a._sign;
-		rem = (int)a >= 0 ? rem : b + rem;
+		// Remainder sign follows the dividend sign. Do not route this through checked Int32
+		// narrowing: wide values must still format/serialize correctly, and decimal conversion
+		// exercises DivideAndModulus on arbitrarily large operands.
+		rem = a._sign >= 0 ? rem : b + rem;
 
 		quot._sign = quot.GetBitLength() == 0 ? 0 : a._sign * b._sign;
 		rem._sign = rem.GetBitLength() == 0 ? 0 : rem._sign;
@@ -901,7 +955,10 @@ class TBigInteger
 	{
 		if( _data.empty() )
 			return *this;
-		bits = bits < 0 ? -bits : bits;
+		// Gen2 C# BigInteger shifts reverse direction for negative counts:
+		//   value >> -n  == value << n
+		if( bits < 0 )
+			return *this << -bits;
 		if( _sign < 0 )
 		{
 			// Arithmetic shift for negative values (C# BigInteger semantics).
@@ -937,7 +994,8 @@ class TBigInteger
 	{
 		if( _data.empty() )
 			return *this;
-		bits = bits < 0 ? -bits : bits;
+		if( bits < 0 )
+			return (*this <<= -bits);
 		if( _sign < 0 )
 		{
 			// Arithmetic shift for negative values (C# BigInteger semantics).
@@ -1021,7 +1079,8 @@ class TBigInteger
 	{
 		if( _data.empty() )
 			return *this;
-		bits = bits < 0 ? -bits : bits;
+		if( bits < 0 )
+			return *this >> -bits;
 		TBigInteger r = *this;
 		ShiftLeft(r._data, bits);
 		return r;
@@ -1030,7 +1089,8 @@ class TBigInteger
 	{
 		if( _data.empty() )
 			return *this;
-		bits = bits < 0 ? -bits : bits;
+		if( bits < 0 )
+			return (*this >>= -bits);
 		ShiftLeft(_data, bits);
 		return *this;
 	}
@@ -1297,13 +1357,20 @@ class TBigInteger
 
 	static TBigInteger Pow(TBigInteger powBase, TBigInteger powExp)
 	{
-		TBigInteger val = One();
-		TBigInteger i = Zero();
+		// Match Gen2 C# VM contract:
+		// 1. exponent must narrow to Int32 without overflow
+		// 2. exponent must be non-negative
+		const int exponent = (int)powExp;
+		if( exponent < 0 )
+		{
+			PHANTASMA_EXCEPTION_MESSAGE("negative exponent", PHANTASMA_LITERAL("The number must be greater than or equal to zero. (Parameter 'exponent')"));
+			return Zero();
+		}
 
-		while( i < powExp )
+		TBigInteger val = One();
+		for( int i = 0; i < exponent; ++i )
 		{
 			val *= powBase;
-			i = i + One();
 		}
 		return val;
 	}

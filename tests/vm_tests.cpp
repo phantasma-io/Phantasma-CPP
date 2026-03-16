@@ -13,7 +13,7 @@ void RunVmObjectTests(TestContext& ctx)
 		const ByteArray bytes = w.ToArray();
 		BinaryReader r(bytes);
 		VMObject obj;
-		const bool ok = obj.DeserializeData(r) && obj.GetType() == VMType::Bool && obj.Data<bool>();
+		const bool ok = obj.DeserializeData(r) && obj.Type() == VMType::Bool && obj.Data<bool>();
 		Report(ctx, ok, "VMObject Bool");
 	}
 	{
@@ -25,7 +25,7 @@ void RunVmObjectTests(TestContext& ctx)
 		BinaryReader r(bytes);
 		VMObject obj;
 		const bool ok = obj.DeserializeData(r) &&
-		                obj.GetType() == VMType::Bytes &&
+		                obj.Type() == VMType::Bytes &&
 		                obj.Data<ByteArray>() == payload;
 		Report(ctx, ok, "VMObject Bytes");
 	}
@@ -37,7 +37,7 @@ void RunVmObjectTests(TestContext& ctx)
 		BinaryReader r(bytes);
 		VMObject obj;
 		const bool ok = obj.DeserializeData(r) &&
-		                obj.GetType() == VMType::String &&
+		                obj.Type() == VMType::String &&
 		                obj.Data<String>() == PHANTASMA_LITERAL("hello world");
 		Report(ctx, ok, "VMObject String");
 	}
@@ -49,7 +49,7 @@ void RunVmObjectTests(TestContext& ctx)
 		BinaryReader r(bytes);
 		VMObject obj;
 		const bool ok = obj.DeserializeData(r) &&
-		                obj.GetType() == VMType::Number &&
+		                obj.Type() == VMType::Number &&
 		                obj.Data<BigInteger>().ToString() == PHANTASMA_LITERAL("123");
 		Report(ctx, ok, "VMObject Number");
 	}
@@ -64,14 +64,14 @@ void RunVmObjectTests(TestContext& ctx)
 		const ByteArray bytes = w.ToArray();
 		BinaryReader r(bytes);
 		VMObject obj;
-		bool ok = obj.DeserializeData(r) && obj.GetType() == VMType::Struct;
+		bool ok = obj.DeserializeData(r) && obj.Type() == VMType::Struct;
 		if( ok )
 		{
 			const VMStructure& data = obj.Data<VMStructure>();
 			ok = data.size() == 1 &&
-			     data[0].first.GetType() == VMType::String &&
+			     data[0].first.Type() == VMType::String &&
 			     data[0].first.Data<String>() == PHANTASMA_LITERAL("name") &&
-			     data[0].second.GetType() == VMType::Number &&
+			     data[0].second.Type() == VMType::Number &&
 			     data[0].second.Data<BigInteger>().ToString() == PHANTASMA_LITERAL("7");
 		}
 		Report(ctx, ok, "VMObject Struct");

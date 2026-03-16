@@ -833,9 +833,8 @@ void RunBigIntOperatorTests(TestContext& ctx)
 
 	quot = BigInteger(99);
 	rem = BigInteger(88);
-	BigInteger::DivideAndModulus(BigInteger(5), BigInteger(0), quot, rem);
-	Report(ctx, quot.ToString() == String(PHANTASMA_LITERAL("0")), "BigInt DivideAndModulus div0 quot");
-	Report(ctx, rem.ToString() == String(PHANTASMA_LITERAL("0")), "BigInt DivideAndModulus div0 rem");
+	ExpectThrowContains(ctx, "BigInt DivideAndModulus div0", "divide by zero", [&]()
+	    { BigInteger::DivideAndModulus(BigInteger(5), BigInteger(0), quot, rem); });
 
 	const BigInteger round1 = BigInteger::DivideAndRoundToClosest(BigInteger(5), BigInteger(2));
 	const BigInteger round2 = BigInteger::DivideAndRoundToClosest(BigInteger(7), BigInteger(2));
@@ -850,12 +849,12 @@ void RunBigIntOperatorTests(TestContext& ctx)
 	const BigInteger modPowZero = BigInteger::ModPow(BigInteger(5), BigInteger(0), BigInteger(13));
 	Report(ctx, modPowZero.ToString() == String(PHANTASMA_LITERAL("1")), "BigInt ModPow static exp0");
 
-	// Pow uses a simple loop; non-positive exponent yields 1 in this implementation.
+	// Pow must mirror Gen2 C# VM behavior for exponent handling.
 	const BigInteger powZero = BigInteger::Pow(BigInteger(123), BigInteger(0));
 	Report(ctx, powZero.ToString() == String(PHANTASMA_LITERAL("1")), "BigInt Pow exp0");
 
-	const BigInteger powNegative = BigInteger::Pow(BigInteger(123), BigInteger(-1));
-	Report(ctx, powNegative.ToString() == String(PHANTASMA_LITERAL("1")), "BigInt Pow exp negative");
+	ExpectThrowContains(ctx, "BigInt Pow exp negative", "exponent", [&]()
+	    { (void)BigInteger::Pow(BigInteger(123), BigInteger(-1)); });
 
 	const int intValue = (int)BigInteger(12345);
 	Report(ctx, intValue == 12345, "BigInt operator int +");
@@ -1003,9 +1002,8 @@ void RunSecureBigIntTests(TestContext& ctx)
 	// DivideAndModulus should handle div-by-zero and a<b cases.
 	SecureBigInteger divQuot;
 	SecureBigInteger divRem;
-	SecureBigInteger::DivideAndModulus(SecureBigInteger(5), SecureBigInteger(0), divQuot, divRem);
-	Report(ctx, divQuot.ToString() == String(PHANTASMA_LITERAL("0")), "SecureBigInt div0 quot");
-	Report(ctx, divRem.ToString() == String(PHANTASMA_LITERAL("0")), "SecureBigInt div0 rem");
+	ExpectThrowContains(ctx, "SecureBigInt div0", "divide by zero", [&]()
+	    { SecureBigInteger::DivideAndModulus(SecureBigInteger(5), SecureBigInteger(0), divQuot, divRem); });
 
 	SecureBigInteger::DivideAndModulus(SecureBigInteger(3), SecureBigInteger(10), divQuot, divRem);
 	Report(ctx, divQuot.ToString() == String(PHANTASMA_LITERAL("0")), "SecureBigInt div small quot");

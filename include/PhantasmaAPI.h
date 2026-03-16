@@ -466,7 +466,9 @@
 #define PHANTASMA_TRY try
 #define PHANTASMA_CATCH(x) catch( std::runtime_error & x )
 #define PHANTASMA_CATCH_ALL() catch( ... )
+#ifndef PHANTASMA_EXCEPTION_ENABLE
 #define PHANTASMA_EXCEPTION_ENABLE
+#endif
 #endif
 #endif
 

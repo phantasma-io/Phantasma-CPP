@@ -19,9 +19,11 @@ class BinaryWriter
 		stream.reserve(sizeHint);
 	}
 
+	void Clear() { stream.clear(); }
 	UInt32 Position() const { return (UInt32)stream.size(); }
 
-	const ByteArray& ToArray() { return stream; }
+	const ByteArray& ToArray() const { return stream; }
+	ByteArray& ToArray() { return stream; }
 
 	void Write(uint8_t b)
 	{

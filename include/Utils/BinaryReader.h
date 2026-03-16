@@ -19,13 +19,22 @@ class BinaryReader
 	BinaryReader(const ByteArray& stream, int cursor = 0)
 	    : stream(stream), cursor((UInt32)cursor)
 	{
+		error = ((size_t)cursor >= stream.size());
 	}
 
+	bool Finished() const { return cursor == stream.size(); }
 	bool Error() const { return error; }
-
-	UInt32 Position() const { return cursor; }
-
 	const ByteArray& ToArray() { return stream; }
+	UInt32 Position() const { return cursor; }
+	void Seek(UInt32 position)
+	{
+		cursor = position;
+		if( cursor >= stream.size() )
+		{
+			error = true;
+			PHANTASMA_EXCEPTION("stream error");
+		}
+	}
 
 	Byte ReadByte()
 	{
@@ -64,7 +73,7 @@ class BinaryReader
 		uint8_t b0, b1;
 		Read(b0);
 		Read(b1);
-		b = ((uint16_t)b0) | (((uint16_t)b1) << 8);
+		b = (uint16_t)((int)b0) | (((int)b1) << 8);
 	}
 	void Read(int16_t& b)
 	{
@@ -165,14 +174,21 @@ class BinaryReader
 		Read(n);
 	}
 
-	void ReadByteArray(ByteArray& bytes)
+	void ReadByteArray(ByteArray& bytes, int maxToRead = 0)
 	{
 		Int64 numBytes = 0;
 		ReadVarInt(numBytes);
 		if( numBytes == 0 )
 			bytes.resize(0);
 		else
+		{
+			if( maxToRead && numBytes > maxToRead )
+			{
+				error = true;
+				PHANTASMA_EXCEPTION("Unexpected byte array size");
+			}
 			Read(bytes, (int)numBytes);
+		}
 	}
 	int ReadByteArray(Byte* bytes, int maxToRead)
 	{
@@ -198,6 +214,20 @@ class BinaryReader
 			error = true;
 			PHANTASMA_EXCEPTION("Unexpected byte array size");
 		}
+	}
+	template<int N>
+	int ReadFixedByteArray(Byte (&bytes)[N])
+	{
+		Int64 numBytes = 0;
+		ReadVarInt(numBytes);
+		if( numBytes != N )
+		{
+			// TODO(review): Revisit this compatibility workaround later.
+			// Introduced in commit f874ac654e56ab226be1761f362b89c1344f6e24 on 2025-03-27
+			// to tolerate legacy TS/Ecto payloads that advertise the wrong fixed length.
+		}
+		Read(bytes, N);
+		return (int)numBytes;
 	}
 
 	void ReadVarString(String& text)
