@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 
 #include "../Cryptography/SHA.h"
 #include "../Cryptography/Hash.h"
@@ -8,8 +8,7 @@
 #include "../Utils/Serializable.h"
 #include "../Utils/BinaryWriter.h"
 
-namespace phantasma
-{
+namespace phantasma {
 
 class Transaction : public Serializable
 {
@@ -20,51 +19,51 @@ class Transaction : public Serializable
 	String m_chainName;
 	PHANTASMA_VECTOR<Signature> m_signatures;
 	Hash m_hash;
-	struct StringToByteHelper
-	{
+	struct StringToByteHelper {
 		StringToByteHelper() = default;
 		ByteArray buffer;
 		int numBytes;
 	};
-public:
+
+  public:
 	const ByteArray& Script() const { return m_script; }
-	const String     NexusName() const { return m_nexusName; }
-	const String     ChainName() const { return m_chainName; }
-	const Timestamp  Expiration() const { return m_expiration; }
+	const String NexusName() const { return m_nexusName; }
+	const String ChainName() const { return m_chainName; }
+	const Timestamp Expiration() const { return m_expiration; }
 	const ByteArray& Payload() const { return m_payload; }
-	const Hash       GetHash() const { return m_hash; }
+	const Hash GetHash() const { return m_hash; }
 	const PHANTASMA_VECTOR<Signature> Signatures() const { return m_signatures; }
 
 	template<class BinaryReader>
-	static Transaction Unserialize( Byte* bytes, int numBytes )
+	static Transaction Unserialize(Byte* bytes, int numBytes)
 	{
-		BinaryReader reader( bytes, numBytes );
-		return Unserialize( reader );
+		BinaryReader reader(bytes, numBytes);
+		return Unserialize(reader);
 	}
 
 	template<class BinaryReader>
-	static Transaction Unserialize( BinaryReader& reader )
+	static Transaction Unserialize(BinaryReader& reader)
 	{
 		Transaction tx;
-		tx.UnserializeData( reader );
+		tx.UnserializeData(reader);
 		return tx;
 	}
 
 	template<class BinaryWriter>
-	void Serialize( BinaryWriter& writer, bool withSignature ) const
+	void Serialize(BinaryWriter& writer, bool withSignature) const
 	{
-		writer.WriteVarString( m_nexusName );
-		writer.WriteVarString( m_chainName );
-		writer.WriteByteArray( m_script );
-		writer.Write( m_expiration.Value );
-		writer.WriteByteArray( m_payload );
+		writer.WriteVarString(m_nexusName);
+		writer.WriteVarString(m_chainName);
+		writer.WriteByteArray(m_script);
+		writer.Write(m_expiration.Value);
+		writer.WriteByteArray(m_payload);
 
 		if( withSignature )
 		{
-			writer.WriteVarInt( m_signatures.size() );
+			writer.WriteVarInt(m_signatures.size());
 			for( const auto& signature : m_signatures )
 			{
-				writer.WriteSignature( signature );
+				writer.WriteSignature(signature);
 			}
 		}
 	}
@@ -78,49 +77,46 @@ public:
 	{
 	}
 
-	Transaction( const Char* nexusName, const Char* chainName, const ByteArray& script, Timestamp expiration, const String& payload, StringToByteHelper temp=StringToByteHelper() )
-		: Transaction(nexusName, chainName, script, expiration, GetUTF8Bytes(payload, temp.buffer, temp.numBytes), -1)
+	Transaction(const Char* nexusName, const Char* chainName, const ByteArray& script, Timestamp expiration, const String& payload, StringToByteHelper temp = StringToByteHelper())
+	    : Transaction(nexusName, chainName, script, expiration, GetUTF8Bytes(payload, temp.buffer, temp.numBytes), -1)
 	{
 	}
 
-	Transaction( const Char* nexusName, const Char* chainName, const ByteArray& script, Timestamp expiration, const ByteArray& payload )
-		: Transaction(nexusName, chainName, script, expiration, payload.empty() ? 0 : &payload.front(), (int)payload.size())
+	Transaction(const Char* nexusName, const Char* chainName, const ByteArray& script, Timestamp expiration, const ByteArray& payload)
+	    : Transaction(nexusName, chainName, script, expiration, payload.empty() ? 0 : &payload.front(), (int)payload.size())
 	{
 	}
-	
-    // transactions are always created unsigned, call Sign() to generate signatures
-	Transaction( const Char* nexusName, const Char* chainName, const ByteArray& script, Timestamp expiration, const Byte* payload=0, int payloadLength=0 )
-		: m_nexusName(nexusName)
-		, m_chainName(chainName)
-		, m_script(script)
-		, m_expiration(expiration)
+
+	// transactions are always created unsigned, call Sign() to generate signatures
+	Transaction(const Char* nexusName, const Char* chainName, const ByteArray& script, Timestamp expiration, const Byte* payload = 0, int payloadLength = 0)
+	    : m_nexusName(nexusName), m_chainName(chainName), m_script(script), m_expiration(expiration)
 	{
-		if(script.empty())
+		if( script.empty() )
 		{
 			PHANTASMA_EXCEPTION("null script in transaction");
 			return;
 		}
-		if(payload && payloadLength != 0)
+		if( payload && payloadLength != 0 )
 		{
-			if(payloadLength < 0)
+			if( payloadLength < 0 )
 				payloadLength = (int)PHANTASMA_STRLEN((Char*)payload);
 			m_payload.resize(payloadLength);
-			PHANTASMA_COPY( payload, payload+payloadLength, m_payload.begin() );
+			PHANTASMA_COPY(payload, payload + payloadLength, m_payload.begin());
 		}
 		UpdateHash();
 	}
 
-	ByteArray ToByteArray( bool withSignature ) const
+	ByteArray ToByteArray(bool withSignature) const
 	{
 		BinaryWriter writer;
-		Serialize( writer, withSignature );
+		Serialize(writer, withSignature);
 		return writer.ToArray();
 	}
 
-//	String ToRawTransaction() const
-//	{
-//		return Base16::Encode(ToByteArray(true));
-//
+	//	String ToRawTransaction() const
+	//	{
+	//		return Base16::Encode(ToByteArray(true));
+	//
 
 	bool HasSignatures() const
 	{
@@ -128,31 +124,31 @@ public:
 	}
 
 	template<class IKeyPair>
-	void Sign( const IKeyPair& keypair )
+	void Sign(const IKeyPair& keypair)
 	{
-		auto msg = ToByteArray( false );
+		auto msg = ToByteArray(false);
 
 		//m_signatures.clear();
-		m_signatures.push_back( Signature{keypair.Sign( msg )} );
+		m_signatures.push_back(Signature{ keypair.Sign(msg) });
 	}
 
-	bool IsSignedBy( Address address )
+	bool IsSignedBy(Address address)
 	{
-		return IsSignedBy( &address, 1 );
+		return IsSignedBy(&address, 1);
 	}
 
-	bool IsSignedBy( const Address* addresses, int numAddresses )
+	bool IsSignedBy(const Address* addresses, int numAddresses)
 	{
 		if( !HasSignatures() )
 		{
 			return false;
 		}
 
-		auto msg = ToByteArray( false );
+		auto msg = ToByteArray(false);
 
-		for(const auto& signature : m_signatures)
+		for( const auto& signature : m_signatures )
 		{
-			if(signature.Verify( &msg.front(), (int)msg.size(), addresses, numAddresses ))
+			if( signature.Verify(&msg.front(), (int)msg.size(), addresses, numAddresses) )
 			{
 				return true;
 			}
@@ -167,22 +163,22 @@ public:
 		return (chain.Name() == m_chainName && chain.Nexus().Name() == m_nexusName);
 	}
 
-private:
+  private:
 	void UpdateHash()
 	{
-		auto data = ToByteArray( false );
-		auto hash = SHA256( data );
-		m_hash = Hash( hash );
+		auto data = ToByteArray(false);
+		auto hash = SHA256(data);
+		m_hash = Hash(hash);
 	}
-public:
 
-	void SerializeData( BinaryWriter& writer ) const
+  public:
+	void SerializeData(BinaryWriter& writer) const
 	{
-		Serialize( writer, true );
+		Serialize(writer, true);
 	}
 
 	template<class BinaryReader>
-	void UnserializeData( BinaryReader& reader )
+	void UnserializeData(BinaryReader& reader)
 	{
 		reader.ReadVarString(m_nexusName);
 		reader.ReadVarString(m_chainName);
@@ -197,7 +193,7 @@ public:
 			reader.ReadVarInt(varInt);
 			int signatureCount = (int)varInt;
 			m_signatures.resize(signatureCount);
-			for(int i = 0; i < signatureCount; i++)
+			for( int i = 0; i < signatureCount; i++ )
 			{
 				reader.ReadSignature(m_signatures[i]);
 			}
@@ -211,43 +207,43 @@ public:
 	}
 
 	template<class ProofOfWork>
-	void Mine( ProofOfWork targetDifficulty )
+	void Mine(ProofOfWork targetDifficulty)
 	{
-		Mine( (int)targetDifficulty );
+		Mine((int)targetDifficulty);
 	}
 
-	bool Mine( int targetDifficulty )
+	bool Mine(int targetDifficulty)
 	{
 		if( targetDifficulty < 0 || targetDifficulty > 256 )
 		{
-			PHANTASMA_EXCEPTION( "invalid difficulty" );
+			PHANTASMA_EXCEPTION("invalid difficulty");
 			return false;
 		}
 		if( m_signatures.size() > 0 )
 		{
-			PHANTASMA_EXCEPTION( "cannot be signed" );
+			PHANTASMA_EXCEPTION("cannot be signed");
 			return false;
 		}
 
-		if(targetDifficulty == 0)
+		if( targetDifficulty == 0 )
 		{
-			return true; // no mining necessary 
+			return true; // no mining necessary
 		}
 
 		UInt32 nonce = 0;
 
 		UInt32 payloadSize = 4;
 
-		while(true)
+		while( true )
 		{
-			if(GetHash().GetDifficulty() >= targetDifficulty)
+			if( GetHash().GetDifficulty() >= targetDifficulty )
 			{
 				return true;
 			}
 
-			if(nonce == 0)
+			if( nonce == 0 )
 			{
-				if (m_payload.empty())
+				if( m_payload.empty() )
 				{
 					m_payload = ByteArray(4);
 				}
@@ -259,9 +255,9 @@ public:
 			}
 
 			nonce++;
-			if(nonce == 0)
+			if( nonce == 0 )
 			{
-				PHANTASMA_EXCEPTION( "Transaction mining failed" );
+				PHANTASMA_EXCEPTION("Transaction mining failed");
 				return false;
 			}
 
@@ -274,4 +270,4 @@ public:
 	}
 };
 
-}
+} // namespace phantasma

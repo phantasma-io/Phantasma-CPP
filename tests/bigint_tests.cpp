@@ -6,7 +6,7 @@ using namespace testutil;
 static bool TryOpenFixture(std::ifstream& file, const char* name)
 {
 	file.open(std::string("tests/fixtures/") + name);
-	if (!file.is_open())
+	if( !file.is_open() )
 	{
 		file.open(std::string("fixtures/") + name);
 	}
@@ -19,7 +19,7 @@ static bool SplitColumns(const std::string& line, std::vector<std::string>& cols
 	cols.clear();
 	std::stringstream ss(line);
 	std::string col;
-	while (std::getline(ss, col, '\t'))
+	while( std::getline(ss, col, '\t') )
 	{
 		cols.push_back(col);
 	}
@@ -29,7 +29,7 @@ static bool SplitColumns(const std::string& line, std::vector<std::string>& cols
 void RunBigIntSerializationTests(TestContext& ctx)
 {
 	std::ifstream file;
-	if (!TryOpenFixture(file, "phantasma_bigint_vectors.tsv"))
+	if( !TryOpenFixture(file, "phantasma_bigint_vectors.tsv") )
 	{
 		Report(ctx, false, "BigInt fixture", "missing phantasma_bigint_vectors.tsv");
 		return;
@@ -37,23 +37,23 @@ void RunBigIntSerializationTests(TestContext& ctx)
 
 	std::string line;
 	bool header = true;
-	while (std::getline(file, line))
+	while( std::getline(file, line) )
 	{
-		if (line.empty())
+		if( line.empty() )
 		{
 			continue;
 		}
-		if (header)
+		if( header )
 		{
 			header = false;
 			continue;
 		}
 		std::vector<std::string> cols;
-		if (!SplitColumns(line, cols))
+		if( !SplitColumns(line, cols) )
 		{
 			continue;
 		}
-		if (cols.size() < 3)
+		if( cols.size() < 3 )
 		{
 			continue;
 		}
@@ -73,8 +73,8 @@ void RunBigIntSerializationTests(TestContext& ctx)
 		Report(ctx, fromSigned.ToString() == String(number.c_str()), "BigInt FromSignedArray " + number);
 
 		const BigInteger fromSignedPtr = BigInteger::FromSignedArray(
-			expectedPha.empty() ? nullptr : expectedPha.data(),
-			(int)expectedPha.size());
+		    expectedPha.empty() ? nullptr : expectedPha.data(),
+		    (int)expectedPha.size());
 		Report(ctx, fromSignedPtr.ToString() == String(number.c_str()), "BigInt FromSignedArray ptr " + number);
 
 		Report(ctx, n.IsZero() == isZero, "BigInt IsZero " + number);
@@ -84,7 +84,7 @@ void RunBigIntSerializationTests(TestContext& ctx)
 		Report(ctx, absVal.ToString() == String(absText.c_str()), "BigInt Abs " + number);
 
 		const BigInteger neg = -n;
-		if (isZero)
+		if( isZero )
 		{
 			Report(ctx, neg == n, "BigInt Negate zero " + number);
 		}
@@ -98,10 +98,10 @@ void RunBigIntSerializationTests(TestContext& ctx)
 		writer.WriteBigInteger(n);
 		const ByteArray serialized = writer.ToArray();
 		const bool lengthOk = serialized.size() == expectedPha.size() + 1 &&
-			!serialized.empty() &&
-			serialized[0] == (Byte)expectedPha.size();
+		                      !serialized.empty() &&
+		                      serialized[0] == (Byte)expectedPha.size();
 		Report(ctx, lengthOk, "BigInt PHA length " + number);
-		if (lengthOk)
+		if( lengthOk )
 		{
 			ByteArray serializedBytes;
 			serializedBytes.assign(serialized.begin() + 1, serialized.end());
@@ -138,7 +138,7 @@ void RunBigIntOperationFixtureTests(TestContext& ctx)
 	// Fixture: phantasma_bigint_ops.tsv
 	// Columns: a, b, shift, cmp, add, sub, mul, div, mod, shl, shr (C# BigInteger semantics).
 	std::ifstream file;
-	if (!TryOpenFixture(file, "phantasma_bigint_ops.tsv"))
+	if( !TryOpenFixture(file, "phantasma_bigint_ops.tsv") )
 	{
 		Report(ctx, false, "BigInt ops fixture", "missing phantasma_bigint_ops.tsv");
 		return;
@@ -146,25 +146,25 @@ void RunBigIntOperationFixtureTests(TestContext& ctx)
 
 	std::string line;
 	bool header = true;
-	while (std::getline(file, line))
+	while( std::getline(file, line) )
 	{
-		if (line.empty())
+		if( line.empty() )
 		{
 			continue;
 		}
-		if (header)
+		if( header )
 		{
 			header = false;
 			continue;
 		}
 
 		std::vector<std::string> cols;
-		if (!SplitColumns(line, cols))
+		if( !SplitColumns(line, cols) )
 		{
 			continue;
 		}
 
-		if (cols.size() < 11)
+		if( cols.size() < 11 )
 		{
 			continue;
 		}
@@ -202,7 +202,7 @@ void RunBigIntBitwiseFixtureTests(TestContext& ctx)
 	// Fixture: phantasma_bigint_bitwise.tsv
 	// Columns: a, b, and, or, xor, notA, notB (two's complement semantics).
 	std::ifstream file;
-	if (!TryOpenFixture(file, "phantasma_bigint_bitwise.tsv"))
+	if( !TryOpenFixture(file, "phantasma_bigint_bitwise.tsv") )
 	{
 		Report(ctx, false, "BigInt bitwise fixture", "missing phantasma_bigint_bitwise.tsv");
 		return;
@@ -210,24 +210,24 @@ void RunBigIntBitwiseFixtureTests(TestContext& ctx)
 
 	std::string line;
 	bool header = true;
-	while (std::getline(file, line))
+	while( std::getline(file, line) )
 	{
-		if (line.empty())
+		if( line.empty() )
 		{
 			continue;
 		}
-		if (header)
+		if( header )
 		{
 			header = false;
 			continue;
 		}
 
 		std::vector<std::string> cols;
-		if (!SplitColumns(line, cols))
+		if( !SplitColumns(line, cols) )
 		{
 			continue;
 		}
-		if (cols.size() < 7)
+		if( cols.size() < 7 )
 		{
 			continue;
 		}
@@ -258,7 +258,7 @@ void RunBigIntPowFixtureTests(TestContext& ctx)
 	// Fixture: phantasma_bigint_pow.tsv
 	// Columns: a, exp, pow (BigInteger.Pow with non-negative exponent).
 	std::ifstream file;
-	if (!TryOpenFixture(file, "phantasma_bigint_pow.tsv"))
+	if( !TryOpenFixture(file, "phantasma_bigint_pow.tsv") )
 	{
 		Report(ctx, false, "BigInt pow fixture", "missing phantasma_bigint_pow.tsv");
 		return;
@@ -266,24 +266,24 @@ void RunBigIntPowFixtureTests(TestContext& ctx)
 
 	std::string line;
 	bool header = true;
-	while (std::getline(file, line))
+	while( std::getline(file, line) )
 	{
-		if (line.empty())
+		if( line.empty() )
 		{
 			continue;
 		}
-		if (header)
+		if( header )
 		{
 			header = false;
 			continue;
 		}
 
 		std::vector<std::string> cols;
-		if (!SplitColumns(line, cols))
+		if( !SplitColumns(line, cols) )
 		{
 			continue;
 		}
-		if (cols.size() < 3)
+		if( cols.size() < 3 )
 		{
 			continue;
 		}
@@ -306,7 +306,7 @@ void RunBigIntModPowFixtureTests(TestContext& ctx)
 	// Fixture: phantasma_bigint_modpow.tsv
 	// Columns: a, exp, mod, modpow (supports negative exp via ModInverse path).
 	std::ifstream file;
-	if (!TryOpenFixture(file, "phantasma_bigint_modpow.tsv"))
+	if( !TryOpenFixture(file, "phantasma_bigint_modpow.tsv") )
 	{
 		Report(ctx, false, "BigInt modpow fixture", "missing phantasma_bigint_modpow.tsv");
 		return;
@@ -314,24 +314,24 @@ void RunBigIntModPowFixtureTests(TestContext& ctx)
 
 	std::string line;
 	bool header = true;
-	while (std::getline(file, line))
+	while( std::getline(file, line) )
 	{
-		if (line.empty())
+		if( line.empty() )
 		{
 			continue;
 		}
-		if (header)
+		if( header )
 		{
 			header = false;
 			continue;
 		}
 
 		std::vector<std::string> cols;
-		if (!SplitColumns(line, cols))
+		if( !SplitColumns(line, cols) )
 		{
 			continue;
 		}
-		if (cols.size() < 4)
+		if( cols.size() < 4 )
 		{
 			continue;
 		}
@@ -356,7 +356,7 @@ void RunBigIntModInverseFixtureTests(TestContext& ctx)
 	// Fixture: phantasma_bigint_modinv.tsv
 	// Columns: a, mod, inv (inverse defined for coprime values).
 	std::ifstream file;
-	if (!TryOpenFixture(file, "phantasma_bigint_modinv.tsv"))
+	if( !TryOpenFixture(file, "phantasma_bigint_modinv.tsv") )
 	{
 		Report(ctx, false, "BigInt modinv fixture", "missing phantasma_bigint_modinv.tsv");
 		return;
@@ -364,24 +364,24 @@ void RunBigIntModInverseFixtureTests(TestContext& ctx)
 
 	std::string line;
 	bool header = true;
-	while (std::getline(file, line))
+	while( std::getline(file, line) )
 	{
-		if (line.empty())
+		if( line.empty() )
 		{
 			continue;
 		}
-		if (header)
+		if( header )
 		{
 			header = false;
 			continue;
 		}
 
 		std::vector<std::string> cols;
-		if (!SplitColumns(line, cols))
+		if( !SplitColumns(line, cols) )
 		{
 			continue;
 		}
-		if (cols.size() < 3)
+		if( cols.size() < 3 )
 		{
 			continue;
 		}
@@ -402,8 +402,7 @@ void RunBigIntModInverseFixtureTests(TestContext& ctx)
 void RunBigIntParseFormatTests(TestContext& ctx)
 {
 	// Use explicit expected strings so parse/format behavior is validated without round-trip bias.
-	struct ToStringCase
-	{
+	struct ToStringCase {
 		Int64 value;
 		const Char* expected;
 	};
@@ -416,15 +415,14 @@ void RunBigIntParseFormatTests(TestContext& ctx)
 		{ 9223372036854775807LL, PHANTASMA_LITERAL("9223372036854775807") },
 	};
 
-	for (const auto& testCase : toStringCases)
+	for( const auto& testCase : toStringCases )
 	{
 		const BigInteger n(testCase.value);
 		const std::string label = "BigInt ToString " + std::to_string(testCase.value);
 		Report(ctx, n.ToString() == String(testCase.expected), label);
 	}
 
-	struct ParseCase
-	{
+	struct ParseCase {
 		const Char* text;
 		int radix;
 		const Char* expected;
@@ -446,13 +444,13 @@ void RunBigIntParseFormatTests(TestContext& ctx)
 		{ PHANTASMA_LITERAL("\n\r-42\r\n"), 10, PHANTASMA_LITERAL("-42"), true, -42 },
 	};
 
-	for (size_t i = 0; i < sizeof(parseCases) / sizeof(parseCases[0]); ++i)
+	for( size_t i = 0; i < sizeof(parseCases) / sizeof(parseCases[0]); ++i )
 	{
 		// Mix radix and formatting variations (leading zeros, sign, lowercase hex, trailing newline).
 		const ParseCase& testCase = parseCases[i];
 		const BigInteger n = BigInteger::Parse(String(testCase.text), testCase.radix);
 		Report(ctx, n.ToString() == String(testCase.expected), "BigInt Parse case " + std::to_string(i + 1));
-		if (testCase.checkInt64)
+		if( testCase.checkInt64 )
 		{
 			Report(ctx, (Int64)n == testCase.expectedInt64, "BigInt Parse int64 case " + std::to_string(i + 1));
 		}
@@ -563,9 +561,8 @@ void RunBigIntByteArrayTests(TestContext& ctx)
 	Report(ctx, written == 4, "BigInt ToUnsignedByteArray write size");
 	Report(ctx, memcmp(buffer, expectedUnsigned.data(), expectedUnsigned.size()) == 0, "BigInt ToUnsignedByteArray write bytes");
 
-	ExpectThrowContains(ctx, "BigInt ToUnsignedByteArray short buffer", "invalid argument", [&]() {
-		(void)n.ToUnsignedByteArray(buffer, 1);
-	});
+	ExpectThrowContains(ctx, "BigInt ToUnsignedByteArray short buffer", "invalid argument", [&]()
+	    { (void)n.ToUnsignedByteArray(buffer, 1); });
 
 	const int zeroSize = BigInteger(0).ToUnsignedByteArray(nullptr, 0);
 	Report(ctx, zeroSize == 0, "BigInt ToUnsignedByteArray size zero");
@@ -619,9 +616,8 @@ void RunBigIntBitHelperTests(TestContext& ctx)
 	Report(ctx, bigShift.TestBit(100), "BigInt TestBit large on");
 	Report(ctx, !bigShift.TestBit(99), "BigInt TestBit large off");
 
-	ExpectThrowContains(ctx, "BigInt Sqrt negative", "cannot be negative", []() {
-		(void)BigInteger(-1).Sqrt();
-	});
+	ExpectThrowContains(ctx, "BigInt Sqrt negative", "cannot be negative", []()
+	    { (void)BigInteger(-1).Sqrt(); });
 }
 
 void RunBigIntConstructorTests(TestContext& ctx)
@@ -1034,9 +1030,8 @@ void RunSecureBigIntTests(TestContext& ctx)
 	// Invalid chars should set out_error; exceptions may be disabled in this build.
 	bool secInvalidError = false;
 #ifdef PHANTASMA_EXCEPTION_ENABLE
-	ExpectThrowContains(ctx, "SecureBigInt ctor chars invalid", "Invalid string", [&]() {
-		SecureBigInteger invalid(PHANTASMA_LITERAL("12Z"), 0, 10, &secInvalidError);
-	});
+	ExpectThrowContains(ctx, "SecureBigInt ctor chars invalid", "Invalid string", [&]()
+	    { SecureBigInteger invalid(PHANTASMA_LITERAL("12Z"), 0, 10, &secInvalidError); });
 	Report(ctx, secInvalidError, "SecureBigInt ctor chars invalid error");
 #else
 	SecureBigInteger invalid(PHANTASMA_LITERAL("12Z"), 0, 10, &secInvalidError);

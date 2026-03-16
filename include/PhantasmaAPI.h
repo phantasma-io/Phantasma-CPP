@@ -100,8 +100,8 @@
 //------------------------------------------------------------------------------
 // High-level API
 //------------------------------------------------------------------------------
-//  If you have defined `PHANTASMA_HTTPCLIENT`, then you can construct a 
-//   PhantasmaAPI object, which provides a simplified API that hides the 
+//  If you have defined `PHANTASMA_HTTPCLIENT`, then you can construct a
+//   PhantasmaAPI object, which provides a simplified API that hides the
 //   internal JSON messaging.
 //
 //     PhantasmaAPI phantasmaAPI(httpClient);
@@ -154,7 +154,7 @@
 //------------------------------------------------------------------------------
 // API configuration
 //------------------------------------------------------------------------------
-// As different C++ projects may use different primitive types, you can use the 
+// As different C++ projects may use different primitive types, you can use the
 //  following #defines (BEFORE including `phantasma.h`) to override the default types.
 //
 // |#define                  | typedef                   | Default             | Notes                                                  |
@@ -174,22 +174,22 @@
 // |`PHANTASMA_JSONBUILDER`  | `phantasma::JSONBuilder`  | `std::stringstream`*| See JSON and Adaptors section                          |
 // |`PHANTASMA_HTTPCLIENT`   | `phantasma::HttpClient`   |                     | See HTTP and Adaptors section                          |
 //
-// The behavior of this header can further be modified by using the following 
+// The behavior of this header can further be modified by using the following
 //  `#defines` (BEFORE including `phantasma.h`)
-// 
+//
 // |#define                                        | Notes                   |
 // |-----------------------------------------------|-------------------------|
 // |`PHANTASMA_EXCEPTION(message)`                 | See Exceptions section  |
 // |`PHANTASMA_EXCEPTION_MESSAGE(message, String)` | See Exceptions section  |
 // |`PHANTASMA_LITERAL(x)`                         | See Unicode section     |
-// |`PHANTASMA_FUNCTION`                           | See Integration section |        
+// |`PHANTASMA_FUNCTION`                           | See Integration section |
 // |`PHANTASMA_IMPLEMENTATION`                     | See Integration section |
 //
 //------------------------------------------------------------------------------
 // Integration
 //------------------------------------------------------------------------------
-// The core of API is provided in the "single header" style to support simple and 
-//  flexible integration into your project 
+// The core of API is provided in the "single header" style to support simple and
+//  flexible integration into your project
 //  (see https://github.com/nothings/single_file_libs / https://en.wikipedia.org/wiki/Header-only).
 // The implementation of function bodies will be excluded unless you define
 //  `PHANTASMA_IMPLEMENTATION` before including `phantasma.h`.
@@ -200,13 +200,13 @@
 // Typical linking:
 //  In one CPP file, before including `phantasma.h`:
 //   `#define PHANTASMA_IMPLEMENTATION`
-// 
+//
 // Inline linking:
 //  In every CPP file that uses the API, before including `phantasma.h`:
 //   `#define PHANTASMA_IMPLEMENTATION`
 //   `#define PHANTASMA_FUNCTION inline`
 //
-// Aside from `PHANTASMA_IMPLEMENTATION` / `PHANTASMA_FUNCTION`, you should take 
+// Aside from `PHANTASMA_IMPLEMENTATION` / `PHANTASMA_FUNCTION`, you should take
 //  care to ensure that every other PHANTASMA_* macro is defined to the same value
 //  in all of your CPP files that use the phantasma API.
 //
@@ -246,7 +246,7 @@
 //  as HTTP communications, JSON encoding and advanced cryptography.
 // You can configure the SDK to connect to your own implemenations, or existing
 //  libraries.
-// To make integration easier, we provide several "adaptor" header files that 
+// To make integration easier, we provide several "adaptor" header files that
 //  contain the required configuration to connect the Phantasma SDK to existing
 //  popular open source libraries for different features:
 //
@@ -277,9 +277,9 @@
 // If you have supplied your own JSON types, you must implement the following functions:
 //
 //     namespace phantasma { namespace json {
-//     
+//
 //        JSONValue Parse(const JSONDocument&);
-//     
+//
 //        bool      LookupBool(   const JSONValue&, const Char* field, bool& out_error);
 //        Int32     LookupInt32(  const JSONValue&, const Char* field, bool& out_error);
 //        UInt32    LookupUInt32( const JSONValue&, const Char* field, bool& out_error);
@@ -288,7 +288,7 @@
 //        JSONArray LookupArray(  const JSONValue&, const Char* field, bool& out_error);
 //        bool      HasField(     const JSONValue&, const Char* field, bool& out_error);
 //        bool      HasArrayField(const JSONValue&, const Char* field, bool& out_error);
-//     
+//
 //        bool      AsBool(       const JSONValue&,                    bool& out_error);
 //        Int32     AsInt32(      const JSONValue&,                    bool& out_error);
 //        UInt32    AsUInt32(     const JSONValue&,                    bool& out_error);
@@ -296,10 +296,10 @@
 //        JSONArray AsArray(      const JSONValue&,                    bool& out_error);
 //        bool      IsArray(      const JSONValue&,                    bool& out_error);
 //        bool      IsObject(     const JSONValue&,                    bool& out_error);
-//        
+//
 //        int       ArraySize(    const JSONArray&,                    bool& out_error);
 //        JSONValue IndexArray(   const JSONArray&, int index,         bool& out_error);
-//     
+//
 //                               void BeginObject(JSONBuilder&);
 //                               void AddString  (JSONBuilder&, const Char* key, const Char* value);
 //       template<class... Args> void AddArray   (JSONBuilder&, const Char* key, Args...);
@@ -313,7 +313,7 @@
 //  HTTP client library. If you do not supply a HTTP client library, then only
 //  the Low-level phantasma API (`PhantasmaJsonAPI`) is available.
 //
-// To enable the `PhantasmaAPI` class, defining the following macro before 
+// To enable the `PhantasmaAPI` class, defining the following macro before
 //  including `phantasma.h`:
 // `#define PHANTASMA_HTTPCLIENT   Your_HTTP_Client_Type`
 //
@@ -330,8 +330,8 @@
 //------------------------------------------------------------------------------
 // Extended/Advanced usage
 //------------------------------------------------------------------------------
-// This header file contains the entirety of the RPC API requried to communicate 
-//  with a Phantasma node. If you are not trying to create transactions, this 
+// This header file contains the entirety of the RPC API requried to communicate
+//  with a Phantasma node. If you are not trying to create transactions, this
 //  may be enough for you.
 //
 // However, for advanced usage, such as creating and signing transactions, much
@@ -350,11 +350,11 @@
 //------------------------------------------------------------------------------
 // - Extended/Advanced usage - Security configuration
 //------------------------------------------------------------------------------
-//   To securely process transactions and private keys, it is strongly advised to 
+//   To securely process transactions and private keys, it is strongly advised to
 //   pair the PhantasmaAPI with strong 3rd party security library.
 //
 //   **The Sodium adaptor implements these macros.**
-//   
+//
 //  |#define                      |                                                                                                              |
 //  |-----------------------------|--------------------------------------------------------------------------------------------------------------|
 //  |`PHANTASMA_RANDOMBYTES`      | Fill a memory range with cryptographically secure pseudo-random numbers                                      |
@@ -372,7 +372,7 @@
 //------------------------------------------------------------------------------
 //  To create or validate transactions, an EdDSA Ed25519 implementation is requied.
 //   The libSodium adaptor implements these macros.
-//   
+//
 //  |#define                                |                                                               |
 //  |---------------------------------------|---------------------------------------------------------------|
 //  |`PHANTASMA_Ed25519_PublicKeyFromSeed`  | Generate a 32 byte public key from a 32 byte seed.            |
@@ -381,7 +381,6 @@
 //  |`PHANTASMA_Ed25519_ValidateDetached`   | Validate a 64 byte signature using a public key.              |
 //
 //
-
 
 //------------------------------------------------------------------------------
 // API configuration section:
@@ -392,139 +391,147 @@
 #endif
 
 #if !defined(PHANTASMA_STRING) || !defined(PHANTASMA_JSONDOCUMENT) || !defined(PHANTASMA_JSONVALUE)
-# include <string>
-# include <cstdlib>
+#include <string>
+#include <cstdlib>
 #endif
 
 #if !defined(PHANTASMA_JSONVALUE) && __cplusplus > 201402L
-# include <string_view>
+#include <string_view>
 #endif
 
 #if !defined(PHANTASMA_JSONBUILDER) || !defined(PHANTASMA_STRINGBUILDER)
-# include <sstream>
+#include <sstream>
 #endif
 
 #if !defined(PHANTASMA_VECTOR)
 #define PHANTASMA_VECTOR std::vector
-# include <vector>
+#include <vector>
 #endif
 
 #if !defined(PHANTASMA_PAIR)
 #define PHANTASMA_PAIR std::pair
-# include <utility>
+#include <utility>
 #endif
 
 #if !defined(PHANTASMA_MAP)
 #define PHANTASMA_MAP std::map
-# include <map>
+#include <map>
 #endif
 
 #if !defined(PHANTASMA_S32) || !defined(PHANTASMA_U32)
-# include <cstdint>
+#include <cstdint>
 #endif
 
 #if !defined(PHANTASMA_MAX) || !defined(PHANTASMA_COPY) || !defined(PHANTASMA_EQUAL) || !defined(PHANTASMA_SWAP)
-# include <algorithm>
+#include <algorithm>
 #endif
 
 #if defined(_UNICODE) && !defined(PHANTASMA_EXCEPTION) && defined(PHANTASMA_EXCEPTION_ENABLE)
-# include <locale>
-# include <codecvt>
+#include <locale>
+#include <codecvt>
 #endif
 
 #ifndef PHANTASMA_MIN
-# ifdef min
-#  undef min
-# endif
-# define PHANTASMA_MIN(a, b) std::min(a, b)
+#ifdef min
+#undef min
+#endif
+#define PHANTASMA_MIN(a, b) std::min(a, b)
 #endif
 
 #ifndef PHANTASMA_MAX
-# ifdef max
-#  undef max
-# endif
-# define PHANTASMA_MAX(a, b) std::max(a, b)
+#ifdef max
+#undef max
+#endif
+#define PHANTASMA_MAX(a, b) std::max(a, b)
 #endif
 
 #ifndef PHANTASMA_SWAP
-# define PHANTASMA_SWAP(a, b) std::swap(a, b)
-#endif 
+#define PHANTASMA_SWAP(a, b) std::swap(a, b)
+#endif
 
 #ifndef PHANTASMA_COPY
-# define PHANTASMA_COPY(src, src_end, dst) std::copy(src, src_end, dst)
+#define PHANTASMA_COPY(src, src_end, dst) std::copy(src, src_end, dst)
 #endif
 
 #ifndef PHANTASMA_EQUAL
-# define PHANTASMA_EQUAL(a, b, c) std::equal(a, b, c)
+#define PHANTASMA_EQUAL(a, b, c) std::equal(a, b, c)
 #endif
 
 #if !defined(PHANTASMA_TRY)
-# if !defined(PHANTASMA_EXCEPTION) && !defined(PHANTASMA_EXCEPTION_ENABLE)
-#  define PHANTASMA_TRY         if(true)
-#  define PHANTASMA_CATCH( x )  else
-#  define PHANTASMA_CATCH_ALL() else
-# else
-#  define PHANTASMA_TRY		    try
-#  define PHANTASMA_CATCH( x )  catch(std::runtime_error& x)
-#  define PHANTASMA_CATCH_ALL() catch(...)
-#  define PHANTASMA_EXCEPTION_ENABLE
-# endif
+#if !defined(PHANTASMA_EXCEPTION) && !defined(PHANTASMA_EXCEPTION_ENABLE)
+#define PHANTASMA_TRY if( true )
+#define PHANTASMA_CATCH(x) else
+#define PHANTASMA_CATCH_ALL() else
+#else
+#define PHANTASMA_TRY try
+#define PHANTASMA_CATCH(x) catch( std::runtime_error & x )
+#define PHANTASMA_CATCH_ALL() catch( ... )
+#define PHANTASMA_EXCEPTION_ENABLE
+#endif
 #endif
 
 #if !defined(PHANTASMA_EXCEPTION)
-# ifdef PHANTASMA_EXCEPTION_ENABLE
-#  ifdef _UNICODE
-#   define PHANTASMA_EXCEPTION(literal)                 throw std::runtime_error(literal)
-#   define PHANTASMA_EXCEPTION_MESSAGE(literal, string) throw std::runtime_error(std::wstring_convert<std::codecvt_utf8<wchar_t>, wchar_t>().to_bytes(string))
-#  else
-#   define PHANTASMA_EXCEPTION(literal)                 throw std::runtime_error(literal)
-#   define PHANTASMA_EXCEPTION_MESSAGE(literal, string) throw std::runtime_error(string)
-#  endif
-# else
+#ifdef PHANTASMA_EXCEPTION_ENABLE
+#ifdef _UNICODE
+#define PHANTASMA_EXCEPTION(literal) throw std::runtime_error(literal)
+#define PHANTASMA_EXCEPTION_MESSAGE(literal, string) throw std::runtime_error(std::wstring_convert<std::codecvt_utf8<wchar_t>, wchar_t>().to_bytes(string))
+#else
+#define PHANTASMA_EXCEPTION(literal) throw std::runtime_error(literal)
+#define PHANTASMA_EXCEPTION_MESSAGE(literal, string) throw std::runtime_error(string)
+#endif
+#else
 // No-op when exceptions are disabled; keep arguments referenced to avoid warnings.
-#   define PHANTASMA_EXCEPTION(literal)                 do { (void)sizeof(literal); } while(0)
-#   define PHANTASMA_EXCEPTION_MESSAGE(literal, string) do { (void)sizeof(literal); (void)sizeof(string); } while(0)
-# endif
+#define PHANTASMA_EXCEPTION(literal) \
+	do                               \
+	{                                \
+		(void)sizeof(literal);       \
+	} while( 0 )
+#define PHANTASMA_EXCEPTION_MESSAGE(literal, string) \
+	do                                               \
+	{                                                \
+		(void)sizeof(literal);                       \
+		(void)sizeof(string);                        \
+	} while( 0 )
+#endif
 #endif
 
 #if !defined(PHANTASMA_LITERAL)
-# ifdef _UNICODE
-#  define PHANTASMA_LITERAL(x) L ## x
-# else
-#  define PHANTASMA_LITERAL(x) x
-# endif
+#ifdef _UNICODE
+#define PHANTASMA_LITERAL(x) L##x
+#else
+#define PHANTASMA_LITERAL(x) x
+#endif
 #endif
 
 #if !defined(PHANTASMA_FUNCTION)
-# define PHANTASMA_FUNCTION
+#define PHANTASMA_FUNCTION
 #endif
 
-namespace phantasma
-{
+namespace phantasma {
 #ifdef PHANTASMA_CHAR
 typedef PHANTASMA_CHAR Char;
 #else
-# ifdef _UNICODE
+#ifdef _UNICODE
 typedef wchar_t Char;
-# else
+#else
 typedef char Char;
-# endif
+#endif
 #endif
 
 #ifndef PHANTASMA_STRLEN
-# ifdef _UNICODE
-#  define PHANTASMA_STRLEN(x) wcslen(x)
-# else
-#  define PHANTASMA_STRLEN(x) strlen(x)
-# endif
+#ifdef _UNICODE
+#define PHANTASMA_STRLEN(x) wcslen(x)
+#else
+#define PHANTASMA_STRLEN(x) strlen(x)
+#endif
 #endif
 
 #ifndef PHANTASMA_STRTOINT
-# ifdef _UNICODE
-#  define PHANTASMA_STRTOINT(x) std::wcstoll(x, 0, 10)
-# else
-#  define PHANTASMA_STRTOINT(x) std::strtoll(x, 0, 10)
-# endif
+#ifdef _UNICODE
+#define PHANTASMA_STRTOINT(x) std::wcstoll(x, 0, 10)
+#else
+#define PHANTASMA_STRTOINT(x) std::strtoll(x, 0, 10)
+#endif
 #endif
 
 #ifdef PHANTASMA_BYTE
@@ -562,31 +569,31 @@ typedef uint64_t UInt64;
 #ifdef PHANTASMA_STRING
 typedef PHANTASMA_STRING String;
 #else
-# ifdef _UNICODE
+#ifdef _UNICODE
 typedef std::wstring String;
-# else
+#else
 typedef std::string String;
-# endif
+#endif
 #endif
 
 #ifdef PHANTASMA_STRINGBUILDER
 typedef PHANTASMA_STRINGBUILDER StringBuilder;
 #else
-# ifdef _UNICODE
+#ifdef _UNICODE
 typedef std::wstringstream StringBuilder;
-# else
+#else
 typedef std::stringstream StringBuilder;
-# endif
+#endif
 #endif
 
 #ifdef PHANTASMA_JSONVALUE
 typedef PHANTASMA_JSONVALUE JSONValue;
 #elif __cplusplus > 201402L
-# ifdef _UNICODE
+#ifdef _UNICODE
 typedef std::wstring_view JSONValue;
-# else
+#else
 typedef std::string_view JSONValue;
-# endif
+#endif
 #else
 typedef String JSONValue;
 #endif
@@ -603,7 +610,6 @@ typedef PHANTASMA_JSONDOCUMENT JSONDocument;
 typedef String JSONDocument;
 #endif
 
-
 #ifdef PHANTASMA_JSONBUILDER
 typedef PHANTASMA_JSONBUILDER JSONBuilder;
 #else
@@ -612,15 +618,41 @@ struct JSONBuilder // A VERY simple json string builder. Highly recommended that
 	StringBuilder s;
 	bool empty = true;
 	operator StringBuilder&() { return s; }
-	void AddKey(const Char* key) { if(!empty) { s << ", "; } empty = false; s << '"' << key << "\": "; }
+	void AddKey(const Char* key)
+	{
+		if( !empty )
+		{
+			s << ", ";
+		}
+		empty = false;
+		s << '"' << key << "\": ";
+	}
 	void AddValues() {}
 	void AddValues(const char* arg) { s << '"' << arg << '"'; }
-	template<class T> void AddValues(T arg) { s << arg; }
-	template<class T, class... Args> void AddValues(T arg0, Args... args) { AddValues(arg0); s << ", "; AddValues(args...); }
-	
+	template<class T>
+	void AddValues(T arg) { s << arg; }
+	template<class T, class... Args>
+	void AddValues(T arg0, Args... args)
+	{
+		AddValues(arg0);
+		s << ", ";
+		AddValues(args...);
+	}
+
 	void BeginObject() { s << "{"; }
-	void AddString(const Char* key, const Char* value) { AddKey(key); s << '"' << value << '"'; }
-	template<class... Args> void AddArray(const Char* key, Args... args) { AddKey(key); s << '['; AddValues(args...); s << ']'; }
+	void AddString(const Char* key, const Char* value)
+	{
+		AddKey(key);
+		s << '"' << value << '"';
+	}
+	template<class... Args>
+	void AddArray(const Char* key, Args... args)
+	{
+		AddKey(key);
+		s << '[';
+		AddValues(args...);
+		s << ']';
+	}
 	void EndObject() { s << "}"; }
 };
 #endif
@@ -631,43 +663,41 @@ typedef PHANTASMA_HTTPCLIENT HttpClient;
 #endif
 
 //If providing a JSON library (highly recommended that you do!), then you must provide these functions yourself:
-namespace json
-{
+namespace json {
 #ifndef PHANTASMA_JSONBUILDER
-    JSONValue Parse(const JSONDocument&);
-	bool LookupBool(const JSONValue&, const Char* field, bool& out_error);
-	Int32 LookupInt32(const JSONValue&, const Char* field, bool& out_error);
-	UInt32 LookupUInt32(const JSONValue&, const Char* field, bool& out_error);
-	Int64 LookupInt64(const JSONValue&, const Char* field, bool& out_error);
-	UInt64 LookupUInt64(const JSONValue&, const Char* field, bool& out_error);
-	String LookupString(const JSONValue&, const Char* field, bool& out_error);
-	JSONValue LookupValue(const JSONValue&, const Char* field, bool& out_error);
-	JSONArray LookupArray(const JSONValue&, const Char* field, bool& out_error);
-	bool HasField(const JSONValue&, const Char* field, bool& out_error);
-	bool HasArrayField(const JSONValue&, const Char* field, bool& out_error);
-	bool   AsBool(const JSONValue&, bool& out_error);
-	Int32  AsInt32(const JSONValue&, bool& out_error);
-	UInt32 AsUInt32(const JSONValue&, bool& out_error);
-	Int64  AsInt64(const JSONValue&, bool& out_error);
-	UInt64 AsUInt64(const JSONValue&, bool& out_error);
-	String AsString(const JSONValue&, bool& out_error);
-	JSONArray AsArray(const JSONValue&, bool& out_error);
-	bool IsArray(const JSONValue&, bool& out_error);
-	bool IsObject(const JSONValue&, bool& out_error);
+JSONValue Parse(const JSONDocument&);
+bool LookupBool(const JSONValue&, const Char* field, bool& out_error);
+Int32 LookupInt32(const JSONValue&, const Char* field, bool& out_error);
+UInt32 LookupUInt32(const JSONValue&, const Char* field, bool& out_error);
+Int64 LookupInt64(const JSONValue&, const Char* field, bool& out_error);
+UInt64 LookupUInt64(const JSONValue&, const Char* field, bool& out_error);
+String LookupString(const JSONValue&, const Char* field, bool& out_error);
+JSONValue LookupValue(const JSONValue&, const Char* field, bool& out_error);
+JSONArray LookupArray(const JSONValue&, const Char* field, bool& out_error);
+bool HasField(const JSONValue&, const Char* field, bool& out_error);
+bool HasArrayField(const JSONValue&, const Char* field, bool& out_error);
+bool AsBool(const JSONValue&, bool& out_error);
+Int32 AsInt32(const JSONValue&, bool& out_error);
+UInt32 AsUInt32(const JSONValue&, bool& out_error);
+Int64 AsInt64(const JSONValue&, bool& out_error);
+UInt64 AsUInt64(const JSONValue&, bool& out_error);
+String AsString(const JSONValue&, bool& out_error);
+JSONArray AsArray(const JSONValue&, bool& out_error);
+bool IsArray(const JSONValue&, bool& out_error);
+bool IsObject(const JSONValue&, bool& out_error);
 
-	int ArraySize(const JSONArray&, bool& out_error);
-	JSONValue IndexArray(const JSONArray&, int index, bool& out_error);
+int ArraySize(const JSONArray&, bool& out_error);
+JSONValue IndexArray(const JSONArray&, int index, bool& out_error);
 
-	void BeginObject(JSONBuilder&);
-	void AddString(JSONBuilder&, const Char* key, const Char* value);
-	template<class... Args>
-	void AddArray(JSONBuilder&, const Char* key, Args... args);
-	void EndObject(JSONBuilder&);
+void BeginObject(JSONBuilder&);
+void AddString(JSONBuilder&, const Char* key, const Char* value);
+template<class... Args>
+void AddArray(JSONBuilder&, const Char* key, Args... args);
+void EndObject(JSONBuilder&);
 #endif
-}
+} // namespace json
 
-namespace rpc
-{
+namespace rpc {
 //------------------------------------------------------------------------------
 // RPC structures:
 //------------------------------------------------------------------------------
@@ -682,157 +712,138 @@ enum class TokenSeriesMode
 	Duplicated
 };
 
-struct Balance
-{
-	String chain;//
-	String amount;//
-	String symbol;//
-	UInt32 decimals;//
-	PHANTASMA_VECTOR<String> ids;//
+struct Balance {
+	String chain; //
+	String amount; //
+	String symbol; //
+	UInt32 decimals; //
+	PHANTASMA_VECTOR<String> ids; //
 };
 
-struct Interop
-{
-	String local;//
-	String external;//
+struct Interop {
+	String local; //
+	String external; //
 };
 
 struct VmStructSchemaResult;
-struct VmVariableSchemaResult
-{
-	String type;//
-	std::shared_ptr<VmStructSchemaResult> schema;//
+struct VmVariableSchemaResult {
+	String type; //
+	std::shared_ptr<VmStructSchemaResult> schema; //
 };
 
-struct VmNamedVariableSchemaResult
-{
-	String name;//
-	VmVariableSchemaResult schema;//
+struct VmNamedVariableSchemaResult {
+	String name; //
+	VmVariableSchemaResult schema; //
 };
 
-struct VmStructSchemaResult
-{
-	PHANTASMA_VECTOR<VmNamedVariableSchemaResult> fields;//
-	Int32 flags;//
+struct VmStructSchemaResult {
+	PHANTASMA_VECTOR<VmNamedVariableSchemaResult> fields; //
+	Int32 flags; //
 };
 
-struct TokenSchemas
-{
-	VmStructSchemaResult seriesMetadata;//
-	VmStructSchemaResult rom;//
-	VmStructSchemaResult ram;//
+struct TokenSchemas {
+	VmStructSchemaResult seriesMetadata; //
+	VmStructSchemaResult rom; //
+	VmStructSchemaResult ram; //
 };
 
-struct Platform
-{
-	String platform;//
-	String chain;//
-	String fuel;//
-	PHANTASMA_VECTOR<String> tokens;//
-	PHANTASMA_VECTOR<Interop> interop;//
+struct Platform {
+	String platform; //
+	String chain; //
+	String fuel; //
+	PHANTASMA_VECTOR<String> tokens; //
+	PHANTASMA_VECTOR<Interop> interop; //
 };
 
-struct Governance
-{
-	String name;//
-	String value;//
+struct Governance {
+	String name; //
+	String value; //
 };
 
-struct Organization
-{
-	String id;//
-	String name;//
-	PHANTASMA_VECTOR<String> members;//
+struct Organization {
+	String id; //
+	String name; //
+	PHANTASMA_VECTOR<String> members; //
 };
 
-struct Nexus
-{
-	String name;//
-	PHANTASMA_VECTOR<Platform> platforms;//
-	PHANTASMA_VECTOR<Token> tokens;//
-	PHANTASMA_VECTOR<Chain> chains;//
-	PHANTASMA_VECTOR<Governance> governance;//
-	PHANTASMA_VECTOR<String> organizations;//
+struct Nexus {
+	String name; //
+	PHANTASMA_VECTOR<Platform> platforms; //
+	PHANTASMA_VECTOR<Token> tokens; //
+	PHANTASMA_VECTOR<Chain> chains; //
+	PHANTASMA_VECTOR<Governance> governance; //
+	PHANTASMA_VECTOR<String> organizations; //
 };
 
-struct Stake
-{
-	String amount;//
-	UInt32 time;//
-	String unclaimed;//
+struct Stake {
+	String amount; //
+	UInt32 time; //
+	String unclaimed; //
 };
 
-struct Archive
-{
-	String name;//
-	String hash;//
-	UInt32 time;//
-	UInt32 size;//
-	String encryption;//
-	Int32 blockCount;//
-	PHANTASMA_VECTOR<Int32> missingBlocks;//
-	PHANTASMA_VECTOR<String> owners;//
+struct Archive {
+	String name; //
+	String hash; //
+	UInt32 time; //
+	UInt32 size; //
+	String encryption; //
+	Int32 blockCount; //
+	PHANTASMA_VECTOR<Int32> missingBlocks; //
+	PHANTASMA_VECTOR<String> owners; //
 };
 
-struct Storage
-{
-	UInt32 available;//
-	UInt32 used;//
-	String avatar;//
-	PHANTASMA_VECTOR<Archive> archives;//
+struct Storage {
+	UInt32 available; //
+	UInt32 used; //
+	String avatar; //
+	PHANTASMA_VECTOR<Archive> archives; //
 };
 
-struct Account
-{
-	String address;//
-	String name;//
-	Stake stakes;//
-	String stake;//
-	String unclaimed;//
-	String relay;//
-	String validator;//
-	Storage storage;//
-	PHANTASMA_VECTOR<Balance> balances;//
-	PHANTASMA_VECTOR<String> txs;//
+struct Account {
+	String address; //
+	String name; //
+	Stake stakes; //
+	String stake; //
+	String unclaimed; //
+	String relay; //
+	String validator; //
+	Storage storage; //
+	PHANTASMA_VECTOR<Balance> balances; //
+	PHANTASMA_VECTOR<String> txs; //
 };
 
-struct LeaderboardRow
-{
-	String address;//
-	String value;//
+struct LeaderboardRow {
+	String address; //
+	String value; //
 };
 
-struct Leaderboard
-{
-	String name;//
-	PHANTASMA_VECTOR<LeaderboardRow> rows;//
+struct Leaderboard {
+	String name; //
+	PHANTASMA_VECTOR<LeaderboardRow> rows; //
 };
 
-struct Dapp
-{
-	String name;//
-	String address;//
-	String chain;//
+struct Dapp {
+	String name; //
+	String address; //
+	String chain; //
 };
 
-struct Chain
-{
-	String name;//
-	String address;//
-	String parent;//
-	UInt32 height;//
-	String organization;//
-	PHANTASMA_VECTOR<String> contracts;//
-	PHANTASMA_VECTOR<String> dapps;//
+struct Chain {
+	String name; //
+	String address; //
+	String parent; //
+	UInt32 height; //
+	String organization; //
+	PHANTASMA_VECTOR<String> contracts; //
+	PHANTASMA_VECTOR<String> dapps; //
 };
 
-struct Event
-{
-	String address;//
-	String contract;//
-	String kind;//
-	String name;//
-	String data;//
+struct Event {
+	String address; //
+	String contract; //
+	String kind; //
+	String name; //
+	String data; //
 };
 
 enum class ExtendedEventType
@@ -845,339 +856,306 @@ enum class ExtendedEventType
 	SpecialResolution
 };
 
-struct TokenCreateData
-{
-	String symbol;//
-	String maxSupply;//
-	UInt32 decimals;//
-	bool isNonFungible;//
-	UInt64 carbonTokenId;//
-	PHANTASMA_MAP<String, String> metadata;//
+struct TokenCreateData {
+	String symbol; //
+	String maxSupply; //
+	UInt32 decimals; //
+	bool isNonFungible; //
+	UInt64 carbonTokenId; //
+	PHANTASMA_MAP<String, String> metadata; //
 };
 
-struct TokenSeriesCreateData
-{
-	String symbol;//
-	String seriesId;//
-	UInt32 maxMint;//
-	UInt32 maxSupply;//
-	String owner;//
-	UInt64 carbonTokenId;//
-	UInt32 carbonSeriesId;//
-	PHANTASMA_MAP<String, String> metadata;//
+struct TokenSeriesCreateData {
+	String symbol; //
+	String seriesId; //
+	UInt32 maxMint; //
+	UInt32 maxSupply; //
+	String owner; //
+	UInt64 carbonTokenId; //
+	UInt32 carbonSeriesId; //
+	PHANTASMA_MAP<String, String> metadata; //
 };
 
-struct TokenMintData
-{
-	String symbol;//
-	String tokenId;//
-	String seriesId;//
-	UInt32 mintNumber;//
-	UInt64 carbonTokenId;//
-	UInt32 carbonSeriesId;//
-	UInt64 carbonInstanceId;//
-	String owner;//
-	PHANTASMA_MAP<String, String> metadata;//
+struct TokenMintData {
+	String symbol; //
+	String tokenId; //
+	String seriesId; //
+	UInt32 mintNumber; //
+	UInt64 carbonTokenId; //
+	UInt32 carbonSeriesId; //
+	UInt64 carbonInstanceId; //
+	String owner; //
+	PHANTASMA_MAP<String, String> metadata; //
 };
 
-struct MarketOrderData
-{
-	String baseSymbol;//
-	String quoteSymbol;//
-	String tokenId;//
-	UInt64 carbonBaseTokenId;//
-	UInt64 carbonQuoteTokenId;//
-	UInt64 carbonInstanceId;//
-	String seller;//
-	String buyer;//
-	String price;//
-	String endPrice;//
-	Int64 startDate;//
-	Int64 endDate;//
-	String type;//
+struct MarketOrderData {
+	String baseSymbol; //
+	String quoteSymbol; //
+	String tokenId; //
+	UInt64 carbonBaseTokenId; //
+	UInt64 carbonQuoteTokenId; //
+	UInt64 carbonInstanceId; //
+	String seller; //
+	String buyer; //
+	String price; //
+	String endPrice; //
+	Int64 startDate; //
+	Int64 endDate; //
+	String type; //
 };
 
-struct SpecialResolutionCall
-{
-	UInt32 moduleId;//
-	String module;//
-	UInt32 methodId;//
-	String method;//
-	PHANTASMA_MAP<String, String> arguments;//
-	PHANTASMA_VECTOR<SpecialResolutionCall> calls;//
+struct SpecialResolutionCall {
+	UInt32 moduleId; //
+	String module; //
+	UInt32 methodId; //
+	String method; //
+	PHANTASMA_MAP<String, String> arguments; //
+	PHANTASMA_VECTOR<SpecialResolutionCall> calls; //
 };
 
-struct SpecialResolutionData
-{
-	UInt64 resolutionId;//
-	String description;//
-	PHANTASMA_VECTOR<SpecialResolutionCall> calls;//
+struct SpecialResolutionData {
+	UInt64 resolutionId; //
+	String description; //
+	PHANTASMA_VECTOR<SpecialResolutionCall> calls; //
 };
 
-struct EventExtended
-{
-	String address;//
-	String contract;//
-	String kind;//
-	ExtendedEventType type;//
-	TokenCreateData tokenCreate;//
-	TokenSeriesCreateData tokenSeriesCreate;//
-	TokenMintData tokenMint;//
-	MarketOrderData marketOrder;//
-	SpecialResolutionData specialResolution;//
+struct EventExtended {
+	String address; //
+	String contract; //
+	String kind; //
+	ExtendedEventType type; //
+	TokenCreateData tokenCreate; //
+	TokenSeriesCreateData tokenSeriesCreate; //
+	TokenMintData tokenMint; //
+	MarketOrderData marketOrder; //
+	SpecialResolutionData specialResolution; //
 };
 
-struct Oracle
-{
-	String url;//
-	String content;//
+struct Oracle {
+	String url; //
+	String content; //
 };
 
-struct Signature
-{
-	String Kind;//
-	String Data;//
+struct Signature {
+	String Kind; //
+	String Data; //
 };
 
-struct Transaction
-{
-	String hash;//
-	String chainAddress;//
-	UInt32 timestamp;//
-	Int32 blockHeight;//
-	String blockHash;//
-	String script;//
-	String payload;//
-	PHANTASMA_VECTOR<Event> events;//
-	PHANTASMA_VECTOR<EventExtended> extendedEvents;//
-	String result;//
-	String debugComment;//
-	String fee;//
-	PHANTASMA_VECTOR<Signature> signatures;//
-	UInt32 expiration;//
+struct Transaction {
+	String hash; //
+	String chainAddress; //
+	UInt32 timestamp; //
+	Int32 blockHeight; //
+	String blockHash; //
+	String script; //
+	String payload; //
+	PHANTASMA_VECTOR<Event> events; //
+	PHANTASMA_VECTOR<EventExtended> extendedEvents; //
+	String result; //
+	String debugComment; //
+	String fee; //
+	PHANTASMA_VECTOR<Signature> signatures; //
+	UInt32 expiration; //
 	//Phantasma 3.0 additions:
-	String state;//
-	String sender;//
-	String gasPayer;//
-	String gasTarget;//
-	String gasPrice;//
-	String gasLimit;//
+	String state; //
+	String sender; //
+	String gasPayer; //
+	String gasTarget; //
+	String gasPrice; //
+	String gasLimit; //
 };
 
-struct AccountTransactions
-{
-	String address;//
-	PHANTASMA_VECTOR<Transaction> txs;//
+struct AccountTransactions {
+	String address; //
+	PHANTASMA_VECTOR<Transaction> txs; //
 };
 
-struct Paginated
-{
-	UInt32 page;//
-	UInt32 pageSize;//
-	UInt32 total;//
-	UInt32 totalPages;//
-	JSONValue result;//
+struct Paginated {
+	UInt32 page; //
+	UInt32 pageSize; //
+	UInt32 total; //
+	UInt32 totalPages; //
+	JSONValue result; //
 };
 
 template<class T>
-struct CursorPaginatedResult
-{
-	PHANTASMA_VECTOR<T> result;//
-	String cursor;//
+struct CursorPaginatedResult {
+	PHANTASMA_VECTOR<T> result; //
+	String cursor; //
 };
 
-struct Block
-{
-	String hash;//
-	String previousHash;//
-	UInt32 timestamp;//
-	UInt32 height;//
-	String chainAddress;//
-	UInt32 protocol;//
-	PHANTASMA_VECTOR<Transaction> txs;//
-	String validatorAddress;//
-	String reward;//
-	PHANTASMA_VECTOR<Event> events;//
-	PHANTASMA_VECTOR<Oracle> oracles;//
+struct Block {
+	String hash; //
+	String previousHash; //
+	UInt32 timestamp; //
+	UInt32 height; //
+	String chainAddress; //
+	UInt32 protocol; //
+	PHANTASMA_VECTOR<Transaction> txs; //
+	String validatorAddress; //
+	String reward; //
+	PHANTASMA_VECTOR<Event> events; //
+	PHANTASMA_VECTOR<Oracle> oracles; //
 };
 
-struct ABIParameter
-{
-	String name;//
-	String type;//
+struct ABIParameter {
+	String name; //
+	String type; //
 };
 
-struct ABIMethod
-{
-	String name;//
-	String returnType;//
-	PHANTASMA_VECTOR<ABIParameter> parameters;//
+struct ABIMethod {
+	String name; //
+	String returnType; //
+	PHANTASMA_VECTOR<ABIParameter> parameters; //
 };
 
-struct TokenProperty
-{
-	String Key;//
-	String Value;//
+struct TokenProperty {
+	String Key; //
+	String Value; //
 };
 
-struct TokenSeries
-{
-	UInt32 seriesID;//
-	String currentSupply;//
-	String maxSupply;//
-	String burnedSupply;//
-	TokenSeriesMode mode;//
-	String carbonTokenId;//
-	String carbonSeriesId;//
-	String script;//
-	PHANTASMA_VECTOR<ABIMethod> methods;//
-	PHANTASMA_VECTOR<TokenProperty> metadata;//
+struct TokenSeries {
+	UInt32 seriesID; //
+	String currentSupply; //
+	String maxSupply; //
+	String burnedSupply; //
+	TokenSeriesMode mode; //
+	String carbonTokenId; //
+	String carbonSeriesId; //
+	String script; //
+	PHANTASMA_VECTOR<ABIMethod> methods; //
+	PHANTASMA_VECTOR<TokenProperty> metadata; //
 };
 
-struct Token
-{
-	String symbol;//
-	String name;//
-	Int32 decimals;//
-	String currentSupply;//
-	String maxSupply;//
-	String carbonId;//
-	String burnedSupply;//
-	String address;//
-	String owner;//
-	String flags;//
-	String script;//
-	PHANTASMA_VECTOR<TokenSeries> series;//
-	PHANTASMA_VECTOR<TokenProperty> metadata;//
-	TokenSchemas tokenSchemas;//
+struct Token {
+	String symbol; //
+	String name; //
+	Int32 decimals; //
+	String currentSupply; //
+	String maxSupply; //
+	String carbonId; //
+	String burnedSupply; //
+	String address; //
+	String owner; //
+	String flags; //
+	String script; //
+	PHANTASMA_VECTOR<TokenSeries> series; //
+	PHANTASMA_VECTOR<TokenProperty> metadata; //
+	TokenSchemas tokenSchemas; //
 };
 
-struct TokenData
-{
-	String ID;//
-	String series;//
-	String mint;//
-	String chainName;//
-	String ownerAddress;//
-	String creatorAddress;//
-	String ram;//
-	String rom;//
-	String status;//
-	PHANTASMA_VECTOR<TokenProperty> infusion;//
-	PHANTASMA_VECTOR<TokenProperty> properties;//
+struct TokenData {
+	String ID; //
+	String series; //
+	String mint; //
+	String chainName; //
+	String ownerAddress; //
+	String creatorAddress; //
+	String ram; //
+	String rom; //
+	String status; //
+	PHANTASMA_VECTOR<TokenProperty> infusion; //
+	PHANTASMA_VECTOR<TokenProperty> properties; //
 };
 
-struct SendRawTx
-{
-	String hash;//
-	String error;//
+struct SendRawTx {
+	String hash; //
+	String error; //
 };
 
-struct SendCarbonTx
-{
-	String hash;//
-	String error;//
+struct SendCarbonTx {
+	String hash; //
+	String error; //
 };
 
-struct Auction
-{
-	String creatorAddress;//
-	String chainAddress;//
-	UInt32 startDate;//
-	UInt32 endDate;//
-	String baseSymbol;//
-	String quoteSymbol;//
-	String tokenId;//
-	String price;//
-	String rom;//
-	String ram;//
+struct Auction {
+	String creatorAddress; //
+	String chainAddress; //
+	UInt32 startDate; //
+	UInt32 endDate; //
+	String baseSymbol; //
+	String quoteSymbol; //
+	String tokenId; //
+	String price; //
+	String rom; //
+	String ram; //
 };
 
-struct Script
-{
-	PHANTASMA_VECTOR<Event> events;//
-	String result;//
-	PHANTASMA_VECTOR<String> results;//
-	PHANTASMA_VECTOR<Oracle> oracles;//
+struct Script {
+	PHANTASMA_VECTOR<Event> events; //
+	String result; //
+	PHANTASMA_VECTOR<String> results; //
+	PHANTASMA_VECTOR<Oracle> oracles; //
 };
 
-struct ABIEvent
-{
-	Int32 value;//
-	String name;//
-	String returnType;//
-	String description;//
+struct ABIEvent {
+	Int32 value; //
+	String name; //
+	String returnType; //
+	String description; //
 };
 
-struct Contract
-{
-	String name;//
-	String address;//
-	String script;//
-	PHANTASMA_VECTOR<ABIMethod> methods;//
-	PHANTASMA_VECTOR<ABIEvent> events;//
+struct Contract {
+	String name; //
+	String address; //
+	String script; //
+	PHANTASMA_VECTOR<ABIMethod> methods; //
+	PHANTASMA_VECTOR<ABIEvent> events; //
 };
 
-struct Channel
-{
-	String creatorAddress;//
-	String targetAddress;//
-	String name;//
-	String chain;//
-	UInt32 creationTime;//
-	String symbol;//
-	String fee;//
-	String balance;//
-	bool active;//
-	Int32 index;//
+struct Channel {
+	String creatorAddress; //
+	String targetAddress; //
+	String name; //
+	String chain; //
+	UInt32 creationTime; //
+	String symbol; //
+	String fee; //
+	String balance; //
+	bool active; //
+	Int32 index; //
 };
 
-struct Receipt
-{
-	String nexus;//
-	String channel;//
-	String index;//
-	UInt32 timestamp;//
-	String sender;//
-	String receiver;//
-	String script;//
+struct Receipt {
+	String nexus; //
+	String channel; //
+	String index; //
+	UInt32 timestamp; //
+	String sender; //
+	String receiver; //
+	String script; //
 };
 
-struct Peer
-{
-	String url;//
-	String version;//
-	String flags;//
-	String fee;//
-	UInt32 pow;//
+struct Peer {
+	String url; //
+	String version; //
+	String flags; //
+	String fee; //
+	UInt32 pow; //
 };
 
-struct Validator
-{
-	String address;//
-	String type;//
+struct Validator {
+	String address; //
+	String type; //
 };
 
-struct Swap
-{
-	String sourcePlatform;//
-	String sourceChain;//
-	String sourceHash;//
-	String sourceAddress;//
-	String destinationPlatform;//
-	String destinationChain;//
-	String destinationHash;//
-	String destinationAddress;//
-	String symbol;//
-	String value;//
+struct Swap {
+	String sourcePlatform; //
+	String sourceChain; //
+	String sourceHash; //
+	String sourceAddress; //
+	String destinationPlatform; //
+	String destinationChain; //
+	String destinationHash; //
+	String destinationAddress; //
+	String symbol; //
+	String value; //
 };
-
 
 //------------------------------------------------------------------------------
 // Low level RPC API:
 //------------------------------------------------------------------------------
-struct PhantasmaError
-{
+struct PhantasmaError {
 	int code = 0;
 	String message;
 
@@ -1188,148 +1166,147 @@ struct PhantasmaError
 };
 inline void OnHttpError(PhantasmaError& err, const Char* msg)
 {
-	err.code = PhantasmaError::HttpError; 
+	err.code = PhantasmaError::HttpError;
 	if( msg )
 		err.message = String(msg);
 }
 
 class PhantasmaJsonAPI
 {
-public:
+  public:
 	static const Char* Uri() { return PHANTASMA_LITERAL("/rpc"); }
 
-	// Returns the account name and balance of given address. 
+	// Returns the account name and balance of given address.
 	static void MakeGetAccountRequest(JSONBuilder&, const Char* account);
-	static bool ParseGetAccountResponse(const JSONValue&, Account& out, PhantasmaError* err=0);
-	// Returns data about several accounts. 
+	static bool ParseGetAccountResponse(const JSONValue&, Account& out, PhantasmaError* err = 0);
+	// Returns data about several accounts.
 	static void MakeGetAccountsRequest(JSONBuilder&, const Char* accountText, bool extended, bool checkAddressReservedByte);
-	static bool ParseGetAccountsResponse(const JSONValue&, PHANTASMA_VECTOR<Account>& out, PhantasmaError* err=0);
-	// Returns the address that owns a given name. 
+	static bool ParseGetAccountsResponse(const JSONValue&, PHANTASMA_VECTOR<Account>& out, PhantasmaError* err = 0);
+	// Returns the address that owns a given name.
 	static void MakeLookUpNameRequest(JSONBuilder&, const Char* name);
-	static bool ParseLookUpNameResponse(const JSONValue&, String& out, PhantasmaError* err=0);
-	// Returns the height of a chain. 
+	static bool ParseLookUpNameResponse(const JSONValue&, String& out, PhantasmaError* err = 0);
+	// Returns the height of a chain.
 	static void MakeGetBlockHeightRequest(JSONBuilder&, const Char* chainInput);
-	static bool ParseGetBlockHeightResponse(const JSONValue&, Int32& out, PhantasmaError* err=0);
-	// Returns the number of transactions of given block hash or error if given hash is invalid or is not found. 
+	static bool ParseGetBlockHeightResponse(const JSONValue&, Int32& out, PhantasmaError* err = 0);
+	// Returns the number of transactions of given block hash or error if given hash is invalid or is not found.
 	static void MakeGetBlockTransactionCountByHashRequest(JSONBuilder&, const Char* blockHash);
-	static bool ParseGetBlockTransactionCountByHashResponse(const JSONValue&, Int32& out, PhantasmaError* err=0);
-	// Returns information about a block by hash. 
+	static bool ParseGetBlockTransactionCountByHashResponse(const JSONValue&, Int32& out, PhantasmaError* err = 0);
+	// Returns information about a block by hash.
 	static void MakeGetBlockByHashRequest(JSONBuilder&, const Char* blockHash);
-	static bool ParseGetBlockByHashResponse(const JSONValue&, Block& out, PhantasmaError* err=0);
-	// Returns information about a block by height and chain. 
+	static bool ParseGetBlockByHashResponse(const JSONValue&, Block& out, PhantasmaError* err = 0);
+	// Returns information about a block by height and chain.
 	static void MakeGetBlockByHeightRequest(JSONBuilder&, const Char* chainInput, const Char* height);
-	static bool ParseGetBlockByHeightResponse(const JSONValue&, Block& out, PhantasmaError* err=0);
-	// Returns information about the latest block in a chain. 
+	static bool ParseGetBlockByHeightResponse(const JSONValue&, Block& out, PhantasmaError* err = 0);
+	// Returns information about the latest block in a chain.
 	static void MakeGetLatestBlockRequest(JSONBuilder&, const Char* chainInput);
-	static bool ParseGetLatestBlockResponse(const JSONValue&, Block& out, PhantasmaError* err=0);
-	// Returns the information about a transaction requested by a block hash and transaction index. 
+	static bool ParseGetLatestBlockResponse(const JSONValue&, Block& out, PhantasmaError* err = 0);
+	// Returns the information about a transaction requested by a block hash and transaction index.
 	static void MakeGetTransactionByBlockHashAndIndexRequest(JSONBuilder&, const Char* blockHash, Int32 index);
-	static bool ParseGetTransactionByBlockHashAndIndexResponse(const JSONValue&, Transaction& out, PhantasmaError* err=0);
+	static bool ParseGetTransactionByBlockHashAndIndexResponse(const JSONValue&, Transaction& out, PhantasmaError* err = 0);
 	// Returns last X transactions of given address. (paginated call)
 	static void MakeGetAddressTransactionsRequest(JSONBuilder&, const Char* account, UInt32 page, UInt32 pageSize);
-	static bool ParseGetAddressTransactionsResponse(const JSONValue&, AccountTransactions& out, PhantasmaError* err=0);
-	// Get number of transactions in a specific address and chain 
+	static bool ParseGetAddressTransactionsResponse(const JSONValue&, AccountTransactions& out, PhantasmaError* err = 0);
+	// Get number of transactions in a specific address and chain
 	static void MakeGetAddressTransactionCountRequest(JSONBuilder&, const Char* account, const Char* chainInput);
-	static bool ParseGetAddressTransactionCountResponse(const JSONValue&, Int32& out, PhantasmaError* err=0);
-	// Allows to broadcast a signed operation on the network, but it&apos;s required to build it manually. 
+	static bool ParseGetAddressTransactionCountResponse(const JSONValue&, Int32& out, PhantasmaError* err = 0);
+	// Allows to broadcast a signed operation on the network, but it&apos;s required to build it manually.
 	static void MakeSendRawTransactionRequest(JSONBuilder&, const Char* txData);
-	static bool ParseSendRawTransactionResponse(const JSONValue&, String& out, PhantasmaError* err=0);
-	// Allows to broadcast a signed Carbon transaction on the network. 
+	static bool ParseSendRawTransactionResponse(const JSONValue&, String& out, PhantasmaError* err = 0);
+	// Allows to broadcast a signed Carbon transaction on the network.
 	static void MakeSendCarbonTransactionRequest(JSONBuilder&, const Char* txData);
-	static bool ParseSendCarbonTransactionResponse(const JSONValue&, String& out, PhantasmaError* err=0);
-	// Allows to invoke script based on network state, without state changes. 
+	static bool ParseSendCarbonTransactionResponse(const JSONValue&, String& out, PhantasmaError* err = 0);
+	// Allows to invoke script based on network state, without state changes.
 	static void MakeInvokeRawScriptRequest(JSONBuilder&, const Char* chainInput, const Char* scriptData);
-	static bool ParseInvokeRawScriptResponse(const JSONValue&, Script& out, PhantasmaError* err=0);
-	// Returns information about a transaction by hash. 
+	static bool ParseInvokeRawScriptResponse(const JSONValue&, Script& out, PhantasmaError* err = 0);
+	// Returns information about a transaction by hash.
 	static void MakeGetTransactionRequest(JSONBuilder&, const Char* hashText);
-	static bool ParseGetTransactionResponse(const JSONValue&, Transaction& out, PhantasmaError* err=0);
-	// Returns an array of all chains deployed in Phantasma. 
+	static bool ParseGetTransactionResponse(const JSONValue&, Transaction& out, PhantasmaError* err = 0);
+	// Returns an array of all chains deployed in Phantasma.
 	static void MakeGetChainsRequest(JSONBuilder&);
-	static bool ParseGetChainsResponse(const JSONValue&, PHANTASMA_VECTOR<Chain>& out, PhantasmaError* err=0);
-	// Returns info about a specific chain. 
+	static bool ParseGetChainsResponse(const JSONValue&, PHANTASMA_VECTOR<Chain>& out, PhantasmaError* err = 0);
+	// Returns info about a specific chain.
 	static void MakeGetChainRequest(JSONBuilder&, const Char* name, bool extended);
-	static bool ParseGetChainResponse(const JSONValue&, Chain& out, PhantasmaError* err=0);
-	// Returns info about the nexus. 
+	static bool ParseGetChainResponse(const JSONValue&, Chain& out, PhantasmaError* err = 0);
+	// Returns info about the nexus.
 	static void MakeGetNexusRequest(JSONBuilder&, bool extended);
-	static bool ParseGetNexusResponse(const JSONValue&, Nexus& out, PhantasmaError* err=0);
-	// Returns info about an organization. 
+	static bool ParseGetNexusResponse(const JSONValue&, Nexus& out, PhantasmaError* err = 0);
+	// Returns info about an organization.
 	static void MakeGetOrganizationRequest(JSONBuilder&, const Char* ID);
-	static bool ParseGetOrganizationResponse(const JSONValue&, Organization& out, PhantasmaError* err=0);
-	// Returns info about an organization by name. 
+	static bool ParseGetOrganizationResponse(const JSONValue&, Organization& out, PhantasmaError* err = 0);
+	// Returns info about an organization by name.
 	static void MakeGetOrganizationByNameRequest(JSONBuilder&, const Char* name, bool extended);
-	static bool ParseGetOrganizationByNameResponse(const JSONValue&, Organization& out, PhantasmaError* err=0);
-	// Returns all organizations deployed in Phantasma. 
+	static bool ParseGetOrganizationByNameResponse(const JSONValue&, Organization& out, PhantasmaError* err = 0);
+	// Returns all organizations deployed in Phantasma.
 	static void MakeGetOrganizationsRequest(JSONBuilder&, bool extended);
-	static bool ParseGetOrganizationsResponse(const JSONValue&, PHANTASMA_VECTOR<Organization>& out, PhantasmaError* err=0);
-	// Returns content of a Phantasma leaderboard. 
+	static bool ParseGetOrganizationsResponse(const JSONValue&, PHANTASMA_VECTOR<Organization>& out, PhantasmaError* err = 0);
+	// Returns content of a Phantasma leaderboard.
 	static void MakeGetLeaderboardRequest(JSONBuilder&, const Char* name);
-	static bool ParseGetLeaderboardResponse(const JSONValue&, Leaderboard& out, PhantasmaError* err=0);
-	// Returns an array of tokens deployed in Phantasma. 
+	static bool ParseGetLeaderboardResponse(const JSONValue&, Leaderboard& out, PhantasmaError* err = 0);
+	// Returns an array of tokens deployed in Phantasma.
 	static void MakeGetTokensRequest(JSONBuilder&, bool extended, const Char* ownerAddress = nullptr);
-	static bool ParseGetTokensResponse(const JSONValue&, PHANTASMA_VECTOR<Token>& out, PhantasmaError* err=0);
-	// Returns info about a specific token deployed in Phantasma. 
+	static bool ParseGetTokensResponse(const JSONValue&, PHANTASMA_VECTOR<Token>& out, PhantasmaError* err = 0);
+	// Returns info about a specific token deployed in Phantasma.
 	static void MakeGetTokenRequest(JSONBuilder&, const Char* symbol, bool extended, UInt64 carbonTokenId = 0);
-	static bool ParseGetTokenResponse(const JSONValue&, Token& out, PhantasmaError* err=0);
-	// Returns list of series for a specific token (cursor pagination). 
+	static bool ParseGetTokenResponse(const JSONValue&, Token& out, PhantasmaError* err = 0);
+	// Returns list of series for a specific token (cursor pagination).
 	static void MakeGetTokenSeriesRequest(JSONBuilder&, const Char* symbol, UInt64 carbonTokenId, UInt32 pageSize, const Char* cursor);
-	static bool ParseGetTokenSeriesResponse(const JSONValue&, CursorPaginatedResult<TokenSeries>& out, PhantasmaError* err=0);
-	// Returns an array of NFTs for a token (cursor pagination). 
+	static bool ParseGetTokenSeriesResponse(const JSONValue&, CursorPaginatedResult<TokenSeries>& out, PhantasmaError* err = 0);
+	// Returns an array of NFTs for a token (cursor pagination).
 	static void MakeGetTokenNFTsRequest(JSONBuilder&, UInt64 carbonTokenId, UInt32 carbonSeriesId, UInt32 pageSize, const Char* cursor, bool extended);
-	static bool ParseGetTokenNFTsResponse(const JSONValue&, CursorPaginatedResult<TokenData>& out, PhantasmaError* err=0);
-	// Returns data of a non-fungible token, in hexadecimal format. 
+	static bool ParseGetTokenNFTsResponse(const JSONValue&, CursorPaginatedResult<TokenData>& out, PhantasmaError* err = 0);
+	// Returns data of a non-fungible token, in hexadecimal format.
 	static void MakeGetTokenDataRequest(JSONBuilder&, const Char* symbol, const Char* IDtext);
-	static bool ParseGetTokenDataResponse(const JSONValue&, TokenData& out, PhantasmaError* err=0);
-	// Returns data of a non-fungible token, in hexadecimal format. 
+	static bool ParseGetTokenDataResponse(const JSONValue&, TokenData& out, PhantasmaError* err = 0);
+	// Returns data of a non-fungible token, in hexadecimal format.
 	static void MakeGetNFTRequest(JSONBuilder&, const Char* symbol, const Char* IDtext, bool extended);
-	static bool ParseGetNFTResponse(const JSONValue&, TokenData& out, PhantasmaError* err=0);
-	// Returns data of non-fungible tokens by ID list. 
+	static bool ParseGetNFTResponse(const JSONValue&, TokenData& out, PhantasmaError* err = 0);
+	// Returns data of non-fungible tokens by ID list.
 	static void MakeGetNFTsRequest(JSONBuilder&, const Char* symbol, const Char* IDtext, bool extended);
-	static bool ParseGetNFTsResponse(const JSONValue&, PHANTASMA_VECTOR<TokenData>& out, PhantasmaError* err=0);
-	// Returns the balance for a specific token and chain, given an address. 
+	static bool ParseGetNFTsResponse(const JSONValue&, PHANTASMA_VECTOR<TokenData>& out, PhantasmaError* err = 0);
+	// Returns the balance for a specific token and chain, given an address.
 	static void MakeGetTokenBalanceRequest(JSONBuilder&, const Char* account, const Char* tokenSymbol, const Char* chainInput);
-	static bool ParseGetTokenBalanceResponse(const JSONValue&, Balance& out, PhantasmaError* err=0);
-	// Returns fungible token balances owned by an address (cursor pagination). 
+	static bool ParseGetTokenBalanceResponse(const JSONValue&, Balance& out, PhantasmaError* err = 0);
+	// Returns fungible token balances owned by an address (cursor pagination).
 	static void MakeGetAccountFungibleTokensRequest(JSONBuilder&, const Char* account, const Char* tokenSymbol, UInt64 carbonTokenId, UInt32 pageSize, const Char* cursor, bool checkAddressReservedByte);
-	static bool ParseGetAccountFungibleTokensResponse(const JSONValue&, CursorPaginatedResult<Balance>& out, PhantasmaError* err=0);
-	// Returns NFTs owned by an address (cursor pagination). 
+	static bool ParseGetAccountFungibleTokensResponse(const JSONValue&, CursorPaginatedResult<Balance>& out, PhantasmaError* err = 0);
+	// Returns NFTs owned by an address (cursor pagination).
 	static void MakeGetAccountNFTsRequest(JSONBuilder&, const Char* account, const Char* tokenSymbol, UInt64 carbonTokenId, UInt32 carbonSeriesId, UInt32 pageSize, const Char* cursor, bool extended, bool checkAddressReservedByte);
-	static bool ParseGetAccountNFTsResponse(const JSONValue&, CursorPaginatedResult<TokenData>& out, PhantasmaError* err=0);
-	// Returns NFT tokens for which the account owns at least one NFT instance (cursor pagination). 
+	static bool ParseGetAccountNFTsResponse(const JSONValue&, CursorPaginatedResult<TokenData>& out, PhantasmaError* err = 0);
+	// Returns NFT tokens for which the account owns at least one NFT instance (cursor pagination).
 	static void MakeGetAccountOwnedTokensRequest(JSONBuilder&, const Char* account, const Char* tokenSymbol, UInt64 carbonTokenId, UInt32 pageSize, const Char* cursor, bool checkAddressReservedByte);
-	static bool ParseGetAccountOwnedTokensResponse(const JSONValue&, CursorPaginatedResult<Token>& out, PhantasmaError* err=0);
-	// Returns NFT series for which the account owns at least one NFT instance (cursor pagination). 
+	static bool ParseGetAccountOwnedTokensResponse(const JSONValue&, CursorPaginatedResult<Token>& out, PhantasmaError* err = 0);
+	// Returns NFT series for which the account owns at least one NFT instance (cursor pagination).
 	static void MakeGetAccountOwnedTokenSeriesRequest(JSONBuilder&, const Char* account, const Char* tokenSymbol, UInt64 carbonTokenId, UInt32 pageSize, const Char* cursor, bool checkAddressReservedByte);
-	static bool ParseGetAccountOwnedTokenSeriesResponse(const JSONValue&, CursorPaginatedResult<TokenSeries>& out, PhantasmaError* err=0);
-	// Returns the number of active auctions. 
+	static bool ParseGetAccountOwnedTokenSeriesResponse(const JSONValue&, CursorPaginatedResult<TokenSeries>& out, PhantasmaError* err = 0);
+	// Returns the number of active auctions.
 	static void MakeGetAuctionsCountRequest(JSONBuilder&, const Char* chainAddressOrName, const Char* symbol);
-	static bool ParseGetAuctionsCountResponse(const JSONValue&, Int32& out, PhantasmaError* err=0);
+	static bool ParseGetAuctionsCountResponse(const JSONValue&, Int32& out, PhantasmaError* err = 0);
 	// Returns the auctions available in the market. (paginated call)
 	static void MakeGetAuctionsRequest(JSONBuilder&, const Char* chainAddressOrName, const Char* symbol, UInt32 page, UInt32 pageSize);
-	static bool ParseGetAuctionsResponse(const JSONValue&, PHANTASMA_VECTOR<Auction>& out, PhantasmaError* err=0);
-	// Returns the auction for a specific token. 
+	static bool ParseGetAuctionsResponse(const JSONValue&, PHANTASMA_VECTOR<Auction>& out, PhantasmaError* err = 0);
+	// Returns the auction for a specific token.
 	static void MakeGetAuctionRequest(JSONBuilder&, const Char* chainAddressOrName, const Char* symbol, const Char* IDtext);
-	static bool ParseGetAuctionResponse(const JSONValue&, Auction& out, PhantasmaError* err=0);
-	// Returns info about a specific archive. 
+	static bool ParseGetAuctionResponse(const JSONValue&, Auction& out, PhantasmaError* err = 0);
+	// Returns info about a specific archive.
 	static void MakeGetArchiveRequest(JSONBuilder&, const Char* hashText);
-	static bool ParseGetArchiveResponse(const JSONValue&, Archive& out, PhantasmaError* err=0);
-	// Writes the contents of an incomplete archive. 
+	static bool ParseGetArchiveResponse(const JSONValue&, Archive& out, PhantasmaError* err = 0);
+	// Writes the contents of an incomplete archive.
 	static void MakeWriteArchiveRequest(JSONBuilder&, const Char* hashText, Int32 blockIndex, const Char* blockContent);
-	static bool ParseWriteArchiveResponse(const JSONValue&, bool& out, PhantasmaError* err=0);
-	// Reads given archive block. 
+	static bool ParseWriteArchiveResponse(const JSONValue&, bool& out, PhantasmaError* err = 0);
+	// Reads given archive block.
 	static void MakeReadArchiveRequest(JSONBuilder&, const Char* hashText, Int32 blockIndex);
-	static bool ParseReadArchiveResponse(const JSONValue&, String& out, PhantasmaError* err=0);
-	// Returns the ABI interface of specific contract. 
+	static bool ParseReadArchiveResponse(const JSONValue&, String& out, PhantasmaError* err = 0);
+	// Returns the ABI interface of specific contract.
 	static void MakeGetContractRequest(JSONBuilder&, const Char* chainAddressOrName, const Char* contractName);
-	static bool ParseGetContractResponse(const JSONValue&, Contract& out, PhantasmaError* err=0);
-	// Returns the ABI interface of specific contract (list). 
+	static bool ParseGetContractResponse(const JSONValue&, Contract& out, PhantasmaError* err = 0);
+	// Returns the ABI interface of specific contract (list).
 	static void MakeGetContractsRequest(JSONBuilder&, const Char* chainAddressOrName, bool extended);
-	static bool ParseGetContractsResponse(const JSONValue&, PHANTASMA_VECTOR<Contract>& out, PhantasmaError* err=0);
-	// Returns the ABI interface of specific contract by address. 
+	static bool ParseGetContractsResponse(const JSONValue&, PHANTASMA_VECTOR<Contract>& out, PhantasmaError* err = 0);
+	// Returns the ABI interface of specific contract by address.
 	static void MakeGetContractByAddressRequest(JSONBuilder&, const Char* chainAddressOrName, const Char* contractAddress);
-	static bool ParseGetContractByAddressResponse(const JSONValue&, Contract& out, PhantasmaError* err=0);
-	
+	static bool ParseGetContractByAddressResponse(const JSONValue&, Contract& out, PhantasmaError* err = 0);
 
-//private:
+	//private:
 	static JSONValue CheckResponse(JSONValue response, PhantasmaError& out_error);
 	static TokenSeriesMode DeserializeTokenSeriesMode(const JSONValue& json, bool& jsonError);
 	static Int32 DeserializeInt32(const JSONValue& json, bool& jsonError);
@@ -1383,7 +1360,6 @@ public:
 	static Peer DeserializePeer(const JSONValue& json, bool& jsonError);
 	static Validator DeserializeValidator(const JSONValue& json, bool& jsonError);
 	static Swap DeserializeSwap(const JSONValue& json, bool& jsonError);
-	
 
 	static bool Deserializebool(const JSONValue& json, bool& jsonError);
 };
@@ -1394,107 +1370,107 @@ public:
 //------------------------------------------------------------------------------
 class PhantasmaAPI
 {
-public:
+  public:
 	PhantasmaAPI(HttpClient& client) // client must have a longer lifetime than this API object
-		: m_httpClient(client)
+	    : m_httpClient(client)
 	{}
 
-	// Returns the account name and balance of given address. 
+	// Returns the account name and balance of given address.
 	Account GetAccount(const Char* account, PhantasmaError* out_error = nullptr);
-	// Returns data about several accounts. 
+	// Returns data about several accounts.
 	PHANTASMA_VECTOR<Account> GetAccounts(const Char* accountText, bool extended, bool checkAddressReservedByte, PhantasmaError* out_error = nullptr);
-	// Returns the address that owns a given name. 
+	// Returns the address that owns a given name.
 	String LookUpName(const Char* name, PhantasmaError* out_error = nullptr);
-	// Returns the height of a chain. 
+	// Returns the height of a chain.
 	Int32 GetBlockHeight(const Char* chainInput, PhantasmaError* out_error = nullptr);
-	// Returns the number of transactions of given block hash or error if given hash is invalid or is not found. 
+	// Returns the number of transactions of given block hash or error if given hash is invalid or is not found.
 	Int32 GetBlockTransactionCountByHash(const Char* blockHash, PhantasmaError* out_error = nullptr);
-	// Returns information about a block by hash. 
+	// Returns information about a block by hash.
 	Block GetBlockByHash(const Char* blockHash, PhantasmaError* out_error = nullptr);
-	// Returns information about a block by height and chain. 
+	// Returns information about a block by height and chain.
 	Block GetBlockByHeight(const Char* chainInput, const Char* height, PhantasmaError* out_error = nullptr);
-	// Returns information about the latest block in a chain. 
+	// Returns information about the latest block in a chain.
 	Block GetLatestBlock(const Char* chainInput, PhantasmaError* out_error = nullptr);
-	// Returns the information about a transaction requested by a block hash and transaction index. 
+	// Returns the information about a transaction requested by a block hash and transaction index.
 	Transaction GetTransactionByBlockHashAndIndex(const Char* blockHash, Int32 index, PhantasmaError* out_error = nullptr);
 	// Returns last X transactions of given address. (paginated call)
 	AccountTransactions GetAddressTransactions(const Char* account, UInt32 page, UInt32 pageSize, PhantasmaError* out_error = nullptr);
-	// Get number of transactions in a specific address and chain 
+	// Get number of transactions in a specific address and chain
 	Int32 GetAddressTransactionCount(const Char* account, const Char* chainInput, PhantasmaError* out_error = nullptr);
-	// Allows to broadcast a signed operation on the network, but it&apos;s required to build it manually. 
+	// Allows to broadcast a signed operation on the network, but it&apos;s required to build it manually.
 	String SendRawTransaction(const Char* txData, PhantasmaError* out_error = nullptr);
-	// Allows to broadcast a signed Carbon transaction. 
+	// Allows to broadcast a signed Carbon transaction.
 	String SendCarbonTransaction(const Char* txData, PhantasmaError* out_error = nullptr);
-	// Allows to invoke script based on network state, without state changes. 
+	// Allows to invoke script based on network state, without state changes.
 	Script InvokeRawScript(const Char* chainInput, const Char* scriptData, PhantasmaError* out_error = nullptr);
-	// Returns information about a transaction by hash. 
+	// Returns information about a transaction by hash.
 	Transaction GetTransaction(const Char* hashText, PhantasmaError* out_error = nullptr);
-	// Returns an array of all chains deployed in Phantasma. 
+	// Returns an array of all chains deployed in Phantasma.
 	PHANTASMA_VECTOR<Chain> GetChains(PhantasmaError* out_error = nullptr);
-	// Returns info about a specific chain. 
+	// Returns info about a specific chain.
 	Chain GetChain(const Char* name, bool extended, PhantasmaError* out_error = nullptr);
-	// Returns info about the nexus. 
+	// Returns info about the nexus.
 	Nexus GetNexus(bool extended, PhantasmaError* out_error = nullptr);
-	// Returns info about an organization. 
+	// Returns info about an organization.
 	Organization GetOrganization(const Char* ID, PhantasmaError* out_error = nullptr);
-	// Returns info about an organization by name. 
+	// Returns info about an organization by name.
 	Organization GetOrganizationByName(const Char* name, bool extended, PhantasmaError* out_error = nullptr);
-	// Returns info about all organizations. 
+	// Returns info about all organizations.
 	PHANTASMA_VECTOR<Organization> GetOrganizations(bool extended, PhantasmaError* out_error = nullptr);
-	// Returns content of a Phantasma leaderboard. 
+	// Returns content of a Phantasma leaderboard.
 	Leaderboard GetLeaderboard(const Char* name, PhantasmaError* out_error = nullptr);
-	// Returns an array of tokens deployed in Phantasma. 
+	// Returns an array of tokens deployed in Phantasma.
 	PHANTASMA_VECTOR<Token> GetTokens(bool extended, PhantasmaError* out_error = nullptr);
-	// Returns an array of tokens deployed in Phantasma filtered by owner address. 
+	// Returns an array of tokens deployed in Phantasma filtered by owner address.
 	PHANTASMA_VECTOR<Token> GetTokens(bool extended, const Char* ownerAddress, PhantasmaError* out_error = nullptr);
-	// Returns info about a specific token deployed in Phantasma. 
+	// Returns info about a specific token deployed in Phantasma.
 	Token GetToken(const Char* symbol, bool extended, PhantasmaError* out_error = nullptr);
-	// Returns info about a specific token by symbol or carbon token id. 
+	// Returns info about a specific token by symbol or carbon token id.
 	Token GetToken(const Char* symbol, bool extended, UInt64 carbonTokenId, PhantasmaError* out_error = nullptr);
-	// Returns list of series for a specific token (cursor pagination). 
+	// Returns list of series for a specific token (cursor pagination).
 	CursorPaginatedResult<TokenSeries> GetTokenSeries(const Char* symbol, UInt64 carbonTokenId, UInt32 pageSize, const Char* cursor, PhantasmaError* out_error = nullptr);
-	// Returns an array of NFTs for a token (cursor pagination). 
+	// Returns an array of NFTs for a token (cursor pagination).
 	CursorPaginatedResult<TokenData> GetTokenNFTs(UInt64 carbonTokenId, UInt32 carbonSeriesId, UInt32 pageSize, const Char* cursor, bool extended, PhantasmaError* out_error = nullptr);
-	// Returns data of a non-fungible token, in hexadecimal format. 
+	// Returns data of a non-fungible token, in hexadecimal format.
 	TokenData GetTokenData(const Char* symbol, const Char* IDtext, PhantasmaError* out_error = nullptr);
-	// Returns data of a non-fungible token, in hexadecimal format. 
+	// Returns data of a non-fungible token, in hexadecimal format.
 	TokenData GetNFT(const Char* symbol, const Char* IDtext, bool extended, PhantasmaError* out_error = nullptr);
-	// Returns data of non-fungible tokens by ID list. 
+	// Returns data of non-fungible tokens by ID list.
 	PHANTASMA_VECTOR<TokenData> GetNFTs(const Char* symbol, const Char* IDtext, bool extended, PhantasmaError* out_error = nullptr);
-	// Returns the balance for a specific token and chain, given an address. 
+	// Returns the balance for a specific token and chain, given an address.
 	Balance GetTokenBalance(const Char* account, const Char* tokenSymbol, const Char* chainInput, PhantasmaError* out_error = nullptr);
-	// Returns fungible token balances owned by an address (cursor pagination). 
+	// Returns fungible token balances owned by an address (cursor pagination).
 	CursorPaginatedResult<Balance> GetAccountFungibleTokens(const Char* account, const Char* tokenSymbol, UInt64 carbonTokenId, UInt32 pageSize, const Char* cursor, bool checkAddressReservedByte, PhantasmaError* out_error = nullptr);
-	// Returns NFTs owned by an address (cursor pagination). 
+	// Returns NFTs owned by an address (cursor pagination).
 	CursorPaginatedResult<TokenData> GetAccountNFTs(const Char* account, const Char* tokenSymbol, UInt64 carbonTokenId, UInt32 carbonSeriesId, UInt32 pageSize, const Char* cursor, bool extended, bool checkAddressReservedByte, PhantasmaError* out_error = nullptr);
-	// Returns NFT tokens for which the account owns at least one NFT instance (cursor pagination). 
+	// Returns NFT tokens for which the account owns at least one NFT instance (cursor pagination).
 	CursorPaginatedResult<Token> GetAccountOwnedTokens(const Char* account, const Char* tokenSymbol, UInt64 carbonTokenId, UInt32 pageSize, const Char* cursor, bool checkAddressReservedByte, PhantasmaError* out_error = nullptr);
-	// Returns NFT series for which the account owns at least one NFT instance (cursor pagination). 
+	// Returns NFT series for which the account owns at least one NFT instance (cursor pagination).
 	CursorPaginatedResult<TokenSeries> GetAccountOwnedTokenSeries(const Char* account, const Char* tokenSymbol, UInt64 carbonTokenId, UInt32 pageSize, const Char* cursor, bool checkAddressReservedByte, PhantasmaError* out_error = nullptr);
-	// Returns the number of active auctions. 
+	// Returns the number of active auctions.
 	Int32 GetAuctionsCount(const Char* chainAddressOrName, const Char* symbol, PhantasmaError* out_error = nullptr);
 	// Returns the auctions available in the market. (paginated call)
 	PHANTASMA_VECTOR<Auction> GetAuctions(const Char* chainAddressOrName, const Char* symbol, UInt32 page, UInt32 pageSize, PhantasmaError* out_error = nullptr);
-	// Returns the auction for a specific token. 
+	// Returns the auction for a specific token.
 	Auction GetAuction(const Char* chainAddressOrName, const Char* symbol, const Char* IDtext, PhantasmaError* out_error = nullptr);
-	// Returns info about a specific archive. 
+	// Returns info about a specific archive.
 	Archive GetArchive(const Char* hashText, PhantasmaError* out_error = nullptr);
-	// Writes the contents of an incomplete archive. 
+	// Writes the contents of an incomplete archive.
 	bool WriteArchive(const Char* hashText, Int32 blockIndex, const Char* blockContent, PhantasmaError* out_error = nullptr);
-	// Reads given archive block. 
+	// Reads given archive block.
 	String ReadArchive(const Char* hashText, Int32 blockIndex, PhantasmaError* out_error = nullptr);
-	// Returns the ABI interface of specific contract. 
+	// Returns the ABI interface of specific contract.
 	Contract GetContract(const Char* chainAddressOrName, const Char* contractName, PhantasmaError* out_error = nullptr);
-	// Returns the ABI interface of specific contract (list). 
+	// Returns the ABI interface of specific contract (list).
 	PHANTASMA_VECTOR<Contract> GetContracts(const Char* chainAddressOrName, bool extended, PhantasmaError* out_error = nullptr);
-	// Returns the ABI interface of specific contract by address. 
+	// Returns the ABI interface of specific contract by address.
 	Contract GetContractByAddress(const Char* chainAddressOrName, const Char* contractAddress, PhantasmaError* out_error = nullptr);
-	
-private:
+
+  private:
 	HttpClient& m_httpClient;
 };
 #endif
-	
+
 #if defined(PHANTASMA_IMPLEMENTATION)
 //------------------------------------------------------------------------------
 // RPC API implementation details:
@@ -1503,7 +1479,6 @@ PHANTASMA_FUNCTION bool PhantasmaJsonAPI::Deserializebool(const JSONValue& value
 {
 	return json::AsBool(value, jsonErr);
 }
-
 
 PHANTASMA_FUNCTION TokenSeriesMode PhantasmaJsonAPI::DeserializeTokenSeriesMode(const JSONValue& value, bool& jsonErr)
 {
@@ -1516,313 +1491,313 @@ PHANTASMA_FUNCTION Int32 PhantasmaJsonAPI::DeserializeInt32(const JSONValue& val
 }
 
 PHANTASMA_FUNCTION Balance PhantasmaJsonAPI::DeserializeBalance(const JSONValue& value, bool& jsonErr)
-{ 
+{
 	PHANTASMA_VECTOR<String> idsVector;
-	if(json::HasArrayField(value, PHANTASMA_LITERAL("ids"), jsonErr))
+	if( json::HasArrayField(value, PHANTASMA_LITERAL("ids"), jsonErr) )
 	{
 		const JSONArray& idsJsonArray = json::LookupArray(value, PHANTASMA_LITERAL("ids"), jsonErr);
 		int size = json::ArraySize(idsJsonArray, jsonErr);
 		idsVector.reserve(size);
-		for(int i = 0; i < size; ++i)
+		for( int i = 0; i < size; ++i )
 		{
 			idsVector.push_back(json::AsString(json::IndexArray(idsJsonArray, i, jsonErr), jsonErr));
 		}
-	}	
-	return Balance { 
-		json::LookupString(value, PHANTASMA_LITERAL("chain"), jsonErr), 
-		json::LookupString(value, PHANTASMA_LITERAL("amount"), jsonErr), 
-		json::LookupString(value, PHANTASMA_LITERAL("symbol"), jsonErr), 
-		json::LookupUInt32(value, PHANTASMA_LITERAL("decimals"), jsonErr), 
+	}
+	return Balance{
+		json::LookupString(value, PHANTASMA_LITERAL("chain"), jsonErr),
+		json::LookupString(value, PHANTASMA_LITERAL("amount"), jsonErr),
+		json::LookupString(value, PHANTASMA_LITERAL("symbol"), jsonErr),
+		json::LookupUInt32(value, PHANTASMA_LITERAL("decimals"), jsonErr),
 		idsVector
 	};
 }
 
 PHANTASMA_FUNCTION Interop PhantasmaJsonAPI::DeserializeInterop(const JSONValue& value, bool& jsonErr)
-{ 	
-	return Interop { 
-		json::LookupString(value, PHANTASMA_LITERAL("local"), jsonErr), 
+{
+	return Interop{
+		json::LookupString(value, PHANTASMA_LITERAL("local"), jsonErr),
 		json::LookupString(value, PHANTASMA_LITERAL("external"), jsonErr)
 	};
 }
 
 PHANTASMA_FUNCTION Platform PhantasmaJsonAPI::DeserializePlatform(const JSONValue& value, bool& jsonErr)
-{ 
+{
 	PHANTASMA_VECTOR<String> tokensVector;
-	if(json::HasArrayField(value, PHANTASMA_LITERAL("tokens"), jsonErr))
+	if( json::HasArrayField(value, PHANTASMA_LITERAL("tokens"), jsonErr) )
 	{
 		const JSONArray& tokensJsonArray = json::LookupArray(value, PHANTASMA_LITERAL("tokens"), jsonErr);
 		int size = json::ArraySize(tokensJsonArray, jsonErr);
 		tokensVector.reserve(size);
-		for(int i = 0; i < size; ++i)
+		for( int i = 0; i < size; ++i )
 		{
 			tokensVector.push_back(json::AsString(json::IndexArray(tokensJsonArray, i, jsonErr), jsonErr));
 		}
 	}
 	PHANTASMA_VECTOR<Interop> interopVector;
-	if(json::HasArrayField(value, PHANTASMA_LITERAL("interop"), jsonErr))
+	if( json::HasArrayField(value, PHANTASMA_LITERAL("interop"), jsonErr) )
 	{
 		const JSONArray& interopJsonArray = json::LookupArray(value, PHANTASMA_LITERAL("interop"), jsonErr);
 		int size = json::ArraySize(interopJsonArray, jsonErr);
 		interopVector.reserve(size);
-		for(int i = 0; i < size; ++i)
+		for( int i = 0; i < size; ++i )
 		{
 			interopVector.push_back(DeserializeInterop(json::IndexArray(interopJsonArray, i, jsonErr), jsonErr));
 		}
-	}	
-	return Platform { 
-		json::LookupString(value, PHANTASMA_LITERAL("platform"), jsonErr), 
-		json::LookupString(value, PHANTASMA_LITERAL("chain"), jsonErr), 
-		json::LookupString(value, PHANTASMA_LITERAL("fuel"), jsonErr), 
-		tokensVector, 
+	}
+	return Platform{
+		json::LookupString(value, PHANTASMA_LITERAL("platform"), jsonErr),
+		json::LookupString(value, PHANTASMA_LITERAL("chain"), jsonErr),
+		json::LookupString(value, PHANTASMA_LITERAL("fuel"), jsonErr),
+		tokensVector,
 		interopVector
 	};
 }
 
 PHANTASMA_FUNCTION Governance PhantasmaJsonAPI::DeserializeGovernance(const JSONValue& value, bool& jsonErr)
-{ 	
-	return Governance { 
-		json::LookupString(value, PHANTASMA_LITERAL("name"), jsonErr), 
+{
+	return Governance{
+		json::LookupString(value, PHANTASMA_LITERAL("name"), jsonErr),
 		json::LookupString(value, PHANTASMA_LITERAL("value"), jsonErr)
 	};
 }
 
 PHANTASMA_FUNCTION Organization PhantasmaJsonAPI::DeserializeOrganization(const JSONValue& value, bool& jsonErr)
-{ 
+{
 	PHANTASMA_VECTOR<String> membersVector;
-	if(json::HasArrayField(value, PHANTASMA_LITERAL("members"), jsonErr))
+	if( json::HasArrayField(value, PHANTASMA_LITERAL("members"), jsonErr) )
 	{
 		const JSONArray& membersJsonArray = json::LookupArray(value, PHANTASMA_LITERAL("members"), jsonErr);
 		int size = json::ArraySize(membersJsonArray, jsonErr);
 		membersVector.reserve(size);
-		for(int i = 0; i < size; ++i)
+		for( int i = 0; i < size; ++i )
 		{
 			membersVector.push_back(json::AsString(json::IndexArray(membersJsonArray, i, jsonErr), jsonErr));
 		}
-	}	
-	return Organization { 
-		json::LookupString(value, PHANTASMA_LITERAL("id"), jsonErr), 
-		json::LookupString(value, PHANTASMA_LITERAL("name"), jsonErr), 
+	}
+	return Organization{
+		json::LookupString(value, PHANTASMA_LITERAL("id"), jsonErr),
+		json::LookupString(value, PHANTASMA_LITERAL("name"), jsonErr),
 		membersVector
 	};
 }
 
 PHANTASMA_FUNCTION Nexus PhantasmaJsonAPI::DeserializeNexus(const JSONValue& value, bool& jsonErr)
-{ 
+{
 	PHANTASMA_VECTOR<Platform> platformsVector;
-	if(json::HasArrayField(value, PHANTASMA_LITERAL("platforms"), jsonErr))
+	if( json::HasArrayField(value, PHANTASMA_LITERAL("platforms"), jsonErr) )
 	{
 		const JSONArray& platformsJsonArray = json::LookupArray(value, PHANTASMA_LITERAL("platforms"), jsonErr);
 		int size = json::ArraySize(platformsJsonArray, jsonErr);
 		platformsVector.reserve(size);
-		for(int i = 0; i < size; ++i)
+		for( int i = 0; i < size; ++i )
 		{
 			platformsVector.push_back(DeserializePlatform(json::IndexArray(platformsJsonArray, i, jsonErr), jsonErr));
 		}
 	}
 	PHANTASMA_VECTOR<Token> tokensVector;
-	if(json::HasArrayField(value, PHANTASMA_LITERAL("tokens"), jsonErr))
+	if( json::HasArrayField(value, PHANTASMA_LITERAL("tokens"), jsonErr) )
 	{
 		const JSONArray& tokensJsonArray = json::LookupArray(value, PHANTASMA_LITERAL("tokens"), jsonErr);
 		int size = json::ArraySize(tokensJsonArray, jsonErr);
 		tokensVector.reserve(size);
-		for(int i = 0; i < size; ++i)
+		for( int i = 0; i < size; ++i )
 		{
 			tokensVector.push_back(DeserializeToken(json::IndexArray(tokensJsonArray, i, jsonErr), jsonErr));
 		}
 	}
 	PHANTASMA_VECTOR<Chain> chainsVector;
-	if(json::HasArrayField(value, PHANTASMA_LITERAL("chains"), jsonErr))
+	if( json::HasArrayField(value, PHANTASMA_LITERAL("chains"), jsonErr) )
 	{
 		const JSONArray& chainsJsonArray = json::LookupArray(value, PHANTASMA_LITERAL("chains"), jsonErr);
 		int size = json::ArraySize(chainsJsonArray, jsonErr);
 		chainsVector.reserve(size);
-		for(int i = 0; i < size; ++i)
+		for( int i = 0; i < size; ++i )
 		{
 			chainsVector.push_back(DeserializeChain(json::IndexArray(chainsJsonArray, i, jsonErr), jsonErr));
 		}
 	}
 	PHANTASMA_VECTOR<Governance> governanceVector;
-	if(json::HasArrayField(value, PHANTASMA_LITERAL("governance"), jsonErr))
+	if( json::HasArrayField(value, PHANTASMA_LITERAL("governance"), jsonErr) )
 	{
 		const JSONArray& governanceJsonArray = json::LookupArray(value, PHANTASMA_LITERAL("governance"), jsonErr);
 		int size = json::ArraySize(governanceJsonArray, jsonErr);
 		governanceVector.reserve(size);
-		for(int i = 0; i < size; ++i)
+		for( int i = 0; i < size; ++i )
 		{
 			governanceVector.push_back(DeserializeGovernance(json::IndexArray(governanceJsonArray, i, jsonErr), jsonErr));
 		}
 	}
 	PHANTASMA_VECTOR<String> organizationsVector;
-	if(json::HasArrayField(value, PHANTASMA_LITERAL("organizations"), jsonErr))
+	if( json::HasArrayField(value, PHANTASMA_LITERAL("organizations"), jsonErr) )
 	{
 		const JSONArray& organizationsJsonArray = json::LookupArray(value, PHANTASMA_LITERAL("organizations"), jsonErr);
 		int size = json::ArraySize(organizationsJsonArray, jsonErr);
 		organizationsVector.reserve(size);
-		for(int i = 0; i < size; ++i)
+		for( int i = 0; i < size; ++i )
 		{
 			organizationsVector.push_back(json::AsString(json::IndexArray(organizationsJsonArray, i, jsonErr), jsonErr));
 		}
-	}	
-	return Nexus { 
-		json::LookupString(value, PHANTASMA_LITERAL("name"), jsonErr), 
-		platformsVector, 
-		tokensVector, 
-		chainsVector, 
-		governanceVector, 
+	}
+	return Nexus{
+		json::LookupString(value, PHANTASMA_LITERAL("name"), jsonErr),
+		platformsVector,
+		tokensVector,
+		chainsVector,
+		governanceVector,
 		organizationsVector
 	};
 }
 
 PHANTASMA_FUNCTION Stake PhantasmaJsonAPI::DeserializeStake(const JSONValue& value, bool& jsonErr)
-{ 	
-	return Stake { 
-		json::LookupString(value, PHANTASMA_LITERAL("amount"), jsonErr), 
-		json::LookupUInt32(value, PHANTASMA_LITERAL("time"), jsonErr), 
+{
+	return Stake{
+		json::LookupString(value, PHANTASMA_LITERAL("amount"), jsonErr),
+		json::LookupUInt32(value, PHANTASMA_LITERAL("time"), jsonErr),
 		json::LookupString(value, PHANTASMA_LITERAL("unclaimed"), jsonErr)
 	};
 }
 
 PHANTASMA_FUNCTION Storage PhantasmaJsonAPI::DeserializeStorage(const JSONValue& value, bool& jsonErr)
-{ 
+{
 	PHANTASMA_VECTOR<Archive> archivesVector;
-	if(json::HasArrayField(value, PHANTASMA_LITERAL("archives"), jsonErr))
+	if( json::HasArrayField(value, PHANTASMA_LITERAL("archives"), jsonErr) )
 	{
 		const JSONArray& archivesJsonArray = json::LookupArray(value, PHANTASMA_LITERAL("archives"), jsonErr);
 		int size = json::ArraySize(archivesJsonArray, jsonErr);
 		archivesVector.reserve(size);
-		for(int i = 0; i < size; ++i)
+		for( int i = 0; i < size; ++i )
 		{
 			archivesVector.push_back(DeserializeArchive(json::IndexArray(archivesJsonArray, i, jsonErr), jsonErr));
 		}
-	}	
-	return Storage { 
-		json::LookupUInt32(value, PHANTASMA_LITERAL("available"), jsonErr), 
-		json::LookupUInt32(value, PHANTASMA_LITERAL("used"), jsonErr), 
-		json::LookupString(value, PHANTASMA_LITERAL("avatar"), jsonErr), 
+	}
+	return Storage{
+		json::LookupUInt32(value, PHANTASMA_LITERAL("available"), jsonErr),
+		json::LookupUInt32(value, PHANTASMA_LITERAL("used"), jsonErr),
+		json::LookupString(value, PHANTASMA_LITERAL("avatar"), jsonErr),
 		archivesVector
 	};
 }
 
 PHANTASMA_FUNCTION Account PhantasmaJsonAPI::DeserializeAccount(const JSONValue& value, bool& jsonErr)
-{ 
+{
 	PHANTASMA_VECTOR<Balance> balancesVector;
-	if(json::HasArrayField(value, PHANTASMA_LITERAL("balances"), jsonErr))
+	if( json::HasArrayField(value, PHANTASMA_LITERAL("balances"), jsonErr) )
 	{
 		const JSONArray& balancesJsonArray = json::LookupArray(value, PHANTASMA_LITERAL("balances"), jsonErr);
 		int size = json::ArraySize(balancesJsonArray, jsonErr);
 		balancesVector.reserve(size);
-		for(int i = 0; i < size; ++i)
+		for( int i = 0; i < size; ++i )
 		{
 			balancesVector.push_back(DeserializeBalance(json::IndexArray(balancesJsonArray, i, jsonErr), jsonErr));
 		}
 	}
 	PHANTASMA_VECTOR<String> txsVector;
-	if(json::HasArrayField(value, PHANTASMA_LITERAL("txs"), jsonErr))
+	if( json::HasArrayField(value, PHANTASMA_LITERAL("txs"), jsonErr) )
 	{
 		const JSONArray& txsJsonArray = json::LookupArray(value, PHANTASMA_LITERAL("txs"), jsonErr);
 		int size = json::ArraySize(txsJsonArray, jsonErr);
 		txsVector.reserve(size);
-		for(int i = 0; i < size; ++i)
+		for( int i = 0; i < size; ++i )
 		{
 			txsVector.push_back(json::AsString(json::IndexArray(txsJsonArray, i, jsonErr), jsonErr));
 		}
-	}	
-	return Account { 
-		json::LookupString(value, PHANTASMA_LITERAL("address"), jsonErr), 
-		json::LookupString(value, PHANTASMA_LITERAL("name"), jsonErr), 
-		DeserializeStake(json::LookupValue(value, PHANTASMA_LITERAL("stakes"), jsonErr), jsonErr), 
-		json::LookupString(value, PHANTASMA_LITERAL("stake"), jsonErr), 
-		json::LookupString(value, PHANTASMA_LITERAL("unclaimed"), jsonErr), 
+	}
+	return Account{
+		json::LookupString(value, PHANTASMA_LITERAL("address"), jsonErr),
+		json::LookupString(value, PHANTASMA_LITERAL("name"), jsonErr),
+		DeserializeStake(json::LookupValue(value, PHANTASMA_LITERAL("stakes"), jsonErr), jsonErr),
+		json::LookupString(value, PHANTASMA_LITERAL("stake"), jsonErr),
+		json::LookupString(value, PHANTASMA_LITERAL("unclaimed"), jsonErr),
 		json::HasField(value, PHANTASMA_LITERAL("relay"), jsonErr) ? json::LookupString(value, PHANTASMA_LITERAL("relay"), jsonErr) : json::String(PHANTASMA_LITERAL("")),
-		json::LookupString(value, PHANTASMA_LITERAL("validator"), jsonErr), 
-		DeserializeStorage(json::LookupValue(value, PHANTASMA_LITERAL("storage"), jsonErr), jsonErr), 
-		balancesVector, 
+		json::LookupString(value, PHANTASMA_LITERAL("validator"), jsonErr),
+		DeserializeStorage(json::LookupValue(value, PHANTASMA_LITERAL("storage"), jsonErr), jsonErr),
+		balancesVector,
 		txsVector
 	};
 }
 
 PHANTASMA_FUNCTION LeaderboardRow PhantasmaJsonAPI::DeserializeLeaderboardRow(const JSONValue& value, bool& jsonErr)
-{ 	
-	return LeaderboardRow { 
-		json::LookupString(value, PHANTASMA_LITERAL("address"), jsonErr), 
+{
+	return LeaderboardRow{
+		json::LookupString(value, PHANTASMA_LITERAL("address"), jsonErr),
 		json::LookupString(value, PHANTASMA_LITERAL("value"), jsonErr)
 	};
 }
 
 PHANTASMA_FUNCTION Leaderboard PhantasmaJsonAPI::DeserializeLeaderboard(const JSONValue& value, bool& jsonErr)
-{ 
+{
 	PHANTASMA_VECTOR<LeaderboardRow> rowsVector;
-	if(json::HasArrayField(value, PHANTASMA_LITERAL("rows"), jsonErr))
+	if( json::HasArrayField(value, PHANTASMA_LITERAL("rows"), jsonErr) )
 	{
 		const JSONArray& rowsJsonArray = json::LookupArray(value, PHANTASMA_LITERAL("rows"), jsonErr);
 		int size = json::ArraySize(rowsJsonArray, jsonErr);
 		rowsVector.reserve(size);
-		for(int i = 0; i < size; ++i)
+		for( int i = 0; i < size; ++i )
 		{
 			rowsVector.push_back(DeserializeLeaderboardRow(json::IndexArray(rowsJsonArray, i, jsonErr), jsonErr));
 		}
-	}	
-	return Leaderboard { 
-		json::LookupString(value, PHANTASMA_LITERAL("name"), jsonErr), 
+	}
+	return Leaderboard{
+		json::LookupString(value, PHANTASMA_LITERAL("name"), jsonErr),
 		rowsVector
 	};
 }
 
 PHANTASMA_FUNCTION Dapp PhantasmaJsonAPI::DeserializeDapp(const JSONValue& value, bool& jsonErr)
-{ 	
-	return Dapp { 
-		json::LookupString(value, PHANTASMA_LITERAL("name"), jsonErr), 
-		json::LookupString(value, PHANTASMA_LITERAL("address"), jsonErr), 
+{
+	return Dapp{
+		json::LookupString(value, PHANTASMA_LITERAL("name"), jsonErr),
+		json::LookupString(value, PHANTASMA_LITERAL("address"), jsonErr),
 		json::LookupString(value, PHANTASMA_LITERAL("chain"), jsonErr)
 	};
 }
 
 PHANTASMA_FUNCTION Chain PhantasmaJsonAPI::DeserializeChain(const JSONValue& value, bool& jsonErr)
-{ 
+{
 	PHANTASMA_VECTOR<String> contractsVector;
-	if(json::HasArrayField(value, PHANTASMA_LITERAL("contracts"), jsonErr))
+	if( json::HasArrayField(value, PHANTASMA_LITERAL("contracts"), jsonErr) )
 	{
 		const JSONArray& contractsJsonArray = json::LookupArray(value, PHANTASMA_LITERAL("contracts"), jsonErr);
 		int size = json::ArraySize(contractsJsonArray, jsonErr);
 		contractsVector.reserve(size);
-		for(int i = 0; i < size; ++i)
+		for( int i = 0; i < size; ++i )
 		{
 			contractsVector.push_back(json::AsString(json::IndexArray(contractsJsonArray, i, jsonErr), jsonErr));
 		}
 	}
 	PHANTASMA_VECTOR<String> dappsVector;
-	if(json::HasArrayField(value, PHANTASMA_LITERAL("dapps"), jsonErr))
+	if( json::HasArrayField(value, PHANTASMA_LITERAL("dapps"), jsonErr) )
 	{
 		const JSONArray& dappsJsonArray = json::LookupArray(value, PHANTASMA_LITERAL("dapps"), jsonErr);
 		int size = json::ArraySize(dappsJsonArray, jsonErr);
 		dappsVector.reserve(size);
-		for(int i = 0; i < size; ++i)
+		for( int i = 0; i < size; ++i )
 		{
 			dappsVector.push_back(json::AsString(json::IndexArray(dappsJsonArray, i, jsonErr), jsonErr));
 		}
-	}	
-	return Chain { 
-		json::LookupString(value, PHANTASMA_LITERAL("name"), jsonErr), 
-		json::LookupString(value, PHANTASMA_LITERAL("address"), jsonErr), 
+	}
+	return Chain{
+		json::LookupString(value, PHANTASMA_LITERAL("name"), jsonErr),
+		json::LookupString(value, PHANTASMA_LITERAL("address"), jsonErr),
 		json::HasField(value, PHANTASMA_LITERAL("parent"), jsonErr) ? json::LookupString(value, PHANTASMA_LITERAL("parent"), jsonErr) : json::String(PHANTASMA_LITERAL("")),
-		json::LookupUInt32(value, PHANTASMA_LITERAL("height"), jsonErr), 
-		json::LookupString(value, PHANTASMA_LITERAL("organization"), jsonErr), 
-		contractsVector, 
+		json::LookupUInt32(value, PHANTASMA_LITERAL("height"), jsonErr),
+		json::LookupString(value, PHANTASMA_LITERAL("organization"), jsonErr),
+		contractsVector,
 		dappsVector
 	};
 }
 
 PHANTASMA_FUNCTION Event PhantasmaJsonAPI::DeserializeEvent(const JSONValue& value, bool& jsonErr)
-{ 	
+{
 	String name;
-	if (json::HasField(value, PHANTASMA_LITERAL("name"), jsonErr))
+	if( json::HasField(value, PHANTASMA_LITERAL("name"), jsonErr) )
 	{
 		name = json::LookupString(value, PHANTASMA_LITERAL("name"), jsonErr);
 	}
-	return Event { 
-		json::LookupString(value, PHANTASMA_LITERAL("address"), jsonErr), 
-		json::LookupString(value, PHANTASMA_LITERAL("contract"), jsonErr), 
-		json::LookupString(value, PHANTASMA_LITERAL("kind"), jsonErr), 
+	return Event{
+		json::LookupString(value, PHANTASMA_LITERAL("address"), jsonErr),
+		json::LookupString(value, PHANTASMA_LITERAL("contract"), jsonErr),
+		json::LookupString(value, PHANTASMA_LITERAL("kind"), jsonErr),
 		name,
 		json::LookupString(value, PHANTASMA_LITERAL("data"), jsonErr)
 	};
@@ -1832,48 +1807,48 @@ PHANTASMA_FUNCTION PHANTASMA_MAP<String, String> PhantasmaJsonAPI::DeserializeSt
 {
 	PHANTASMA_MAP<String, String> output;
 #if defined(PHANTASMA_RAPIDJSON)
-	if (!value.IsObject())
+	if( !value.IsObject() )
 	{
 		jsonErr = true;
 		return output;
 	}
-	for (auto it = value.MemberBegin(); it != value.MemberEnd(); ++it)
+	for( auto it = value.MemberBegin(); it != value.MemberEnd(); ++it )
 	{
-		if (!it->name.IsString())
+		if( !it->name.IsString() )
 			continue;
 		String key = it->name.GetString();
 		const auto& entry = it->value;
-		if (entry.IsString())
+		if( entry.IsString() )
 			output[key] = entry.GetString();
-		else if (entry.IsBool())
+		else if( entry.IsBool() )
 			output[key] = entry.GetBool() ? PHANTASMA_LITERAL("true") : PHANTASMA_LITERAL("false");
-		else if (entry.IsInt64())
+		else if( entry.IsInt64() )
 			output[key] = std::to_string(entry.GetInt64());
-		else if (entry.IsUint64())
+		else if( entry.IsUint64() )
 			output[key] = std::to_string(entry.GetUint64());
-		else if (entry.IsDouble())
+		else if( entry.IsDouble() )
 			output[key] = std::to_string(entry.GetDouble());
-		else if (entry.IsNull())
+		else if( entry.IsNull() )
 			output[key] = String{};
 	}
 #elif defined(PHANTASMA_CPPREST_JSON)
-	if (!value.is_object())
+	if( !value.is_object() )
 	{
 		jsonErr = true;
 		return output;
 	}
 	auto obj = value.as_object();
-	for (auto const& entry : obj)
+	for( auto const& entry : obj )
 	{
 		String key = entry.first;
 		const auto& val = entry.second;
-		if (val.is_string())
+		if( val.is_string() )
 			output[key] = val.as_string();
-		else if (val.is_boolean())
+		else if( val.is_boolean() )
 			output[key] = val.as_bool() ? PHANTASMA_LITERAL("true") : PHANTASMA_LITERAL("false");
-		else if (val.is_number())
+		else if( val.is_number() )
 			output[key] = std::to_string(val.as_number().to_int64());
-		else if (val.is_null())
+		else if( val.is_null() )
 			output[key] = String{};
 	}
 #else
@@ -1891,7 +1866,7 @@ PHANTASMA_FUNCTION TokenCreateData PhantasmaJsonAPI::DeserializeTokenCreateData(
 	output.decimals = json::LookupUInt32(value, PHANTASMA_LITERAL("decimals"), jsonErr);
 	output.isNonFungible = json::LookupBool(value, PHANTASMA_LITERAL("isNonFungible"), jsonErr);
 	output.carbonTokenId = json::LookupUInt64(value, PHANTASMA_LITERAL("carbonTokenId"), jsonErr);
-	if (json::HasField(value, PHANTASMA_LITERAL("metadata"), jsonErr))
+	if( json::HasField(value, PHANTASMA_LITERAL("metadata"), jsonErr) )
 	{
 		output.metadata = DeserializeStringMap(json::LookupValue(value, PHANTASMA_LITERAL("metadata"), jsonErr), jsonErr);
 	}
@@ -1908,7 +1883,7 @@ PHANTASMA_FUNCTION TokenSeriesCreateData PhantasmaJsonAPI::DeserializeTokenSerie
 	output.owner = json::LookupString(value, PHANTASMA_LITERAL("owner"), jsonErr);
 	output.carbonTokenId = json::LookupUInt64(value, PHANTASMA_LITERAL("carbonTokenId"), jsonErr);
 	output.carbonSeriesId = json::LookupUInt32(value, PHANTASMA_LITERAL("carbonSeriesId"), jsonErr);
-	if (json::HasField(value, PHANTASMA_LITERAL("metadata"), jsonErr))
+	if( json::HasField(value, PHANTASMA_LITERAL("metadata"), jsonErr) )
 	{
 		output.metadata = DeserializeStringMap(json::LookupValue(value, PHANTASMA_LITERAL("metadata"), jsonErr), jsonErr);
 	}
@@ -1926,7 +1901,7 @@ PHANTASMA_FUNCTION TokenMintData PhantasmaJsonAPI::DeserializeTokenMintData(cons
 	output.carbonSeriesId = json::LookupUInt32(value, PHANTASMA_LITERAL("carbonSeriesId"), jsonErr);
 	output.carbonInstanceId = json::LookupUInt64(value, PHANTASMA_LITERAL("carbonInstanceId"), jsonErr);
 	output.owner = json::LookupString(value, PHANTASMA_LITERAL("owner"), jsonErr);
-	if (json::HasField(value, PHANTASMA_LITERAL("metadata"), jsonErr))
+	if( json::HasField(value, PHANTASMA_LITERAL("metadata"), jsonErr) )
 	{
 		output.metadata = DeserializeStringMap(json::LookupValue(value, PHANTASMA_LITERAL("metadata"), jsonErr), jsonErr);
 	}
@@ -1959,20 +1934,20 @@ PHANTASMA_FUNCTION SpecialResolutionCall PhantasmaJsonAPI::DeserializeSpecialRes
 	output.module = json::LookupString(value, PHANTASMA_LITERAL("module"), jsonErr);
 	output.methodId = json::LookupUInt32(value, PHANTASMA_LITERAL("methodId"), jsonErr);
 	output.method = json::LookupString(value, PHANTASMA_LITERAL("method"), jsonErr);
-	if (json::HasField(value, PHANTASMA_LITERAL("arguments"), jsonErr))
+	if( json::HasField(value, PHANTASMA_LITERAL("arguments"), jsonErr) )
 	{
 		const JSONValue& argsValue = json::LookupValue(value, PHANTASMA_LITERAL("arguments"), jsonErr);
-		if (json::IsObject(argsValue, jsonErr))
+		if( json::IsObject(argsValue, jsonErr) )
 		{
 			output.arguments = DeserializeStringMap(argsValue, jsonErr);
 		}
 	}
-	if (json::HasArrayField(value, PHANTASMA_LITERAL("calls"), jsonErr))
+	if( json::HasArrayField(value, PHANTASMA_LITERAL("calls"), jsonErr) )
 	{
 		const JSONArray& callsJsonArray = json::LookupArray(value, PHANTASMA_LITERAL("calls"), jsonErr);
 		int size = json::ArraySize(callsJsonArray, jsonErr);
 		output.calls.reserve(size);
-		for (int i = 0; i < size; ++i)
+		for( int i = 0; i < size; ++i )
 		{
 			output.calls.push_back(DeserializeSpecialResolutionCall(json::IndexArray(callsJsonArray, i, jsonErr), jsonErr));
 		}
@@ -1984,16 +1959,16 @@ PHANTASMA_FUNCTION SpecialResolutionData PhantasmaJsonAPI::DeserializeSpecialRes
 {
 	SpecialResolutionData output{};
 	output.resolutionId = json::LookupUInt64(value, PHANTASMA_LITERAL("resolutionId"), jsonErr);
-	if (json::HasField(value, PHANTASMA_LITERAL("description"), jsonErr))
+	if( json::HasField(value, PHANTASMA_LITERAL("description"), jsonErr) )
 	{
 		output.description = json::LookupString(value, PHANTASMA_LITERAL("description"), jsonErr);
 	}
-	if (json::HasArrayField(value, PHANTASMA_LITERAL("calls"), jsonErr))
+	if( json::HasArrayField(value, PHANTASMA_LITERAL("calls"), jsonErr) )
 	{
 		const JSONArray& callsJsonArray = json::LookupArray(value, PHANTASMA_LITERAL("calls"), jsonErr);
 		int size = json::ArraySize(callsJsonArray, jsonErr);
 		output.calls.reserve(size);
-		for (int i = 0; i < size; ++i)
+		for( int i = 0; i < size; ++i )
 		{
 			output.calls.push_back(DeserializeSpecialResolutionCall(json::IndexArray(callsJsonArray, i, jsonErr), jsonErr));
 		}
@@ -2008,32 +1983,30 @@ PHANTASMA_FUNCTION EventExtended PhantasmaJsonAPI::DeserializeEventExtended(cons
 	output.contract = json::LookupString(value, PHANTASMA_LITERAL("contract"), jsonErr);
 	output.kind = json::LookupString(value, PHANTASMA_LITERAL("kind"), jsonErr);
 	output.type = ExtendedEventType::Unknown;
-	if (json::HasField(value, PHANTASMA_LITERAL("data"), jsonErr))
+	if( json::HasField(value, PHANTASMA_LITERAL("data"), jsonErr) )
 	{
 		const JSONValue& data = json::LookupValue(value, PHANTASMA_LITERAL("data"), jsonErr);
-		if (output.kind == PHANTASMA_LITERAL("TokenCreate"))
+		if( output.kind == PHANTASMA_LITERAL("TokenCreate") )
 		{
 			output.type = ExtendedEventType::TokenCreate;
 			output.tokenCreate = DeserializeTokenCreateData(data, jsonErr);
 		}
-		else if (output.kind == PHANTASMA_LITERAL("TokenSeriesCreate"))
+		else if( output.kind == PHANTASMA_LITERAL("TokenSeriesCreate") )
 		{
 			output.type = ExtendedEventType::TokenSeriesCreate;
 			output.tokenSeriesCreate = DeserializeTokenSeriesCreateData(data, jsonErr);
 		}
-		else if (output.kind == PHANTASMA_LITERAL("TokenMint"))
+		else if( output.kind == PHANTASMA_LITERAL("TokenMint") )
 		{
 			output.type = ExtendedEventType::TokenMint;
 			output.tokenMint = DeserializeTokenMintData(data, jsonErr);
 		}
-		else if (output.kind == PHANTASMA_LITERAL("OrderCreated")
-			|| output.kind == PHANTASMA_LITERAL("OrderCancelled")
-			|| output.kind == PHANTASMA_LITERAL("OrderFilled"))
+		else if( output.kind == PHANTASMA_LITERAL("OrderCreated") || output.kind == PHANTASMA_LITERAL("OrderCancelled") || output.kind == PHANTASMA_LITERAL("OrderFilled") )
 		{
 			output.type = ExtendedEventType::MarketOrder;
 			output.marketOrder = DeserializeMarketOrderData(data, jsonErr);
 		}
-		else if (output.kind == PHANTASMA_LITERAL("SpecialResolution"))
+		else if( output.kind == PHANTASMA_LITERAL("SpecialResolution") )
 		{
 			output.type = ExtendedEventType::SpecialResolution;
 			output.specialResolution = DeserializeSpecialResolutionData(data, jsonErr);
@@ -2043,246 +2016,246 @@ PHANTASMA_FUNCTION EventExtended PhantasmaJsonAPI::DeserializeEventExtended(cons
 }
 
 PHANTASMA_FUNCTION Oracle PhantasmaJsonAPI::DeserializeOracle(const JSONValue& value, bool& jsonErr)
-{ 	
-	return Oracle { 
-		json::LookupString(value, PHANTASMA_LITERAL("url"), jsonErr), 
+{
+	return Oracle{
+		json::LookupString(value, PHANTASMA_LITERAL("url"), jsonErr),
 		json::LookupString(value, PHANTASMA_LITERAL("content"), jsonErr)
 	};
 }
 
 PHANTASMA_FUNCTION Signature PhantasmaJsonAPI::DeserializeSignature(const JSONValue& value, bool& jsonErr)
-{ 	
-	return Signature { 
-		json::LookupString(value, PHANTASMA_LITERAL("kind"), jsonErr), 
+{
+	return Signature{
+		json::LookupString(value, PHANTASMA_LITERAL("kind"), jsonErr),
 		json::LookupString(value, PHANTASMA_LITERAL("data"), jsonErr)
 	};
 }
 
 PHANTASMA_FUNCTION Transaction PhantasmaJsonAPI::DeserializeTransaction(const JSONValue& value, bool& jsonErr)
-{ 
+{
 	PHANTASMA_VECTOR<Event> eventsVector;
-	if(json::HasArrayField(value, PHANTASMA_LITERAL("events"), jsonErr))
+	if( json::HasArrayField(value, PHANTASMA_LITERAL("events"), jsonErr) )
 	{
 		const JSONArray& eventsJsonArray = json::LookupArray(value, PHANTASMA_LITERAL("events"), jsonErr);
 		int size = json::ArraySize(eventsJsonArray, jsonErr);
 		eventsVector.reserve(size);
-		for(int i = 0; i < size; ++i)
+		for( int i = 0; i < size; ++i )
 		{
 			eventsVector.push_back(DeserializeEvent(json::IndexArray(eventsJsonArray, i, jsonErr), jsonErr));
 		}
 	}
 	PHANTASMA_VECTOR<EventExtended> extendedEventsVector;
-	if(json::HasArrayField(value, PHANTASMA_LITERAL("extendedEvents"), jsonErr))
+	if( json::HasArrayField(value, PHANTASMA_LITERAL("extendedEvents"), jsonErr) )
 	{
 		const JSONArray& extendedEventsJsonArray = json::LookupArray(value, PHANTASMA_LITERAL("extendedEvents"), jsonErr);
 		int size = json::ArraySize(extendedEventsJsonArray, jsonErr);
 		extendedEventsVector.reserve(size);
-		for(int i = 0; i < size; ++i)
+		for( int i = 0; i < size; ++i )
 		{
 			extendedEventsVector.push_back(DeserializeEventExtended(json::IndexArray(extendedEventsJsonArray, i, jsonErr), jsonErr));
 		}
 	}
 	PHANTASMA_VECTOR<Signature> signaturesVector;
-	if(json::HasArrayField(value, PHANTASMA_LITERAL("signatures"), jsonErr))
+	if( json::HasArrayField(value, PHANTASMA_LITERAL("signatures"), jsonErr) )
 	{
 		const JSONArray& signaturesJsonArray = json::LookupArray(value, PHANTASMA_LITERAL("signatures"), jsonErr);
 		int size = json::ArraySize(signaturesJsonArray, jsonErr);
 		signaturesVector.reserve(size);
-		for(int i = 0; i < size; ++i)
+		for( int i = 0; i < size; ++i )
 		{
 			signaturesVector.push_back(DeserializeSignature(json::IndexArray(signaturesJsonArray, i, jsonErr), jsonErr));
 		}
-	}	
+	}
 	String debugComment;
-	if (json::HasField(value, PHANTASMA_LITERAL("debugComment"), jsonErr))
+	if( json::HasField(value, PHANTASMA_LITERAL("debugComment"), jsonErr) )
 	{
 		debugComment = json::LookupString(value, PHANTASMA_LITERAL("debugComment"), jsonErr);
 	}
-	return Transaction { 
-		json::LookupString(value, PHANTASMA_LITERAL("hash"), jsonErr), 
-		json::LookupString(value, PHANTASMA_LITERAL("chainAddress"), jsonErr), 
-		json::LookupUInt32(value, PHANTASMA_LITERAL("timestamp"), jsonErr), 
-		json::LookupInt32(value, PHANTASMA_LITERAL("blockHeight"), jsonErr), 
-		json::LookupString(value, PHANTASMA_LITERAL("blockHash"), jsonErr), 
-		json::LookupString(value, PHANTASMA_LITERAL("script"), jsonErr), 
-		json::LookupString(value, PHANTASMA_LITERAL("payload"), jsonErr), 
-		eventsVector, 
+	return Transaction{
+		json::LookupString(value, PHANTASMA_LITERAL("hash"), jsonErr),
+		json::LookupString(value, PHANTASMA_LITERAL("chainAddress"), jsonErr),
+		json::LookupUInt32(value, PHANTASMA_LITERAL("timestamp"), jsonErr),
+		json::LookupInt32(value, PHANTASMA_LITERAL("blockHeight"), jsonErr),
+		json::LookupString(value, PHANTASMA_LITERAL("blockHash"), jsonErr),
+		json::LookupString(value, PHANTASMA_LITERAL("script"), jsonErr),
+		json::LookupString(value, PHANTASMA_LITERAL("payload"), jsonErr),
+		eventsVector,
 		extendedEventsVector,
-		json::LookupString(value, PHANTASMA_LITERAL("result"), jsonErr), 
+		json::LookupString(value, PHANTASMA_LITERAL("result"), jsonErr),
 		debugComment,
-		json::LookupString(value, PHANTASMA_LITERAL("fee"), jsonErr), 
-		signaturesVector, 
+		json::LookupString(value, PHANTASMA_LITERAL("fee"), jsonErr),
+		signaturesVector,
 		json::LookupUInt32(value, PHANTASMA_LITERAL("expiration"), jsonErr),
 		// Phantasma 3.0:
-		json::LookupString(value, PHANTASMA_LITERAL("state"), jsonErr), 
-		json::LookupString(value, PHANTASMA_LITERAL("sender"), jsonErr), 
-		json::LookupString(value, PHANTASMA_LITERAL("gasPayer"), jsonErr), 
-		json::LookupString(value, PHANTASMA_LITERAL("gasTarget"), jsonErr), 
-		json::LookupString(value, PHANTASMA_LITERAL("gasPrice"), jsonErr), 
-		json::LookupString(value, PHANTASMA_LITERAL("gasLimit"), jsonErr), 
+		json::LookupString(value, PHANTASMA_LITERAL("state"), jsonErr),
+		json::LookupString(value, PHANTASMA_LITERAL("sender"), jsonErr),
+		json::LookupString(value, PHANTASMA_LITERAL("gasPayer"), jsonErr),
+		json::LookupString(value, PHANTASMA_LITERAL("gasTarget"), jsonErr),
+		json::LookupString(value, PHANTASMA_LITERAL("gasPrice"), jsonErr),
+		json::LookupString(value, PHANTASMA_LITERAL("gasLimit"), jsonErr),
 	};
 }
 
 PHANTASMA_FUNCTION AccountTransactions PhantasmaJsonAPI::DeserializeAccountTransactions(const JSONValue& value, bool& jsonErr)
-{ 
+{
 	PHANTASMA_VECTOR<Transaction> txsVector;
-	if(json::HasArrayField(value, PHANTASMA_LITERAL("txs"), jsonErr))
+	if( json::HasArrayField(value, PHANTASMA_LITERAL("txs"), jsonErr) )
 	{
 		const JSONArray& txsJsonArray = json::LookupArray(value, PHANTASMA_LITERAL("txs"), jsonErr);
 		int size = json::ArraySize(txsJsonArray, jsonErr);
 		txsVector.reserve(size);
-		for(int i = 0; i < size; ++i)
+		for( int i = 0; i < size; ++i )
 		{
 			txsVector.push_back(DeserializeTransaction(json::IndexArray(txsJsonArray, i, jsonErr), jsonErr));
 		}
-	}	
-	return AccountTransactions { 
-		json::LookupString(value, PHANTASMA_LITERAL("address"), jsonErr), 
+	}
+	return AccountTransactions{
+		json::LookupString(value, PHANTASMA_LITERAL("address"), jsonErr),
 		txsVector
 	};
 }
 
 PHANTASMA_FUNCTION Paginated PhantasmaJsonAPI::DeserializePaginated(const JSONValue& value, bool& jsonErr)
-{ 	
-	return Paginated { 
-		json::LookupUInt32(value, PHANTASMA_LITERAL("page"), jsonErr), 
-		json::LookupUInt32(value, PHANTASMA_LITERAL("pageSize"), jsonErr), 
-		json::LookupUInt32(value, PHANTASMA_LITERAL("total"), jsonErr), 
-		json::LookupUInt32(value, PHANTASMA_LITERAL("totalPages"), jsonErr), 
+{
+	return Paginated{
+		json::LookupUInt32(value, PHANTASMA_LITERAL("page"), jsonErr),
+		json::LookupUInt32(value, PHANTASMA_LITERAL("pageSize"), jsonErr),
+		json::LookupUInt32(value, PHANTASMA_LITERAL("total"), jsonErr),
+		json::LookupUInt32(value, PHANTASMA_LITERAL("totalPages"), jsonErr),
 		json::LookupValue(value, PHANTASMA_LITERAL("result"), jsonErr)
 	};
 }
 
 PHANTASMA_FUNCTION VmVariableSchemaResult PhantasmaJsonAPI::DeserializeVmVariableSchemaResult(const JSONValue& value, bool& jsonErr)
-{ 	
+{
 	VmVariableSchemaResult variableSchema;
 	variableSchema.type = json::LookupString(value, PHANTASMA_LITERAL("type"), jsonErr);
-	if(json::HasField(value, PHANTASMA_LITERAL("schema"), jsonErr))
+	if( json::HasField(value, PHANTASMA_LITERAL("schema"), jsonErr) )
 	{
 		variableSchema.schema = std::make_shared<VmStructSchemaResult>(
-			DeserializeVmStructSchemaResult(json::LookupValue(value, PHANTASMA_LITERAL("schema"), jsonErr), jsonErr));
+		    DeserializeVmStructSchemaResult(json::LookupValue(value, PHANTASMA_LITERAL("schema"), jsonErr), jsonErr));
 	}
 	return variableSchema;
 }
 
 PHANTASMA_FUNCTION VmNamedVariableSchemaResult PhantasmaJsonAPI::DeserializeVmNamedVariableSchemaResult(const JSONValue& value, bool& jsonErr)
-{ 	
-	return VmNamedVariableSchemaResult { 
-		json::LookupString(value, PHANTASMA_LITERAL("name"), jsonErr), 
+{
+	return VmNamedVariableSchemaResult{
+		json::LookupString(value, PHANTASMA_LITERAL("name"), jsonErr),
 		DeserializeVmVariableSchemaResult(json::LookupValue(value, PHANTASMA_LITERAL("schema"), jsonErr), jsonErr)
 	};
 }
 
 PHANTASMA_FUNCTION VmStructSchemaResult PhantasmaJsonAPI::DeserializeVmStructSchemaResult(const JSONValue& value, bool& jsonErr)
-{ 
+{
 	PHANTASMA_VECTOR<VmNamedVariableSchemaResult> fieldsVector;
-	if(json::HasArrayField(value, PHANTASMA_LITERAL("fields"), jsonErr))
+	if( json::HasArrayField(value, PHANTASMA_LITERAL("fields"), jsonErr) )
 	{
 		const JSONArray& fieldsJsonArray = json::LookupArray(value, PHANTASMA_LITERAL("fields"), jsonErr);
 		int size = json::ArraySize(fieldsJsonArray, jsonErr);
 		fieldsVector.reserve(size);
-		for(int i = 0; i < size; ++i)
+		for( int i = 0; i < size; ++i )
 		{
 			fieldsVector.push_back(DeserializeVmNamedVariableSchemaResult(json::IndexArray(fieldsJsonArray, i, jsonErr), jsonErr));
 		}
 	}
-	return VmStructSchemaResult { 
-		fieldsVector, 
+	return VmStructSchemaResult{
+		fieldsVector,
 		json::LookupInt32(value, PHANTASMA_LITERAL("flags"), jsonErr)
 	};
 }
 
 PHANTASMA_FUNCTION Block PhantasmaJsonAPI::DeserializeBlock(const JSONValue& value, bool& jsonErr)
-{ 
+{
 	PHANTASMA_VECTOR<Transaction> txsVector;
-	if(json::HasArrayField(value, PHANTASMA_LITERAL("txs"), jsonErr))
+	if( json::HasArrayField(value, PHANTASMA_LITERAL("txs"), jsonErr) )
 	{
 		const JSONArray& txsJsonArray = json::LookupArray(value, PHANTASMA_LITERAL("txs"), jsonErr);
 		int size = json::ArraySize(txsJsonArray, jsonErr);
 		txsVector.reserve(size);
-		for(int i = 0; i < size; ++i)
+		for( int i = 0; i < size; ++i )
 		{
 			txsVector.push_back(DeserializeTransaction(json::IndexArray(txsJsonArray, i, jsonErr), jsonErr));
 		}
 	}
 	PHANTASMA_VECTOR<Event> eventsVector;
-	if(json::HasArrayField(value, PHANTASMA_LITERAL("events"), jsonErr))
+	if( json::HasArrayField(value, PHANTASMA_LITERAL("events"), jsonErr) )
 	{
 		const JSONArray& eventsJsonArray = json::LookupArray(value, PHANTASMA_LITERAL("events"), jsonErr);
 		int size = json::ArraySize(eventsJsonArray, jsonErr);
 		eventsVector.reserve(size);
-		for(int i = 0; i < size; ++i)
+		for( int i = 0; i < size; ++i )
 		{
 			eventsVector.push_back(DeserializeEvent(json::IndexArray(eventsJsonArray, i, jsonErr), jsonErr));
 		}
 	}
 	PHANTASMA_VECTOR<Oracle> oraclesVector;
-	if(json::HasArrayField(value, PHANTASMA_LITERAL("oracles"), jsonErr))
+	if( json::HasArrayField(value, PHANTASMA_LITERAL("oracles"), jsonErr) )
 	{
 		const JSONArray& oraclesJsonArray = json::LookupArray(value, PHANTASMA_LITERAL("oracles"), jsonErr);
 		int size = json::ArraySize(oraclesJsonArray, jsonErr);
 		oraclesVector.reserve(size);
-		for(int i = 0; i < size; ++i)
+		for( int i = 0; i < size; ++i )
 		{
 			oraclesVector.push_back(DeserializeOracle(json::IndexArray(oraclesJsonArray, i, jsonErr), jsonErr));
 		}
-	}	
-	return Block { 
-		json::LookupString(value, PHANTASMA_LITERAL("hash"), jsonErr), 
-		json::LookupString(value, PHANTASMA_LITERAL("previousHash"), jsonErr), 
-		json::LookupUInt32(value, PHANTASMA_LITERAL("timestamp"), jsonErr), 
-		json::LookupUInt32(value, PHANTASMA_LITERAL("height"), jsonErr), 
-		json::LookupString(value, PHANTASMA_LITERAL("chainAddress"), jsonErr), 
-		json::LookupUInt32(value, PHANTASMA_LITERAL("protocol"), jsonErr), 
-		txsVector, 
-		json::LookupString(value, PHANTASMA_LITERAL("validatorAddress"), jsonErr), 
-		json::LookupString(value, PHANTASMA_LITERAL("reward"), jsonErr), 
-		eventsVector, 
+	}
+	return Block{
+		json::LookupString(value, PHANTASMA_LITERAL("hash"), jsonErr),
+		json::LookupString(value, PHANTASMA_LITERAL("previousHash"), jsonErr),
+		json::LookupUInt32(value, PHANTASMA_LITERAL("timestamp"), jsonErr),
+		json::LookupUInt32(value, PHANTASMA_LITERAL("height"), jsonErr),
+		json::LookupString(value, PHANTASMA_LITERAL("chainAddress"), jsonErr),
+		json::LookupUInt32(value, PHANTASMA_LITERAL("protocol"), jsonErr),
+		txsVector,
+		json::LookupString(value, PHANTASMA_LITERAL("validatorAddress"), jsonErr),
+		json::LookupString(value, PHANTASMA_LITERAL("reward"), jsonErr),
+		eventsVector,
 		oraclesVector
 	};
 }
 
 PHANTASMA_FUNCTION Token PhantasmaJsonAPI::DeserializeToken(const JSONValue& value, bool& jsonErr)
-{ 
+{
 	PHANTASMA_VECTOR<TokenSeries> seriesVector;
-	if(json::HasArrayField(value, PHANTASMA_LITERAL("series"), jsonErr))
+	if( json::HasArrayField(value, PHANTASMA_LITERAL("series"), jsonErr) )
 	{
 		const JSONArray& seriesJsonArray = json::LookupArray(value, PHANTASMA_LITERAL("series"), jsonErr);
 		int size = json::ArraySize(seriesJsonArray, jsonErr);
 		seriesVector.reserve(size);
-		for(int i = 0; i < size; ++i)
+		for( int i = 0; i < size; ++i )
 		{
 			seriesVector.push_back(DeserializeTokenSeries(json::IndexArray(seriesJsonArray, i, jsonErr), jsonErr));
 		}
-	}	
+	}
 	PHANTASMA_VECTOR<TokenProperty> metadataVector;
-	if(json::HasArrayField(value, PHANTASMA_LITERAL("metadata"), jsonErr))
+	if( json::HasArrayField(value, PHANTASMA_LITERAL("metadata"), jsonErr) )
 	{
 		const JSONArray& metadataJsonArray = json::LookupArray(value, PHANTASMA_LITERAL("metadata"), jsonErr);
 		int size = json::ArraySize(metadataJsonArray, jsonErr);
 		metadataVector.reserve(size);
-		for(int i = 0; i < size; ++i)
+		for( int i = 0; i < size; ++i )
 		{
 			metadataVector.push_back(DeserializeTokenProperty(json::IndexArray(metadataJsonArray, i, jsonErr), jsonErr));
 		}
 	}
 	TokenSchemas tokenSchemas;
-	if(json::HasField(value, PHANTASMA_LITERAL("tokenSchemas"), jsonErr))
+	if( json::HasField(value, PHANTASMA_LITERAL("tokenSchemas"), jsonErr) )
 	{
 		tokenSchemas = DeserializeTokenSchemas(json::LookupValue(value, PHANTASMA_LITERAL("tokenSchemas"), jsonErr), jsonErr);
 	}
-	return Token { 
-		json::LookupString(value, PHANTASMA_LITERAL("symbol"), jsonErr), 
-		json::LookupString(value, PHANTASMA_LITERAL("name"), jsonErr), 
-		json::LookupInt32(value, PHANTASMA_LITERAL("decimals"), jsonErr), 
-		json::LookupString(value, PHANTASMA_LITERAL("currentSupply"), jsonErr), 
-		json::LookupString(value, PHANTASMA_LITERAL("maxSupply"), jsonErr), 
-		json::LookupString(value, PHANTASMA_LITERAL("carbonId"), jsonErr), 
-		json::LookupString(value, PHANTASMA_LITERAL("burnedSupply"), jsonErr), 
-		json::LookupString(value, PHANTASMA_LITERAL("address"), jsonErr), 
-		json::LookupString(value, PHANTASMA_LITERAL("owner"), jsonErr), 
-		json::LookupString(value, PHANTASMA_LITERAL("flags"), jsonErr), 
-		json::LookupString(value, PHANTASMA_LITERAL("script"), jsonErr), 
+	return Token{
+		json::LookupString(value, PHANTASMA_LITERAL("symbol"), jsonErr),
+		json::LookupString(value, PHANTASMA_LITERAL("name"), jsonErr),
+		json::LookupInt32(value, PHANTASMA_LITERAL("decimals"), jsonErr),
+		json::LookupString(value, PHANTASMA_LITERAL("currentSupply"), jsonErr),
+		json::LookupString(value, PHANTASMA_LITERAL("maxSupply"), jsonErr),
+		json::LookupString(value, PHANTASMA_LITERAL("carbonId"), jsonErr),
+		json::LookupString(value, PHANTASMA_LITERAL("burnedSupply"), jsonErr),
+		json::LookupString(value, PHANTASMA_LITERAL("address"), jsonErr),
+		json::LookupString(value, PHANTASMA_LITERAL("owner"), jsonErr),
+		json::LookupString(value, PHANTASMA_LITERAL("flags"), jsonErr),
+		json::LookupString(value, PHANTASMA_LITERAL("script"), jsonErr),
 		seriesVector,
 		metadataVector,
 		tokenSchemas
@@ -2290,346 +2263,344 @@ PHANTASMA_FUNCTION Token PhantasmaJsonAPI::DeserializeToken(const JSONValue& val
 }
 
 PHANTASMA_FUNCTION TokenSeries PhantasmaJsonAPI::DeserializeTokenSeries(const JSONValue& value, bool& jsonErr)
-{ 
+{
 	PHANTASMA_VECTOR<ABIMethod> methodsVector;
-	if(json::HasArrayField(value, PHANTASMA_LITERAL("methods"), jsonErr))
+	if( json::HasArrayField(value, PHANTASMA_LITERAL("methods"), jsonErr) )
 	{
 		const JSONArray& methodsJsonArray = json::LookupArray(value, PHANTASMA_LITERAL("methods"), jsonErr);
 		int size = json::ArraySize(methodsJsonArray, jsonErr);
 		methodsVector.reserve(size);
-		for(int i = 0; i < size; ++i)
+		for( int i = 0; i < size; ++i )
 		{
 			methodsVector.push_back(DeserializeABIMethod(json::IndexArray(methodsJsonArray, i, jsonErr), jsonErr));
 		}
-	}	
+	}
 	PHANTASMA_VECTOR<TokenProperty> metadataVector;
-	if(json::HasArrayField(value, PHANTASMA_LITERAL("metadata"), jsonErr))
+	if( json::HasArrayField(value, PHANTASMA_LITERAL("metadata"), jsonErr) )
 	{
 		const JSONArray& metadataJsonArray = json::LookupArray(value, PHANTASMA_LITERAL("metadata"), jsonErr);
 		int size = json::ArraySize(metadataJsonArray, jsonErr);
 		metadataVector.reserve(size);
-		for(int i = 0; i < size; ++i)
+		for( int i = 0; i < size; ++i )
 		{
 			metadataVector.push_back(DeserializeTokenProperty(json::IndexArray(metadataJsonArray, i, jsonErr), jsonErr));
 		}
-	}	
-	return TokenSeries { 
-		json::LookupUInt32(value, PHANTASMA_LITERAL("seriesID"), jsonErr), 
-		json::LookupString(value, PHANTASMA_LITERAL("currentSupply"), jsonErr), 
-		json::LookupString(value, PHANTASMA_LITERAL("maxSupply"), jsonErr), 
-		json::LookupString(value, PHANTASMA_LITERAL("burnedSupply"), jsonErr), 
-		DeserializeTokenSeriesMode(json::LookupValue(value, PHANTASMA_LITERAL("mode"), jsonErr), jsonErr), 
-		json::LookupString(value, PHANTASMA_LITERAL("carbonTokenId"), jsonErr), 
-		json::LookupString(value, PHANTASMA_LITERAL("carbonSeriesId"), jsonErr), 
-		json::LookupString(value, PHANTASMA_LITERAL("script"), jsonErr), 
+	}
+	return TokenSeries{
+		json::LookupUInt32(value, PHANTASMA_LITERAL("seriesID"), jsonErr),
+		json::LookupString(value, PHANTASMA_LITERAL("currentSupply"), jsonErr),
+		json::LookupString(value, PHANTASMA_LITERAL("maxSupply"), jsonErr),
+		json::LookupString(value, PHANTASMA_LITERAL("burnedSupply"), jsonErr),
+		DeserializeTokenSeriesMode(json::LookupValue(value, PHANTASMA_LITERAL("mode"), jsonErr), jsonErr),
+		json::LookupString(value, PHANTASMA_LITERAL("carbonTokenId"), jsonErr),
+		json::LookupString(value, PHANTASMA_LITERAL("carbonSeriesId"), jsonErr),
+		json::LookupString(value, PHANTASMA_LITERAL("script"), jsonErr),
 		methodsVector,
 		metadataVector
 	};
 }
 
 PHANTASMA_FUNCTION TokenSchemas PhantasmaJsonAPI::DeserializeTokenSchemas(const JSONValue& value, bool& jsonErr)
-{ 	
-	return TokenSchemas { 
-		DeserializeVmStructSchemaResult(json::LookupValue(value, PHANTASMA_LITERAL("seriesMetadata"), jsonErr), jsonErr), 
-		DeserializeVmStructSchemaResult(json::LookupValue(value, PHANTASMA_LITERAL("rom"), jsonErr), jsonErr), 
+{
+	return TokenSchemas{
+		DeserializeVmStructSchemaResult(json::LookupValue(value, PHANTASMA_LITERAL("seriesMetadata"), jsonErr), jsonErr),
+		DeserializeVmStructSchemaResult(json::LookupValue(value, PHANTASMA_LITERAL("rom"), jsonErr), jsonErr),
 		DeserializeVmStructSchemaResult(json::LookupValue(value, PHANTASMA_LITERAL("ram"), jsonErr), jsonErr)
 	};
 }
 
 PHANTASMA_FUNCTION TokenProperty PhantasmaJsonAPI::DeserializeTokenProperty(const JSONValue& value, bool& jsonErr)
-{ 	
-	return TokenProperty { 
-		json::LookupString(value, PHANTASMA_LITERAL("key"), jsonErr), 
+{
+	return TokenProperty{
+		json::LookupString(value, PHANTASMA_LITERAL("key"), jsonErr),
 		json::LookupString(value, PHANTASMA_LITERAL("value"), jsonErr)
 	};
 }
 
 PHANTASMA_FUNCTION TokenData PhantasmaJsonAPI::DeserializeTokenData(const JSONValue& value, bool& jsonErr)
-{ 
+{
 	PHANTASMA_VECTOR<TokenProperty> infusionVector;
-	if(json::HasArrayField(value, PHANTASMA_LITERAL("infusion"), jsonErr))
+	if( json::HasArrayField(value, PHANTASMA_LITERAL("infusion"), jsonErr) )
 	{
 		const JSONArray& infusionJsonArray = json::LookupArray(value, PHANTASMA_LITERAL("infusion"), jsonErr);
 		int size = json::ArraySize(infusionJsonArray, jsonErr);
 		infusionVector.reserve(size);
-		for(int i = 0; i < size; ++i)
+		for( int i = 0; i < size; ++i )
 		{
 			infusionVector.push_back(DeserializeTokenProperty(json::IndexArray(infusionJsonArray, i, jsonErr), jsonErr));
 		}
 	}
 	PHANTASMA_VECTOR<TokenProperty> propertiesVector;
-	if(json::HasArrayField(value, PHANTASMA_LITERAL("properties"), jsonErr))
+	if( json::HasArrayField(value, PHANTASMA_LITERAL("properties"), jsonErr) )
 	{
 		const JSONArray& propertiesJsonArray = json::LookupArray(value, PHANTASMA_LITERAL("properties"), jsonErr);
 		int size = json::ArraySize(propertiesJsonArray, jsonErr);
 		propertiesVector.reserve(size);
-		for(int i = 0; i < size; ++i)
+		for( int i = 0; i < size; ++i )
 		{
 			propertiesVector.push_back(DeserializeTokenProperty(json::IndexArray(propertiesJsonArray, i, jsonErr), jsonErr));
 		}
-	}	
-	return TokenData { 
-		json::LookupString(value, PHANTASMA_LITERAL("id"), jsonErr), 
-		json::LookupString(value, PHANTASMA_LITERAL("series"), jsonErr), 
-		json::LookupString(value, PHANTASMA_LITERAL("mint"), jsonErr), 
-		json::LookupString(value, PHANTASMA_LITERAL("chainName"), jsonErr), 
-		json::LookupString(value, PHANTASMA_LITERAL("ownerAddress"), jsonErr), 
-		json::LookupString(value, PHANTASMA_LITERAL("creatorAddress"), jsonErr), 
-		json::LookupString(value, PHANTASMA_LITERAL("ram"), jsonErr), 
-		json::LookupString(value, PHANTASMA_LITERAL("rom"), jsonErr), 
-		json::LookupString(value, PHANTASMA_LITERAL("status"), jsonErr), 
-		infusionVector, 
+	}
+	return TokenData{
+		json::LookupString(value, PHANTASMA_LITERAL("id"), jsonErr),
+		json::LookupString(value, PHANTASMA_LITERAL("series"), jsonErr),
+		json::LookupString(value, PHANTASMA_LITERAL("mint"), jsonErr),
+		json::LookupString(value, PHANTASMA_LITERAL("chainName"), jsonErr),
+		json::LookupString(value, PHANTASMA_LITERAL("ownerAddress"), jsonErr),
+		json::LookupString(value, PHANTASMA_LITERAL("creatorAddress"), jsonErr),
+		json::LookupString(value, PHANTASMA_LITERAL("ram"), jsonErr),
+		json::LookupString(value, PHANTASMA_LITERAL("rom"), jsonErr),
+		json::LookupString(value, PHANTASMA_LITERAL("status"), jsonErr),
+		infusionVector,
 		propertiesVector
 	};
 }
 
 PHANTASMA_FUNCTION SendRawTx PhantasmaJsonAPI::DeserializeSendRawTx(const JSONValue& value, bool& jsonErr)
-{ 	
-	return SendRawTx { 
-		json::LookupString(value, PHANTASMA_LITERAL("hash"), jsonErr), 
+{
+	return SendRawTx{
+		json::LookupString(value, PHANTASMA_LITERAL("hash"), jsonErr),
 		json::LookupString(value, PHANTASMA_LITERAL("error"), jsonErr)
 	};
 }
 
 PHANTASMA_FUNCTION SendCarbonTx PhantasmaJsonAPI::DeserializeSendCarbonTx(const JSONValue& value, bool& jsonErr)
-{ 	
-	return SendCarbonTx { 
-		json::LookupString(value, PHANTASMA_LITERAL("hash"), jsonErr), 
+{
+	return SendCarbonTx{
+		json::LookupString(value, PHANTASMA_LITERAL("hash"), jsonErr),
 		json::LookupString(value, PHANTASMA_LITERAL("error"), jsonErr)
 	};
 }
 
 PHANTASMA_FUNCTION Auction PhantasmaJsonAPI::DeserializeAuction(const JSONValue& value, bool& jsonErr)
-{ 	
-	return Auction { 
-		json::LookupString(value, PHANTASMA_LITERAL("creatorAddress"), jsonErr), 
-		json::LookupString(value, PHANTASMA_LITERAL("chainAddress"), jsonErr), 
-		json::LookupUInt32(value, PHANTASMA_LITERAL("startDate"), jsonErr), 
-		json::LookupUInt32(value, PHANTASMA_LITERAL("endDate"), jsonErr), 
-		json::LookupString(value, PHANTASMA_LITERAL("baseSymbol"), jsonErr), 
-		json::LookupString(value, PHANTASMA_LITERAL("quoteSymbol"), jsonErr), 
-		json::LookupString(value, PHANTASMA_LITERAL("tokenId"), jsonErr), 
-		json::LookupString(value, PHANTASMA_LITERAL("price"), jsonErr), 
-		json::LookupString(value, PHANTASMA_LITERAL("rom"), jsonErr), 
+{
+	return Auction{
+		json::LookupString(value, PHANTASMA_LITERAL("creatorAddress"), jsonErr),
+		json::LookupString(value, PHANTASMA_LITERAL("chainAddress"), jsonErr),
+		json::LookupUInt32(value, PHANTASMA_LITERAL("startDate"), jsonErr),
+		json::LookupUInt32(value, PHANTASMA_LITERAL("endDate"), jsonErr),
+		json::LookupString(value, PHANTASMA_LITERAL("baseSymbol"), jsonErr),
+		json::LookupString(value, PHANTASMA_LITERAL("quoteSymbol"), jsonErr),
+		json::LookupString(value, PHANTASMA_LITERAL("tokenId"), jsonErr),
+		json::LookupString(value, PHANTASMA_LITERAL("price"), jsonErr),
+		json::LookupString(value, PHANTASMA_LITERAL("rom"), jsonErr),
 		json::LookupString(value, PHANTASMA_LITERAL("ram"), jsonErr)
 	};
 }
 
 PHANTASMA_FUNCTION Script PhantasmaJsonAPI::DeserializeScript(const JSONValue& value, bool& jsonErr)
-{ 
+{
 	PHANTASMA_VECTOR<Event> eventsVector;
-	if(json::HasArrayField(value, PHANTASMA_LITERAL("events"), jsonErr))
+	if( json::HasArrayField(value, PHANTASMA_LITERAL("events"), jsonErr) )
 	{
 		const JSONArray& eventsJsonArray = json::LookupArray(value, PHANTASMA_LITERAL("events"), jsonErr);
 		int size = json::ArraySize(eventsJsonArray, jsonErr);
 		eventsVector.reserve(size);
-		for(int i = 0; i < size; ++i)
+		for( int i = 0; i < size; ++i )
 		{
 			eventsVector.push_back(DeserializeEvent(json::IndexArray(eventsJsonArray, i, jsonErr), jsonErr));
 		}
 	}
 	PHANTASMA_VECTOR<String> resultsVector;
-	if(json::HasArrayField(value, PHANTASMA_LITERAL("results"), jsonErr))
+	if( json::HasArrayField(value, PHANTASMA_LITERAL("results"), jsonErr) )
 	{
 		const JSONArray& resultsJsonArray = json::LookupArray(value, PHANTASMA_LITERAL("results"), jsonErr);
 		int size = json::ArraySize(resultsJsonArray, jsonErr);
 		resultsVector.reserve(size);
-		for(int i = 0; i < size; ++i)
+		for( int i = 0; i < size; ++i )
 		{
 			resultsVector.push_back(json::AsString(json::IndexArray(resultsJsonArray, i, jsonErr), jsonErr));
 		}
 	}
 	PHANTASMA_VECTOR<Oracle> oraclesVector;
-	if(json::HasArrayField(value, PHANTASMA_LITERAL("oracles"), jsonErr))
+	if( json::HasArrayField(value, PHANTASMA_LITERAL("oracles"), jsonErr) )
 	{
 		const JSONArray& oraclesJsonArray = json::LookupArray(value, PHANTASMA_LITERAL("oracles"), jsonErr);
 		int size = json::ArraySize(oraclesJsonArray, jsonErr);
 		oraclesVector.reserve(size);
-		for(int i = 0; i < size; ++i)
+		for( int i = 0; i < size; ++i )
 		{
 			oraclesVector.push_back(DeserializeOracle(json::IndexArray(oraclesJsonArray, i, jsonErr), jsonErr));
 		}
-	}	
-	return Script { 
-		eventsVector, 
-		json::LookupString(value, PHANTASMA_LITERAL("result"), jsonErr), 
-		resultsVector, 
+	}
+	return Script{
+		eventsVector,
+		json::LookupString(value, PHANTASMA_LITERAL("result"), jsonErr),
+		resultsVector,
 		oraclesVector
 	};
 }
 
 PHANTASMA_FUNCTION Archive PhantasmaJsonAPI::DeserializeArchive(const JSONValue& value, bool& jsonErr)
-{ 
+{
 	PHANTASMA_VECTOR<Int32> missingBlocksVector;
-	if(json::HasArrayField(value, PHANTASMA_LITERAL("missingBlocks"), jsonErr))
+	if( json::HasArrayField(value, PHANTASMA_LITERAL("missingBlocks"), jsonErr) )
 	{
 		const JSONArray& missingBlocksJsonArray = json::LookupArray(value, PHANTASMA_LITERAL("missingBlocks"), jsonErr);
 		int size = json::ArraySize(missingBlocksJsonArray, jsonErr);
 		missingBlocksVector.reserve(size);
-		for(int i = 0; i < size; ++i)
+		for( int i = 0; i < size; ++i )
 		{
 			missingBlocksVector.push_back(DeserializeInt32(json::IndexArray(missingBlocksJsonArray, i, jsonErr), jsonErr));
 		}
 	}
 	PHANTASMA_VECTOR<String> ownersVector;
-	if(json::HasArrayField(value, PHANTASMA_LITERAL("owners"), jsonErr))
+	if( json::HasArrayField(value, PHANTASMA_LITERAL("owners"), jsonErr) )
 	{
 		const JSONArray& ownersJsonArray = json::LookupArray(value, PHANTASMA_LITERAL("owners"), jsonErr);
 		int size = json::ArraySize(ownersJsonArray, jsonErr);
 		ownersVector.reserve(size);
-		for(int i = 0; i < size; ++i)
+		for( int i = 0; i < size; ++i )
 		{
 			ownersVector.push_back(json::AsString(json::IndexArray(ownersJsonArray, i, jsonErr), jsonErr));
 		}
-	}	
-	return Archive { 
-		json::LookupString(value, PHANTASMA_LITERAL("name"), jsonErr), 
-		json::LookupString(value, PHANTASMA_LITERAL("hash"), jsonErr), 
-		json::LookupUInt32(value, PHANTASMA_LITERAL("time"), jsonErr), 
-		json::LookupUInt32(value, PHANTASMA_LITERAL("size"), jsonErr), 
-		json::LookupString(value, PHANTASMA_LITERAL("encryption"), jsonErr), 
-		json::LookupInt32(value, PHANTASMA_LITERAL("blockCount"), jsonErr), 
-		missingBlocksVector, 
+	}
+	return Archive{
+		json::LookupString(value, PHANTASMA_LITERAL("name"), jsonErr),
+		json::LookupString(value, PHANTASMA_LITERAL("hash"), jsonErr),
+		json::LookupUInt32(value, PHANTASMA_LITERAL("time"), jsonErr),
+		json::LookupUInt32(value, PHANTASMA_LITERAL("size"), jsonErr),
+		json::LookupString(value, PHANTASMA_LITERAL("encryption"), jsonErr),
+		json::LookupInt32(value, PHANTASMA_LITERAL("blockCount"), jsonErr),
+		missingBlocksVector,
 		ownersVector
 	};
 }
 
 PHANTASMA_FUNCTION ABIParameter PhantasmaJsonAPI::DeserializeABIParameter(const JSONValue& value, bool& jsonErr)
-{ 	
-	return ABIParameter { 
-		json::LookupString(value, PHANTASMA_LITERAL("name"), jsonErr), 
+{
+	return ABIParameter{
+		json::LookupString(value, PHANTASMA_LITERAL("name"), jsonErr),
 		json::LookupString(value, PHANTASMA_LITERAL("type"), jsonErr)
 	};
 }
 
 PHANTASMA_FUNCTION ABIMethod PhantasmaJsonAPI::DeserializeABIMethod(const JSONValue& value, bool& jsonErr)
-{ 
+{
 	PHANTASMA_VECTOR<ABIParameter> parametersVector;
-	if(json::HasArrayField(value, PHANTASMA_LITERAL("parameters"), jsonErr))
+	if( json::HasArrayField(value, PHANTASMA_LITERAL("parameters"), jsonErr) )
 	{
 		const JSONArray& parametersJsonArray = json::LookupArray(value, PHANTASMA_LITERAL("parameters"), jsonErr);
 		int size = json::ArraySize(parametersJsonArray, jsonErr);
 		parametersVector.reserve(size);
-		for(int i = 0; i < size; ++i)
+		for( int i = 0; i < size; ++i )
 		{
 			parametersVector.push_back(DeserializeABIParameter(json::IndexArray(parametersJsonArray, i, jsonErr), jsonErr));
 		}
-	}	
-	return ABIMethod { 
-		json::LookupString(value, PHANTASMA_LITERAL("name"), jsonErr), 
-		json::LookupString(value, PHANTASMA_LITERAL("returnType"), jsonErr), 
+	}
+	return ABIMethod{
+		json::LookupString(value, PHANTASMA_LITERAL("name"), jsonErr),
+		json::LookupString(value, PHANTASMA_LITERAL("returnType"), jsonErr),
 		parametersVector
 	};
 }
 
 PHANTASMA_FUNCTION ABIEvent PhantasmaJsonAPI::DeserializeABIEvent(const JSONValue& value, bool& jsonErr)
-{ 	
-	return ABIEvent { 
-		json::LookupInt32(value, PHANTASMA_LITERAL("value"), jsonErr), 
-		json::LookupString(value, PHANTASMA_LITERAL("name"), jsonErr), 
-		json::LookupString(value, PHANTASMA_LITERAL("returnType"), jsonErr), 
+{
+	return ABIEvent{
+		json::LookupInt32(value, PHANTASMA_LITERAL("value"), jsonErr),
+		json::LookupString(value, PHANTASMA_LITERAL("name"), jsonErr),
+		json::LookupString(value, PHANTASMA_LITERAL("returnType"), jsonErr),
 		json::LookupString(value, PHANTASMA_LITERAL("description"), jsonErr)
 	};
 }
 
 PHANTASMA_FUNCTION Contract PhantasmaJsonAPI::DeserializeContract(const JSONValue& value, bool& jsonErr)
-{ 
+{
 	PHANTASMA_VECTOR<ABIMethod> methodsVector;
-	if(json::HasArrayField(value, PHANTASMA_LITERAL("methods"), jsonErr))
+	if( json::HasArrayField(value, PHANTASMA_LITERAL("methods"), jsonErr) )
 	{
 		const JSONArray& methodsJsonArray = json::LookupArray(value, PHANTASMA_LITERAL("methods"), jsonErr);
 		int size = json::ArraySize(methodsJsonArray, jsonErr);
 		methodsVector.reserve(size);
-		for(int i = 0; i < size; ++i)
+		for( int i = 0; i < size; ++i )
 		{
 			methodsVector.push_back(DeserializeABIMethod(json::IndexArray(methodsJsonArray, i, jsonErr), jsonErr));
 		}
 	}
 	PHANTASMA_VECTOR<ABIEvent> eventsVector;
-	if(json::HasArrayField(value, PHANTASMA_LITERAL("events"), jsonErr))
+	if( json::HasArrayField(value, PHANTASMA_LITERAL("events"), jsonErr) )
 	{
 		const JSONArray& eventsJsonArray = json::LookupArray(value, PHANTASMA_LITERAL("events"), jsonErr);
 		int size = json::ArraySize(eventsJsonArray, jsonErr);
 		eventsVector.reserve(size);
-		for(int i = 0; i < size; ++i)
+		for( int i = 0; i < size; ++i )
 		{
 			eventsVector.push_back(DeserializeABIEvent(json::IndexArray(eventsJsonArray, i, jsonErr), jsonErr));
 		}
-	}	
-	return Contract { 
-		json::LookupString(value, PHANTASMA_LITERAL("name"), jsonErr), 
-		json::LookupString(value, PHANTASMA_LITERAL("address"), jsonErr), 
-		json::LookupString(value, PHANTASMA_LITERAL("script"), jsonErr), 
-		methodsVector, 
+	}
+	return Contract{
+		json::LookupString(value, PHANTASMA_LITERAL("name"), jsonErr),
+		json::LookupString(value, PHANTASMA_LITERAL("address"), jsonErr),
+		json::LookupString(value, PHANTASMA_LITERAL("script"), jsonErr),
+		methodsVector,
 		eventsVector
 	};
 }
 
 PHANTASMA_FUNCTION Channel PhantasmaJsonAPI::DeserializeChannel(const JSONValue& value, bool& jsonErr)
-{ 	
-	return Channel { 
-		json::LookupString(value, PHANTASMA_LITERAL("creatorAddress"), jsonErr), 
-		json::LookupString(value, PHANTASMA_LITERAL("targetAddress"), jsonErr), 
-		json::LookupString(value, PHANTASMA_LITERAL("name"), jsonErr), 
-		json::LookupString(value, PHANTASMA_LITERAL("chain"), jsonErr), 
-		json::LookupUInt32(value, PHANTASMA_LITERAL("creationTime"), jsonErr), 
-		json::LookupString(value, PHANTASMA_LITERAL("symbol"), jsonErr), 
-		json::LookupString(value, PHANTASMA_LITERAL("fee"), jsonErr), 
-		json::LookupString(value, PHANTASMA_LITERAL("balance"), jsonErr), 
-		json::LookupBool(value, PHANTASMA_LITERAL("active"), jsonErr), 
+{
+	return Channel{
+		json::LookupString(value, PHANTASMA_LITERAL("creatorAddress"), jsonErr),
+		json::LookupString(value, PHANTASMA_LITERAL("targetAddress"), jsonErr),
+		json::LookupString(value, PHANTASMA_LITERAL("name"), jsonErr),
+		json::LookupString(value, PHANTASMA_LITERAL("chain"), jsonErr),
+		json::LookupUInt32(value, PHANTASMA_LITERAL("creationTime"), jsonErr),
+		json::LookupString(value, PHANTASMA_LITERAL("symbol"), jsonErr),
+		json::LookupString(value, PHANTASMA_LITERAL("fee"), jsonErr),
+		json::LookupString(value, PHANTASMA_LITERAL("balance"), jsonErr),
+		json::LookupBool(value, PHANTASMA_LITERAL("active"), jsonErr),
 		json::LookupInt32(value, PHANTASMA_LITERAL("index"), jsonErr)
 	};
 }
 
 PHANTASMA_FUNCTION Receipt PhantasmaJsonAPI::DeserializeReceipt(const JSONValue& value, bool& jsonErr)
-{ 	
-	return Receipt { 
-		json::LookupString(value, PHANTASMA_LITERAL("nexus"), jsonErr), 
-		json::LookupString(value, PHANTASMA_LITERAL("channel"), jsonErr), 
-		json::LookupString(value, PHANTASMA_LITERAL("index"), jsonErr), 
-		json::LookupUInt32(value, PHANTASMA_LITERAL("timestamp"), jsonErr), 
-		json::LookupString(value, PHANTASMA_LITERAL("sender"), jsonErr), 
-		json::LookupString(value, PHANTASMA_LITERAL("receiver"), jsonErr), 
+{
+	return Receipt{
+		json::LookupString(value, PHANTASMA_LITERAL("nexus"), jsonErr),
+		json::LookupString(value, PHANTASMA_LITERAL("channel"), jsonErr),
+		json::LookupString(value, PHANTASMA_LITERAL("index"), jsonErr),
+		json::LookupUInt32(value, PHANTASMA_LITERAL("timestamp"), jsonErr),
+		json::LookupString(value, PHANTASMA_LITERAL("sender"), jsonErr),
+		json::LookupString(value, PHANTASMA_LITERAL("receiver"), jsonErr),
 		json::LookupString(value, PHANTASMA_LITERAL("script"), jsonErr)
 	};
 }
 
 PHANTASMA_FUNCTION Peer PhantasmaJsonAPI::DeserializePeer(const JSONValue& value, bool& jsonErr)
-{ 	
-	return Peer { 
-		json::LookupString(value, PHANTASMA_LITERAL("url"), jsonErr), 
-		json::LookupString(value, PHANTASMA_LITERAL("version"), jsonErr), 
-		json::LookupString(value, PHANTASMA_LITERAL("flags"), jsonErr), 
-		json::LookupString(value, PHANTASMA_LITERAL("fee"), jsonErr), 
+{
+	return Peer{
+		json::LookupString(value, PHANTASMA_LITERAL("url"), jsonErr),
+		json::LookupString(value, PHANTASMA_LITERAL("version"), jsonErr),
+		json::LookupString(value, PHANTASMA_LITERAL("flags"), jsonErr),
+		json::LookupString(value, PHANTASMA_LITERAL("fee"), jsonErr),
 		json::LookupUInt32(value, PHANTASMA_LITERAL("pow"), jsonErr)
 	};
 }
 
 PHANTASMA_FUNCTION Validator PhantasmaJsonAPI::DeserializeValidator(const JSONValue& value, bool& jsonErr)
-{ 	
-	return Validator { 
-		json::LookupString(value, PHANTASMA_LITERAL("address"), jsonErr), 
+{
+	return Validator{
+		json::LookupString(value, PHANTASMA_LITERAL("address"), jsonErr),
 		json::LookupString(value, PHANTASMA_LITERAL("type"), jsonErr)
 	};
 }
 
 PHANTASMA_FUNCTION Swap PhantasmaJsonAPI::DeserializeSwap(const JSONValue& value, bool& jsonErr)
-{ 	
-	return Swap { 
-		json::LookupString(value, PHANTASMA_LITERAL("sourcePlatform"), jsonErr), 
-		json::LookupString(value, PHANTASMA_LITERAL("sourceChain"), jsonErr), 
-		json::LookupString(value, PHANTASMA_LITERAL("sourceHash"), jsonErr), 
-		json::LookupString(value, PHANTASMA_LITERAL("sourceAddress"), jsonErr), 
-		json::LookupString(value, PHANTASMA_LITERAL("destinationPlatform"), jsonErr), 
-		json::LookupString(value, PHANTASMA_LITERAL("destinationChain"), jsonErr), 
-		json::LookupString(value, PHANTASMA_LITERAL("destinationHash"), jsonErr), 
-		json::LookupString(value, PHANTASMA_LITERAL("destinationAddress"), jsonErr), 
-		json::LookupString(value, PHANTASMA_LITERAL("symbol"), jsonErr), 
+{
+	return Swap{
+		json::LookupString(value, PHANTASMA_LITERAL("sourcePlatform"), jsonErr),
+		json::LookupString(value, PHANTASMA_LITERAL("sourceChain"), jsonErr),
+		json::LookupString(value, PHANTASMA_LITERAL("sourceHash"), jsonErr),
+		json::LookupString(value, PHANTASMA_LITERAL("sourceAddress"), jsonErr),
+		json::LookupString(value, PHANTASMA_LITERAL("destinationPlatform"), jsonErr),
+		json::LookupString(value, PHANTASMA_LITERAL("destinationChain"), jsonErr),
+		json::LookupString(value, PHANTASMA_LITERAL("destinationHash"), jsonErr),
+		json::LookupString(value, PHANTASMA_LITERAL("destinationAddress"), jsonErr),
+		json::LookupString(value, PHANTASMA_LITERAL("symbol"), jsonErr),
 		json::LookupString(value, PHANTASMA_LITERAL("value"), jsonErr)
 	};
 }
-
-
 
 PHANTASMA_FUNCTION JSONValue PhantasmaJsonAPI::CheckResponse(JSONValue response, PhantasmaError& out_error)
 {
@@ -2645,7 +2616,7 @@ PHANTASMA_FUNCTION JSONValue PhantasmaJsonAPI::CheckResponse(JSONValue response,
 		const JSONValue& error = json::LookupValue(response, PHANTASMA_LITERAL("error"), jsonErr);
 		int code = PhantasmaError::RpcMessage;
 		String msg;
-		if(json::IsObject(error, jsonErr))
+		if( json::IsObject(error, jsonErr) )
 		{
 			msg = json::LookupString(error, PHANTASMA_LITERAL("message"), jsonErr);
 			code = json::LookupInt32(error, PHANTASMA_LITERAL("code"), jsonErr);
@@ -2674,7 +2645,7 @@ PHANTASMA_FUNCTION JSONValue PhantasmaJsonAPI::CheckResponse(JSONValue response,
 		const JSONValue& error = json::LookupValue(result, PHANTASMA_LITERAL("error"), jsonErr);
 		int code = PhantasmaError::RpcMessage;
 		String msg;
-		if(json::IsObject(error, jsonErr))
+		if( json::IsObject(error, jsonErr) )
 		{
 			msg = json::LookupString(error, PHANTASMA_LITERAL("message"), jsonErr);
 			code = json::LookupInt32(error, PHANTASMA_LITERAL("code"), jsonErr);
@@ -2691,8 +2662,7 @@ PHANTASMA_FUNCTION JSONValue PhantasmaJsonAPI::CheckResponse(JSONValue response,
 	return result;
 }
 
-
-// Returns the account name and balance of given address. 
+// Returns the account name and balance of given address.
 PHANTASMA_FUNCTION void PhantasmaJsonAPI::MakeGetAccountRequest(JSONBuilder& request, const Char* account)
 {
 	json::BeginObject(request);
@@ -2717,8 +2687,7 @@ PHANTASMA_FUNCTION bool PhantasmaJsonAPI::ParseGetAccountResponse(const JSONValu
 	return out_error.code == 0;
 }
 
-
-// Returns data about several accounts. 
+// Returns data about several accounts.
 PHANTASMA_FUNCTION void PhantasmaJsonAPI::MakeGetAccountsRequest(JSONBuilder& request, const Char* accountText, bool extended, bool checkAddressReservedByte)
 {
 	json::BeginObject(request);
@@ -2737,17 +2706,17 @@ PHANTASMA_FUNCTION bool PhantasmaJsonAPI::ParseGetAccountsResponse(const JSONVal
 	if( out_error.code )
 		return false;
 	bool jsonErr = false;
-	if (!json::IsArray(jsonResponse, jsonErr))
-	{ 
+	if( !json::IsArray(jsonResponse, jsonErr) )
+	{
 		PHANTASMA_EXCEPTION("Malformed response: No JSON array on the \"result\" node");
 		out_error.code = PhantasmaError::InvalidJSON;
 		return false;
-	} 
+	}
 
 	const JSONArray& resultArray = json::AsArray(jsonResponse, jsonErr);
 	int resultArraySize = json::ArraySize(resultArray, jsonErr);
 	output.reserve(resultArraySize);
-	for(int i = 0; i < resultArraySize; ++i)
+	for( int i = 0; i < resultArraySize; ++i )
 	{
 		output.push_back(DeserializeAccount(json::IndexArray(resultArray, i, jsonErr), jsonErr));
 		if( jsonErr || out_error.code )
@@ -2758,8 +2727,7 @@ PHANTASMA_FUNCTION bool PhantasmaJsonAPI::ParseGetAccountsResponse(const JSONVal
 	return out_error.code == 0;
 }
 
-
-// Returns the address that owns a given name. 
+// Returns the address that owns a given name.
 PHANTASMA_FUNCTION void PhantasmaJsonAPI::MakeLookUpNameRequest(JSONBuilder& request, const Char* name)
 {
 	json::BeginObject(request);
@@ -2784,8 +2752,7 @@ PHANTASMA_FUNCTION bool PhantasmaJsonAPI::ParseLookUpNameResponse(const JSONValu
 	return out_error.code == 0;
 }
 
-
-// Returns the height of a chain. 
+// Returns the height of a chain.
 PHANTASMA_FUNCTION void PhantasmaJsonAPI::MakeGetBlockHeightRequest(JSONBuilder& request, const Char* chainInput)
 {
 	json::BeginObject(request);
@@ -2810,8 +2777,7 @@ PHANTASMA_FUNCTION bool PhantasmaJsonAPI::ParseGetBlockHeightResponse(const JSON
 	return out_error.code == 0;
 }
 
-
-// Returns the number of transactions of given block hash or error if given hash is invalid or is not found. 
+// Returns the number of transactions of given block hash or error if given hash is invalid or is not found.
 PHANTASMA_FUNCTION void PhantasmaJsonAPI::MakeGetBlockTransactionCountByHashRequest(JSONBuilder& request, const Char* blockHash)
 {
 	json::BeginObject(request);
@@ -2836,8 +2802,7 @@ PHANTASMA_FUNCTION bool PhantasmaJsonAPI::ParseGetBlockTransactionCountByHashRes
 	return out_error.code == 0;
 }
 
-
-// Returns information about a block by hash. 
+// Returns information about a block by hash.
 PHANTASMA_FUNCTION void PhantasmaJsonAPI::MakeGetBlockByHashRequest(JSONBuilder& request, const Char* blockHash)
 {
 	json::BeginObject(request);
@@ -2862,8 +2827,7 @@ PHANTASMA_FUNCTION bool PhantasmaJsonAPI::ParseGetBlockByHashResponse(const JSON
 	return out_error.code == 0;
 }
 
-
-// Returns information about a block by height and chain. 
+// Returns information about a block by height and chain.
 PHANTASMA_FUNCTION void PhantasmaJsonAPI::MakeGetBlockByHeightRequest(JSONBuilder& request, const Char* chainInput, const Char* height)
 {
 	json::BeginObject(request);
@@ -2888,8 +2852,7 @@ PHANTASMA_FUNCTION bool PhantasmaJsonAPI::ParseGetBlockByHeightResponse(const JS
 	return out_error.code == 0;
 }
 
-
-// Returns information about the latest block in a chain. 
+// Returns information about the latest block in a chain.
 PHANTASMA_FUNCTION void PhantasmaJsonAPI::MakeGetLatestBlockRequest(JSONBuilder& request, const Char* chainInput)
 {
 	json::BeginObject(request);
@@ -2914,8 +2877,7 @@ PHANTASMA_FUNCTION bool PhantasmaJsonAPI::ParseGetLatestBlockResponse(const JSON
 	return out_error.code == 0;
 }
 
-
-// Returns the information about a transaction requested by a block hash and transaction index. 
+// Returns the information about a transaction requested by a block hash and transaction index.
 PHANTASMA_FUNCTION void PhantasmaJsonAPI::MakeGetTransactionByBlockHashAndIndexRequest(JSONBuilder& request, const Char* blockHash, Int32 index)
 {
 	json::BeginObject(request);
@@ -2939,7 +2901,6 @@ PHANTASMA_FUNCTION bool PhantasmaJsonAPI::ParseGetTransactionByBlockHashAndIndex
 		out_error.code = PhantasmaError::InvalidJSON;
 	return out_error.code == 0;
 }
-
 
 // Returns last X transactions of given address. (Paginated)
 PHANTASMA_FUNCTION void PhantasmaJsonAPI::MakeGetAddressTransactionsRequest(JSONBuilder& request, const Char* account, UInt32 page, UInt32 pageSize)
@@ -2967,7 +2928,7 @@ PHANTASMA_FUNCTION bool PhantasmaJsonAPI::ParseGetAddressTransactionsResponse(co
 	return out_error.code == 0;
 }
 
-// Get number of transactions in a specific address and chain 
+// Get number of transactions in a specific address and chain
 PHANTASMA_FUNCTION void PhantasmaJsonAPI::MakeGetAddressTransactionCountRequest(JSONBuilder& request, const Char* account, const Char* chainInput)
 {
 	json::BeginObject(request);
@@ -2992,8 +2953,7 @@ PHANTASMA_FUNCTION bool PhantasmaJsonAPI::ParseGetAddressTransactionCountRespons
 	return out_error.code == 0;
 }
 
-
-// Allows to broadcast a signed operation on the network, but it&apos;s required to build it manually. 
+// Allows to broadcast a signed operation on the network, but it&apos;s required to build it manually.
 PHANTASMA_FUNCTION void PhantasmaJsonAPI::MakeSendRawTransactionRequest(JSONBuilder& request, const Char* txData)
 {
 	json::BeginObject(request);
@@ -3018,7 +2978,7 @@ PHANTASMA_FUNCTION bool PhantasmaJsonAPI::ParseSendRawTransactionResponse(const 
 	return out_error.code == 0;
 }
 
-// Allows to broadcast a signed Carbon transaction on the network. 
+// Allows to broadcast a signed Carbon transaction on the network.
 PHANTASMA_FUNCTION void PhantasmaJsonAPI::MakeSendCarbonTransactionRequest(JSONBuilder& request, const Char* txData)
 {
 	json::BeginObject(request);
@@ -3043,8 +3003,7 @@ PHANTASMA_FUNCTION bool PhantasmaJsonAPI::ParseSendCarbonTransactionResponse(con
 	return out_error.code == 0;
 }
 
-
-// Allows to invoke script based on network state, without state changes. 
+// Allows to invoke script based on network state, without state changes.
 PHANTASMA_FUNCTION void PhantasmaJsonAPI::MakeInvokeRawScriptRequest(JSONBuilder& request, const Char* chainInput, const Char* scriptData)
 {
 	json::BeginObject(request);
@@ -3069,8 +3028,7 @@ PHANTASMA_FUNCTION bool PhantasmaJsonAPI::ParseInvokeRawScriptResponse(const JSO
 	return out_error.code == 0;
 }
 
-
-// Returns information about a transaction by hash. 
+// Returns information about a transaction by hash.
 PHANTASMA_FUNCTION void PhantasmaJsonAPI::MakeGetTransactionRequest(JSONBuilder& request, const Char* hashText)
 {
 	json::BeginObject(request);
@@ -3095,8 +3053,7 @@ PHANTASMA_FUNCTION bool PhantasmaJsonAPI::ParseGetTransactionResponse(const JSON
 	return out_error.code == 0;
 }
 
-
-// Returns an array of all chains deployed in Phantasma. 
+// Returns an array of all chains deployed in Phantasma.
 PHANTASMA_FUNCTION void PhantasmaJsonAPI::MakeGetChainsRequest(JSONBuilder& request)
 {
 	json::BeginObject(request);
@@ -3115,17 +3072,17 @@ PHANTASMA_FUNCTION bool PhantasmaJsonAPI::ParseGetChainsResponse(const JSONValue
 	if( out_error.code )
 		return false;
 	bool jsonErr = false;
-	if (!json::IsArray(jsonResponse, jsonErr))
-	{ 
+	if( !json::IsArray(jsonResponse, jsonErr) )
+	{
 		PHANTASMA_EXCEPTION("Malformed response: No JSON array on the \"result\" node");
 		out_error.code = PhantasmaError::InvalidJSON;
 		return false;
-	} 
+	}
 
 	const JSONArray& resultArray = json::AsArray(jsonResponse, jsonErr);
 	int resultArraySize = json::ArraySize(resultArray, jsonErr);
 	output.reserve(resultArraySize);
-	for(int i = 0; i < resultArraySize; ++i)
+	for( int i = 0; i < resultArraySize; ++i )
 	{
 		output.push_back(DeserializeChain(json::IndexArray(resultArray, i, jsonErr), jsonErr));
 		if( jsonErr || out_error.code )
@@ -3136,8 +3093,7 @@ PHANTASMA_FUNCTION bool PhantasmaJsonAPI::ParseGetChainsResponse(const JSONValue
 	return out_error.code == 0;
 }
 
-
-// Returns info about a specific chain. 
+// Returns info about a specific chain.
 PHANTASMA_FUNCTION void PhantasmaJsonAPI::MakeGetChainRequest(JSONBuilder& request, const Char* name, bool extended)
 {
 	json::BeginObject(request);
@@ -3162,8 +3118,7 @@ PHANTASMA_FUNCTION bool PhantasmaJsonAPI::ParseGetChainResponse(const JSONValue&
 	return out_error.code == 0;
 }
 
-
-// Returns info about the nexus. 
+// Returns info about the nexus.
 PHANTASMA_FUNCTION void PhantasmaJsonAPI::MakeGetNexusRequest(JSONBuilder& request, bool extended)
 {
 	json::BeginObject(request);
@@ -3188,8 +3143,7 @@ PHANTASMA_FUNCTION bool PhantasmaJsonAPI::ParseGetNexusResponse(const JSONValue&
 	return out_error.code == 0;
 }
 
-
-// Returns info about an organization. 
+// Returns info about an organization.
 PHANTASMA_FUNCTION void PhantasmaJsonAPI::MakeGetOrganizationRequest(JSONBuilder& request, const Char* ID)
 {
 	json::BeginObject(request);
@@ -3214,8 +3168,7 @@ PHANTASMA_FUNCTION bool PhantasmaJsonAPI::ParseGetOrganizationResponse(const JSO
 	return out_error.code == 0;
 }
 
-
-// Returns info about an organization by name. 
+// Returns info about an organization by name.
 PHANTASMA_FUNCTION void PhantasmaJsonAPI::MakeGetOrganizationByNameRequest(JSONBuilder& request, const Char* name, bool extended)
 {
 	json::BeginObject(request);
@@ -3240,8 +3193,7 @@ PHANTASMA_FUNCTION bool PhantasmaJsonAPI::ParseGetOrganizationByNameResponse(con
 	return out_error.code == 0;
 }
 
-
-// Returns info about all organizations. 
+// Returns info about all organizations.
 PHANTASMA_FUNCTION void PhantasmaJsonAPI::MakeGetOrganizationsRequest(JSONBuilder& request, bool extended)
 {
 	json::BeginObject(request);
@@ -3260,17 +3212,17 @@ PHANTASMA_FUNCTION bool PhantasmaJsonAPI::ParseGetOrganizationsResponse(const JS
 	if( out_error.code )
 		return false;
 	bool jsonErr = false;
-	if (!json::IsArray(jsonResponse, jsonErr))
-	{ 
+	if( !json::IsArray(jsonResponse, jsonErr) )
+	{
 		PHANTASMA_EXCEPTION("Malformed response: No JSON array on the \"result\" node");
 		out_error.code = PhantasmaError::InvalidJSON;
 		return false;
-	} 
+	}
 
 	const JSONArray& resultArray = json::AsArray(jsonResponse, jsonErr);
 	int resultArraySize = json::ArraySize(resultArray, jsonErr);
 	output.reserve(resultArraySize);
-	for(int i = 0; i < resultArraySize; ++i)
+	for( int i = 0; i < resultArraySize; ++i )
 	{
 		output.push_back(DeserializeOrganization(json::IndexArray(resultArray, i, jsonErr), jsonErr));
 		if( jsonErr || out_error.code )
@@ -3281,8 +3233,7 @@ PHANTASMA_FUNCTION bool PhantasmaJsonAPI::ParseGetOrganizationsResponse(const JS
 	return out_error.code == 0;
 }
 
-
-// Returns content of a Phantasma leaderboard. 
+// Returns content of a Phantasma leaderboard.
 PHANTASMA_FUNCTION void PhantasmaJsonAPI::MakeGetLeaderboardRequest(JSONBuilder& request, const Char* name)
 {
 	json::BeginObject(request);
@@ -3307,15 +3258,14 @@ PHANTASMA_FUNCTION bool PhantasmaJsonAPI::ParseGetLeaderboardResponse(const JSON
 	return out_error.code == 0;
 }
 
-
-// Returns an array of tokens deployed in Phantasma. 
+// Returns an array of tokens deployed in Phantasma.
 PHANTASMA_FUNCTION void PhantasmaJsonAPI::MakeGetTokensRequest(JSONBuilder& request, bool extended, const Char* ownerAddress)
 {
 	json::BeginObject(request);
 	json::AddString(request, PHANTASMA_LITERAL("jsonrpc"), PHANTASMA_LITERAL("2.0"));
 	json::AddString(request, PHANTASMA_LITERAL("method"), PHANTASMA_LITERAL("getTokens"));
 	json::AddString(request, PHANTASMA_LITERAL("id"), PHANTASMA_LITERAL("1"));
-	if (ownerAddress && ownerAddress[0])
+	if( ownerAddress && ownerAddress[0] )
 	{
 		json::AddArray(request, PHANTASMA_LITERAL("params"), extended, ownerAddress);
 	}
@@ -3334,17 +3284,17 @@ PHANTASMA_FUNCTION bool PhantasmaJsonAPI::ParseGetTokensResponse(const JSONValue
 	if( out_error.code )
 		return false;
 	bool jsonErr = false;
-	if (!json::IsArray(jsonResponse, jsonErr))
-	{ 
+	if( !json::IsArray(jsonResponse, jsonErr) )
+	{
 		PHANTASMA_EXCEPTION("Malformed response: No JSON array on the \"result\" node");
 		out_error.code = PhantasmaError::InvalidJSON;
 		return false;
-	} 
+	}
 
 	const JSONArray& resultArray = json::AsArray(jsonResponse, jsonErr);
 	int resultArraySize = json::ArraySize(resultArray, jsonErr);
 	output.reserve(resultArraySize);
-	for(int i = 0; i < resultArraySize; ++i)
+	for( int i = 0; i < resultArraySize; ++i )
 	{
 		output.push_back(DeserializeToken(json::IndexArray(resultArray, i, jsonErr), jsonErr));
 		if( jsonErr || out_error.code )
@@ -3355,15 +3305,14 @@ PHANTASMA_FUNCTION bool PhantasmaJsonAPI::ParseGetTokensResponse(const JSONValue
 	return out_error.code == 0;
 }
 
-
-// Returns info about a specific token deployed in Phantasma. 
+// Returns info about a specific token deployed in Phantasma.
 PHANTASMA_FUNCTION void PhantasmaJsonAPI::MakeGetTokenRequest(JSONBuilder& request, const Char* symbol, bool extended, UInt64 carbonTokenId)
 {
 	json::BeginObject(request);
 	json::AddString(request, PHANTASMA_LITERAL("jsonrpc"), PHANTASMA_LITERAL("2.0"));
 	json::AddString(request, PHANTASMA_LITERAL("method"), PHANTASMA_LITERAL("getToken"));
 	json::AddString(request, PHANTASMA_LITERAL("id"), PHANTASMA_LITERAL("1"));
-	if (carbonTokenId != 0)
+	if( carbonTokenId != 0 )
 	{
 		json::AddArray(request, PHANTASMA_LITERAL("params"), symbol, extended, carbonTokenId);
 	}
@@ -3388,8 +3337,7 @@ PHANTASMA_FUNCTION bool PhantasmaJsonAPI::ParseGetTokenResponse(const JSONValue&
 	return out_error.code == 0;
 }
 
-
-// Returns list of series for a specific token (cursor pagination). 
+// Returns list of series for a specific token (cursor pagination).
 PHANTASMA_FUNCTION void PhantasmaJsonAPI::MakeGetTokenSeriesRequest(JSONBuilder& request, const Char* symbol, UInt64 carbonTokenId, UInt32 pageSize, const Char* cursor)
 {
 	json::BeginObject(request);
@@ -3409,20 +3357,20 @@ PHANTASMA_FUNCTION bool PhantasmaJsonAPI::ParseGetTokenSeriesResponse(const JSON
 		return false;
 	bool jsonErr = false;
 	String cursor = json::HasField(jsonResponse, PHANTASMA_LITERAL("cursor"), jsonErr)
-		? json::LookupString(jsonResponse, PHANTASMA_LITERAL("cursor"), jsonErr)
-		: json::String(PHANTASMA_LITERAL(""));
+	                    ? json::LookupString(jsonResponse, PHANTASMA_LITERAL("cursor"), jsonErr)
+	                    : json::String(PHANTASMA_LITERAL(""));
 	JSONValue resultValue = json::LookupValue(jsonResponse, PHANTASMA_LITERAL("result"), jsonErr);
-	if (!json::IsArray(resultValue, jsonErr))
-	{ 
+	if( !json::IsArray(resultValue, jsonErr) )
+	{
 		PHANTASMA_EXCEPTION("Malformed response: No JSON array on the \"result\" node");
 		out_error.code = PhantasmaError::InvalidJSON;
 		return false;
-	} 
+	}
 
 	const JSONArray& resultArray = json::AsArray(resultValue, jsonErr);
 	int resultArraySize = json::ArraySize(resultArray, jsonErr);
 	output.result.reserve(resultArraySize);
-	for(int i = 0; i < resultArraySize; ++i)
+	for( int i = 0; i < resultArraySize; ++i )
 	{
 		output.result.push_back(DeserializeTokenSeries(json::IndexArray(resultArray, i, jsonErr), jsonErr));
 		if( jsonErr || out_error.code )
@@ -3434,8 +3382,7 @@ PHANTASMA_FUNCTION bool PhantasmaJsonAPI::ParseGetTokenSeriesResponse(const JSON
 	return out_error.code == 0;
 }
 
-
-// Returns an array of NFTs for a token (cursor pagination). 
+// Returns an array of NFTs for a token (cursor pagination).
 PHANTASMA_FUNCTION void PhantasmaJsonAPI::MakeGetTokenNFTsRequest(JSONBuilder& request, UInt64 carbonTokenId, UInt32 carbonSeriesId, UInt32 pageSize, const Char* cursor, bool extended)
 {
 	json::BeginObject(request);
@@ -3455,20 +3402,20 @@ PHANTASMA_FUNCTION bool PhantasmaJsonAPI::ParseGetTokenNFTsResponse(const JSONVa
 		return false;
 	bool jsonErr = false;
 	String cursor = json::HasField(jsonResponse, PHANTASMA_LITERAL("cursor"), jsonErr)
-		? json::LookupString(jsonResponse, PHANTASMA_LITERAL("cursor"), jsonErr)
-		: json::String(PHANTASMA_LITERAL(""));
+	                    ? json::LookupString(jsonResponse, PHANTASMA_LITERAL("cursor"), jsonErr)
+	                    : json::String(PHANTASMA_LITERAL(""));
 	JSONValue resultValue = json::LookupValue(jsonResponse, PHANTASMA_LITERAL("result"), jsonErr);
-	if (!json::IsArray(resultValue, jsonErr))
-	{ 
+	if( !json::IsArray(resultValue, jsonErr) )
+	{
 		PHANTASMA_EXCEPTION("Malformed response: No JSON array on the \"result\" node");
 		out_error.code = PhantasmaError::InvalidJSON;
 		return false;
-	} 
+	}
 
 	const JSONArray& resultArray = json::AsArray(resultValue, jsonErr);
 	int resultArraySize = json::ArraySize(resultArray, jsonErr);
 	output.result.reserve(resultArraySize);
-	for(int i = 0; i < resultArraySize; ++i)
+	for( int i = 0; i < resultArraySize; ++i )
 	{
 		output.result.push_back(DeserializeTokenData(json::IndexArray(resultArray, i, jsonErr), jsonErr));
 		if( jsonErr || out_error.code )
@@ -3480,8 +3427,7 @@ PHANTASMA_FUNCTION bool PhantasmaJsonAPI::ParseGetTokenNFTsResponse(const JSONVa
 	return out_error.code == 0;
 }
 
-
-// Returns data of a non-fungible token, in hexadecimal format. 
+// Returns data of a non-fungible token, in hexadecimal format.
 PHANTASMA_FUNCTION void PhantasmaJsonAPI::MakeGetTokenDataRequest(JSONBuilder& request, const Char* symbol, const Char* IDtext)
 {
 	json::BeginObject(request);
@@ -3506,8 +3452,7 @@ PHANTASMA_FUNCTION bool PhantasmaJsonAPI::ParseGetTokenDataResponse(const JSONVa
 	return out_error.code == 0;
 }
 
-
-// Returns data of a non-fungible token, in hexadecimal format. 
+// Returns data of a non-fungible token, in hexadecimal format.
 PHANTASMA_FUNCTION void PhantasmaJsonAPI::MakeGetNFTRequest(JSONBuilder& request, const Char* symbol, const Char* IDtext, bool extended)
 {
 	json::BeginObject(request);
@@ -3532,8 +3477,7 @@ PHANTASMA_FUNCTION bool PhantasmaJsonAPI::ParseGetNFTResponse(const JSONValue& _
 	return out_error.code == 0;
 }
 
-
-// Returns data of non-fungible tokens by ID list. 
+// Returns data of non-fungible tokens by ID list.
 PHANTASMA_FUNCTION void PhantasmaJsonAPI::MakeGetNFTsRequest(JSONBuilder& request, const Char* symbol, const Char* IDtext, bool extended)
 {
 	json::BeginObject(request);
@@ -3552,17 +3496,17 @@ PHANTASMA_FUNCTION bool PhantasmaJsonAPI::ParseGetNFTsResponse(const JSONValue& 
 	if( out_error.code )
 		return false;
 	bool jsonErr = false;
-	if (!json::IsArray(jsonResponse, jsonErr))
-	{ 
+	if( !json::IsArray(jsonResponse, jsonErr) )
+	{
 		PHANTASMA_EXCEPTION("Malformed response: No JSON array on the \"result\" node");
 		out_error.code = PhantasmaError::InvalidJSON;
 		return false;
-	} 
+	}
 
 	const JSONArray& resultArray = json::AsArray(jsonResponse, jsonErr);
 	int resultArraySize = json::ArraySize(resultArray, jsonErr);
 	output.reserve(resultArraySize);
-	for(int i = 0; i < resultArraySize; ++i)
+	for( int i = 0; i < resultArraySize; ++i )
 	{
 		output.push_back(DeserializeTokenData(json::IndexArray(resultArray, i, jsonErr), jsonErr));
 		if( jsonErr || out_error.code )
@@ -3573,8 +3517,7 @@ PHANTASMA_FUNCTION bool PhantasmaJsonAPI::ParseGetNFTsResponse(const JSONValue& 
 	return out_error.code == 0;
 }
 
-
-// Returns the balance for a specific token and chain, given an address. 
+// Returns the balance for a specific token and chain, given an address.
 PHANTASMA_FUNCTION void PhantasmaJsonAPI::MakeGetTokenBalanceRequest(JSONBuilder& request, const Char* account, const Char* tokenSymbol, const Char* chainInput)
 {
 	json::BeginObject(request);
@@ -3599,8 +3542,7 @@ PHANTASMA_FUNCTION bool PhantasmaJsonAPI::ParseGetTokenBalanceResponse(const JSO
 	return out_error.code == 0;
 }
 
-
-// Returns fungible token balances owned by an address (cursor pagination). 
+// Returns fungible token balances owned by an address (cursor pagination).
 PHANTASMA_FUNCTION void PhantasmaJsonAPI::MakeGetAccountFungibleTokensRequest(JSONBuilder& request, const Char* account, const Char* tokenSymbol, UInt64 carbonTokenId, UInt32 pageSize, const Char* cursor, bool checkAddressReservedByte)
 {
 	json::BeginObject(request);
@@ -3620,20 +3562,20 @@ PHANTASMA_FUNCTION bool PhantasmaJsonAPI::ParseGetAccountFungibleTokensResponse(
 		return false;
 	bool jsonErr = false;
 	String cursor = json::HasField(jsonResponse, PHANTASMA_LITERAL("cursor"), jsonErr)
-		? json::LookupString(jsonResponse, PHANTASMA_LITERAL("cursor"), jsonErr)
-		: json::String(PHANTASMA_LITERAL(""));
+	                    ? json::LookupString(jsonResponse, PHANTASMA_LITERAL("cursor"), jsonErr)
+	                    : json::String(PHANTASMA_LITERAL(""));
 	JSONValue resultValue = json::LookupValue(jsonResponse, PHANTASMA_LITERAL("result"), jsonErr);
-	if (!json::IsArray(resultValue, jsonErr))
-	{ 
+	if( !json::IsArray(resultValue, jsonErr) )
+	{
 		PHANTASMA_EXCEPTION("Malformed response: No JSON array on the \"result\" node");
 		out_error.code = PhantasmaError::InvalidJSON;
 		return false;
-	} 
+	}
 
 	const JSONArray& resultArray = json::AsArray(resultValue, jsonErr);
 	int resultArraySize = json::ArraySize(resultArray, jsonErr);
 	output.result.reserve(resultArraySize);
-	for(int i = 0; i < resultArraySize; ++i)
+	for( int i = 0; i < resultArraySize; ++i )
 	{
 		output.result.push_back(DeserializeBalance(json::IndexArray(resultArray, i, jsonErr), jsonErr));
 		if( jsonErr || out_error.code )
@@ -3645,8 +3587,7 @@ PHANTASMA_FUNCTION bool PhantasmaJsonAPI::ParseGetAccountFungibleTokensResponse(
 	return out_error.code == 0;
 }
 
-
-// Returns NFTs owned by an address (cursor pagination). 
+// Returns NFTs owned by an address (cursor pagination).
 PHANTASMA_FUNCTION void PhantasmaJsonAPI::MakeGetAccountNFTsRequest(JSONBuilder& request, const Char* account, const Char* tokenSymbol, UInt64 carbonTokenId, UInt32 carbonSeriesId, UInt32 pageSize, const Char* cursor, bool extended, bool checkAddressReservedByte)
 {
 	json::BeginObject(request);
@@ -3666,20 +3607,20 @@ PHANTASMA_FUNCTION bool PhantasmaJsonAPI::ParseGetAccountNFTsResponse(const JSON
 		return false;
 	bool jsonErr = false;
 	String cursor = json::HasField(jsonResponse, PHANTASMA_LITERAL("cursor"), jsonErr)
-		? json::LookupString(jsonResponse, PHANTASMA_LITERAL("cursor"), jsonErr)
-		: json::String(PHANTASMA_LITERAL(""));
+	                    ? json::LookupString(jsonResponse, PHANTASMA_LITERAL("cursor"), jsonErr)
+	                    : json::String(PHANTASMA_LITERAL(""));
 	JSONValue resultValue = json::LookupValue(jsonResponse, PHANTASMA_LITERAL("result"), jsonErr);
-	if (!json::IsArray(resultValue, jsonErr))
-	{ 
+	if( !json::IsArray(resultValue, jsonErr) )
+	{
 		PHANTASMA_EXCEPTION("Malformed response: No JSON array on the \"result\" node");
 		out_error.code = PhantasmaError::InvalidJSON;
 		return false;
-	} 
+	}
 
 	const JSONArray& resultArray = json::AsArray(resultValue, jsonErr);
 	int resultArraySize = json::ArraySize(resultArray, jsonErr);
 	output.result.reserve(resultArraySize);
-	for(int i = 0; i < resultArraySize; ++i)
+	for( int i = 0; i < resultArraySize; ++i )
 	{
 		output.result.push_back(DeserializeTokenData(json::IndexArray(resultArray, i, jsonErr), jsonErr));
 		if( jsonErr || out_error.code )
@@ -3691,8 +3632,7 @@ PHANTASMA_FUNCTION bool PhantasmaJsonAPI::ParseGetAccountNFTsResponse(const JSON
 	return out_error.code == 0;
 }
 
-
-// Returns NFT tokens for which the account owns at least one NFT instance (cursor pagination). 
+// Returns NFT tokens for which the account owns at least one NFT instance (cursor pagination).
 PHANTASMA_FUNCTION void PhantasmaJsonAPI::MakeGetAccountOwnedTokensRequest(JSONBuilder& request, const Char* account, const Char* tokenSymbol, UInt64 carbonTokenId, UInt32 pageSize, const Char* cursor, bool checkAddressReservedByte)
 {
 	json::BeginObject(request);
@@ -3712,20 +3652,20 @@ PHANTASMA_FUNCTION bool PhantasmaJsonAPI::ParseGetAccountOwnedTokensResponse(con
 		return false;
 	bool jsonErr = false;
 	String cursor = json::HasField(jsonResponse, PHANTASMA_LITERAL("cursor"), jsonErr)
-		? json::LookupString(jsonResponse, PHANTASMA_LITERAL("cursor"), jsonErr)
-		: json::String(PHANTASMA_LITERAL(""));
+	                    ? json::LookupString(jsonResponse, PHANTASMA_LITERAL("cursor"), jsonErr)
+	                    : json::String(PHANTASMA_LITERAL(""));
 	JSONValue resultValue = json::LookupValue(jsonResponse, PHANTASMA_LITERAL("result"), jsonErr);
-	if (!json::IsArray(resultValue, jsonErr))
-	{ 
+	if( !json::IsArray(resultValue, jsonErr) )
+	{
 		PHANTASMA_EXCEPTION("Malformed response: No JSON array on the \"result\" node");
 		out_error.code = PhantasmaError::InvalidJSON;
 		return false;
-	} 
+	}
 
 	const JSONArray& resultArray = json::AsArray(resultValue, jsonErr);
 	int resultArraySize = json::ArraySize(resultArray, jsonErr);
 	output.result.reserve(resultArraySize);
-	for(int i = 0; i < resultArraySize; ++i)
+	for( int i = 0; i < resultArraySize; ++i )
 	{
 		output.result.push_back(DeserializeToken(json::IndexArray(resultArray, i, jsonErr), jsonErr));
 		if( jsonErr || out_error.code )
@@ -3737,8 +3677,7 @@ PHANTASMA_FUNCTION bool PhantasmaJsonAPI::ParseGetAccountOwnedTokensResponse(con
 	return out_error.code == 0;
 }
 
-
-// Returns NFT series for which the account owns at least one NFT instance (cursor pagination). 
+// Returns NFT series for which the account owns at least one NFT instance (cursor pagination).
 PHANTASMA_FUNCTION void PhantasmaJsonAPI::MakeGetAccountOwnedTokenSeriesRequest(JSONBuilder& request, const Char* account, const Char* tokenSymbol, UInt64 carbonTokenId, UInt32 pageSize, const Char* cursor, bool checkAddressReservedByte)
 {
 	json::BeginObject(request);
@@ -3758,20 +3697,20 @@ PHANTASMA_FUNCTION bool PhantasmaJsonAPI::ParseGetAccountOwnedTokenSeriesRespons
 		return false;
 	bool jsonErr = false;
 	String cursor = json::HasField(jsonResponse, PHANTASMA_LITERAL("cursor"), jsonErr)
-		? json::LookupString(jsonResponse, PHANTASMA_LITERAL("cursor"), jsonErr)
-		: json::String(PHANTASMA_LITERAL(""));
+	                    ? json::LookupString(jsonResponse, PHANTASMA_LITERAL("cursor"), jsonErr)
+	                    : json::String(PHANTASMA_LITERAL(""));
 	JSONValue resultValue = json::LookupValue(jsonResponse, PHANTASMA_LITERAL("result"), jsonErr);
-	if (!json::IsArray(resultValue, jsonErr))
-	{ 
+	if( !json::IsArray(resultValue, jsonErr) )
+	{
 		PHANTASMA_EXCEPTION("Malformed response: No JSON array on the \"result\" node");
 		out_error.code = PhantasmaError::InvalidJSON;
 		return false;
-	} 
+	}
 
 	const JSONArray& resultArray = json::AsArray(resultValue, jsonErr);
 	int resultArraySize = json::ArraySize(resultArray, jsonErr);
 	output.result.reserve(resultArraySize);
-	for(int i = 0; i < resultArraySize; ++i)
+	for( int i = 0; i < resultArraySize; ++i )
 	{
 		output.result.push_back(DeserializeTokenSeries(json::IndexArray(resultArray, i, jsonErr), jsonErr));
 		if( jsonErr || out_error.code )
@@ -3783,8 +3722,7 @@ PHANTASMA_FUNCTION bool PhantasmaJsonAPI::ParseGetAccountOwnedTokenSeriesRespons
 	return out_error.code == 0;
 }
 
-
-// Returns the number of active auctions. 
+// Returns the number of active auctions.
 PHANTASMA_FUNCTION void PhantasmaJsonAPI::MakeGetAuctionsCountRequest(JSONBuilder& request, const Char* chainAddressOrName, const Char* symbol)
 {
 	json::BeginObject(request);
@@ -3809,7 +3747,6 @@ PHANTASMA_FUNCTION bool PhantasmaJsonAPI::ParseGetAuctionsCountResponse(const JS
 	return out_error.code == 0;
 }
 
-
 // Returns the auctions available in the market. (Paginated)
 PHANTASMA_FUNCTION void PhantasmaJsonAPI::MakeGetAuctionsRequest(JSONBuilder& request, const Char* chainAddressOrName, const Char* symbol, UInt32 page, UInt32 pageSize)
 {
@@ -3830,16 +3767,16 @@ PHANTASMA_FUNCTION bool PhantasmaJsonAPI::ParseGetAuctionsResponse(const JSONVal
 		return false;
 	bool jsonErr = false;
 	Paginated pageStruct = DeserializePaginated(jsonResponse, jsonErr);
-	if(!json::IsArray(pageStruct.result, jsonErr))
-	{ 
+	if( !json::IsArray(pageStruct.result, jsonErr) )
+	{
 		PHANTASMA_EXCEPTION("Malformed response: No JSON array on the \"result\" node");
 		out_error.code = PhantasmaError::InvalidJSON;
 		return false;
-	} 
+	}
 	const JSONArray& pages = json::AsArray(pageStruct.result, jsonErr);
 	int size = json::ArraySize(pages, jsonErr);
 	output.reserve(size);
-	for(int i = 0; i < size; ++i)
+	for( int i = 0; i < size; ++i )
 	{
 		output.push_back(DeserializeAuction(json::IndexArray(pages, i, jsonErr), jsonErr));
 	}
@@ -3848,7 +3785,7 @@ PHANTASMA_FUNCTION bool PhantasmaJsonAPI::ParseGetAuctionsResponse(const JSONVal
 	return out_error.code == 0;
 }
 
-// Returns the auction for a specific token. 
+// Returns the auction for a specific token.
 PHANTASMA_FUNCTION void PhantasmaJsonAPI::MakeGetAuctionRequest(JSONBuilder& request, const Char* chainAddressOrName, const Char* symbol, const Char* IDtext)
 {
 	json::BeginObject(request);
@@ -3873,8 +3810,7 @@ PHANTASMA_FUNCTION bool PhantasmaJsonAPI::ParseGetAuctionResponse(const JSONValu
 	return out_error.code == 0;
 }
 
-
-// Returns info about a specific archive. 
+// Returns info about a specific archive.
 PHANTASMA_FUNCTION void PhantasmaJsonAPI::MakeGetArchiveRequest(JSONBuilder& request, const Char* hashText)
 {
 	json::BeginObject(request);
@@ -3899,8 +3835,7 @@ PHANTASMA_FUNCTION bool PhantasmaJsonAPI::ParseGetArchiveResponse(const JSONValu
 	return out_error.code == 0;
 }
 
-
-// Writes the contents of an incomplete archive. 
+// Writes the contents of an incomplete archive.
 PHANTASMA_FUNCTION void PhantasmaJsonAPI::MakeWriteArchiveRequest(JSONBuilder& request, const Char* hashText, Int32 blockIndex, const Char* blockContent)
 {
 	json::BeginObject(request);
@@ -3925,8 +3860,7 @@ PHANTASMA_FUNCTION bool PhantasmaJsonAPI::ParseWriteArchiveResponse(const JSONVa
 	return out_error.code == 0;
 }
 
-
-// Reads given archive block. 
+// Reads given archive block.
 PHANTASMA_FUNCTION void PhantasmaJsonAPI::MakeReadArchiveRequest(JSONBuilder& request, const Char* hashText, Int32 blockIndex)
 {
 	json::BeginObject(request);
@@ -3951,8 +3885,7 @@ PHANTASMA_FUNCTION bool PhantasmaJsonAPI::ParseReadArchiveResponse(const JSONVal
 	return out_error.code == 0;
 }
 
-
-// Returns the ABI interface of specific contract. 
+// Returns the ABI interface of specific contract.
 PHANTASMA_FUNCTION void PhantasmaJsonAPI::MakeGetContractRequest(JSONBuilder& request, const Char* chainAddressOrName, const Char* contractName)
 {
 	json::BeginObject(request);
@@ -3977,7 +3910,7 @@ PHANTASMA_FUNCTION bool PhantasmaJsonAPI::ParseGetContractResponse(const JSONVal
 	return out_error.code == 0;
 }
 
-// Returns the ABI interface of specific contract (list). 
+// Returns the ABI interface of specific contract (list).
 PHANTASMA_FUNCTION void PhantasmaJsonAPI::MakeGetContractsRequest(JSONBuilder& request, const Char* chainAddressOrName, bool extended)
 {
 	json::BeginObject(request);
@@ -3996,17 +3929,17 @@ PHANTASMA_FUNCTION bool PhantasmaJsonAPI::ParseGetContractsResponse(const JSONVa
 	if( out_error.code )
 		return false;
 	bool jsonErr = false;
-	if (!json::IsArray(jsonResponse, jsonErr))
-	{ 
+	if( !json::IsArray(jsonResponse, jsonErr) )
+	{
 		PHANTASMA_EXCEPTION("Malformed response: No JSON array on the \"result\" node");
 		out_error.code = PhantasmaError::InvalidJSON;
 		return false;
-	} 
+	}
 
 	const JSONArray& resultArray = json::AsArray(jsonResponse, jsonErr);
 	int resultArraySize = json::ArraySize(resultArray, jsonErr);
 	output.reserve(resultArraySize);
-	for(int i = 0; i < resultArraySize; ++i)
+	for( int i = 0; i < resultArraySize; ++i )
 	{
 		output.push_back(DeserializeContract(json::IndexArray(resultArray, i, jsonErr), jsonErr));
 		if( jsonErr || out_error.code )
@@ -4017,8 +3950,7 @@ PHANTASMA_FUNCTION bool PhantasmaJsonAPI::ParseGetContractsResponse(const JSONVa
 	return out_error.code == 0;
 }
 
-
-// Returns the ABI interface of specific contract by address. 
+// Returns the ABI interface of specific contract by address.
 PHANTASMA_FUNCTION void PhantasmaJsonAPI::MakeGetContractByAddressRequest(JSONBuilder& request, const Char* chainAddressOrName, const Char* contractAddress)
 {
 	json::BeginObject(request);
@@ -4043,7 +3975,6 @@ PHANTASMA_FUNCTION bool PhantasmaJsonAPI::ParseGetContractByAddressResponse(cons
 	return out_error.code == 0;
 }
 
-	
 #if defined(PHANTASMA_HTTPCLIENT)
 
 PHANTASMA_FUNCTION Account PhantasmaAPI::GetAccount(const Char* account, PhantasmaError* out_error)
@@ -4211,14 +4142,14 @@ PHANTASMA_FUNCTION Transaction PhantasmaAPI::GetTransaction(const Char* hashText
 		if( PhantasmaJsonAPI::ParseGetTransactionResponse(json::Parse(response), output, out_error) )
 		{
 			// Backwards compatability hack:
-			if(0!=output.state.compare(PHANTASMA_LITERAL("Halt")))
+			if( 0 != output.state.compare(PHANTASMA_LITERAL("Halt")) )
 			{
-				if(!out_error)
+				if( !out_error )
 					return {};
 				out_error->code = -1;
-				if(0==output.state.compare(PHANTASMA_LITERAL("Fault")))
+				if( 0 == output.state.compare(PHANTASMA_LITERAL("Fault")) )
 					out_error->message = PHANTASMA_LITERAL("rejected: Fault");
-				else if(0==output.state.compare(PHANTASMA_LITERAL("Break")))
+				else if( 0 == output.state.compare(PHANTASMA_LITERAL("Break")) )
 					out_error->message = PHANTASMA_LITERAL("rejected: Break");
 				else
 					out_error->message = PHANTASMA_LITERAL("pending");
@@ -4561,249 +4492,495 @@ PHANTASMA_FUNCTION Contract PhantasmaAPI::GetContractByAddress(const Char* chain
 #endif
 }
 
-namespace json
-{
+namespace json {
 #ifndef PHANTASMA_JSONVALUE
 //------------------------------------------------------------------------------
 // Built-in JSON parsing library:
 //------------------------------------------------------------------------------
-    JSONValue Parse(const JSONDocument& doc) { return doc; }
+JSONValue Parse(const JSONDocument& doc) { return doc; }
 
-	inline size_t SkipNumber(const JSONValue& v, size_t i, bool& out_error)
+inline size_t SkipNumber(const JSONValue& v, size_t i, bool& out_error)
+{
+	size_t j = v.find_first_not_of(PHANTASMA_LITERAL("+-0123456789.eE"), i);
+	if( i == j )
 	{
-		size_t j = v.find_first_not_of(PHANTASMA_LITERAL("+-0123456789.eE"), i);
-		if( i==j ) { PHANTASMA_EXCEPTION("Invalid Number"); out_error = true; return i+1; }
-		return j;
+		PHANTASMA_EXCEPTION("Invalid Number");
+		out_error = true;
+		return i + 1;
 	}
-	inline size_t SkipString(const JSONValue& v, size_t i, bool& out_error)
+	return j;
+}
+inline size_t SkipString(const JSONValue& v, size_t i, bool& out_error)
+{
+	if( v[i] != '"' )
 	{
-		if( v[i] != '"' ) { PHANTASMA_EXCEPTION("Invalid String"); out_error = true; return i+1; }
-		for(++i; i<v.size();)
+		PHANTASMA_EXCEPTION("Invalid String");
+		out_error = true;
+		return i + 1;
+	}
+	for( ++i; i < v.size(); )
+	{
+		i = v.find_first_of(PHANTASMA_LITERAL("\"\\"), i);
+		if( i == JSONValue::npos )
 		{
-			i =  v.find_first_of(PHANTASMA_LITERAL("\"\\"), i);
-			if( i == JSONValue::npos ) { PHANTASMA_EXCEPTION("Unterminated String"); out_error = true; return i; }
-			if( v[i] == '"' ) { break; }
-			if( i+1 < v.size() )
+			PHANTASMA_EXCEPTION("Unterminated String");
+			out_error = true;
+			return i;
+		}
+		if( v[i] == '"' )
+		{
+			break;
+		}
+		if( i + 1 < v.size() )
+		{
+			switch( v[i + 1] )
 			{
-				switch(v[i+1])
-				{
-				case '\\': case 'b': case 'f': case 'n': case 'r': case 't': case '"': i = i+2; continue;
-				case 'u': i = i+6; continue;
-				}
+			case '\\':
+			case 'b':
+			case 'f':
+			case 'n':
+			case 'r':
+			case 't':
+			case '"':
+				i = i + 2;
+				continue;
+			case 'u':
+				i = i + 6;
+				continue;
 			}
-			PHANTASMA_EXCEPTION("Invalid Escape sequence"); out_error = true; ++i;
 		}
-		return i == JSONValue::npos ? i : i+1;
-	}
-	inline size_t SkipBoolNull(const JSONValue& v, size_t i, bool& out_error)
-	{
-		switch(v[i])
-		{
-		case 'f': if(v.compare(i, 5, PHANTASMA_LITERAL("false"))) { break; } return i+5;
-		case 't': if(v.compare(i, 4, PHANTASMA_LITERAL("true")))  { break; } return i+4;
-		case 'n': if(v.compare(i, 4, PHANTASMA_LITERAL("null")))  { break; } return i+4;
-		}
-		PHANTASMA_EXCEPTION("Invalid Value"); out_error = true; return i+1;
-	}
-	inline size_t SkipObject(const JSONValue& v, size_t i, bool& out_error);
-	inline size_t SkipArray(const JSONValue& v, size_t i, bool& out_error)
-	{
-		if( v[i] != '[' ) { PHANTASMA_EXCEPTION("Invalid Array"); out_error = true; return i+1; }
+		PHANTASMA_EXCEPTION("Invalid Escape sequence");
+		out_error = true;
 		++i;
-		for(; i<v.size();)
+	}
+	return i == JSONValue::npos ? i : i + 1;
+}
+inline size_t SkipBoolNull(const JSONValue& v, size_t i, bool& out_error)
+{
+	switch( v[i] )
+	{
+	case 'f':
+		if( v.compare(i, 5, PHANTASMA_LITERAL("false")) )
 		{
-			i = v.find_first_not_of(PHANTASMA_LITERAL(", \t\r\n\f\b"), i);
-			if( i == JSONValue::npos ) { PHANTASMA_EXCEPTION("Unterminated array"); out_error = true; return i; }
-			switch( v[i] )
-			{
-			case ']': return i+1;
-			case '{': i = SkipObject(v, i, out_error); break;
-			case '[': i = SkipArray(v, i, out_error); break;
-			case '"': i = SkipString(v, i, out_error); break;
-			case 't': case 'f': case 'n': i = SkipBoolNull(v, i, out_error); break;
-			default:  i = SkipNumber(v, i, out_error); break;
-			}
+			break;
 		}
-		PHANTASMA_EXCEPTION("Unterminated array");
+		return i + 5;
+	case 't':
+		if( v.compare(i, 4, PHANTASMA_LITERAL("true")) )
+		{
+			break;
+		}
+		return i + 4;
+	case 'n':
+		if( v.compare(i, 4, PHANTASMA_LITERAL("null")) )
+		{
+			break;
+		}
+		return i + 4;
+	}
+	PHANTASMA_EXCEPTION("Invalid Value");
+	out_error = true;
+	return i + 1;
+}
+inline size_t SkipObject(const JSONValue& v, size_t i, bool& out_error);
+inline size_t SkipArray(const JSONValue& v, size_t i, bool& out_error)
+{
+	if( v[i] != '[' )
+	{
+		PHANTASMA_EXCEPTION("Invalid Array");
 		out_error = true;
-		return i == JSONValue::npos ? i : i+1;
+		return i + 1;
 	}
-	inline size_t SkipObject(const JSONValue& v, size_t i, bool& out_error)
+	++i;
+	for( ; i < v.size(); )
 	{
-		if( v[i] != '{' ) { PHANTASMA_EXCEPTION("Invalid object"); out_error = true; return i+1; }
-		for(; i<v.size();)
+		i = v.find_first_not_of(PHANTASMA_LITERAL(", \t\r\n\f\b"), i);
+		if( i == JSONValue::npos )
 		{
-			size_t keyBegin = v.find_first_of(PHANTASMA_LITERAL("\"}"), i);
-			if( keyBegin == JSONValue::npos || v[keyBegin] == '}' ) { break; }//no more keys
-			size_t keyEnd = v.find_first_of('"', keyBegin+1);
-			if( keyEnd == JSONValue::npos ) { PHANTASMA_EXCEPTION("Unterminated string"); out_error = true; break; }
-			size_t valueBegin = v.find_first_not_of(PHANTASMA_LITERAL(" \t\r\n\f\b:"), keyEnd+1);
-			if( valueBegin == JSONValue::npos ) { PHANTASMA_EXCEPTION("No value following object key"); out_error = true; break; }
-			Char value0 = v[valueBegin];
-			switch(value0)
-			{
-			case '{': i = SkipObject(v, valueBegin, out_error); break;
-			case '[': i = SkipArray(v, valueBegin, out_error); break;
-			case '"': i = SkipString(v, valueBegin, out_error); break;
-			case 't': case 'f': case 'n': i = SkipBoolNull(v, valueBegin, out_error); break;
-			default:  i = SkipNumber(v, valueBegin, out_error); break;
-			}
+			PHANTASMA_EXCEPTION("Unterminated array");
+			out_error = true;
+			return i;
 		}
-		return i == JSONValue::npos ? i : i+1;
+		switch( v[i] )
+		{
+		case ']':
+			return i + 1;
+		case '{':
+			i = SkipObject(v, i, out_error);
+			break;
+		case '[':
+			i = SkipArray(v, i, out_error);
+			break;
+		case '"':
+			i = SkipString(v, i, out_error);
+			break;
+		case 't':
+		case 'f':
+		case 'n':
+			i = SkipBoolNull(v, i, out_error);
+			break;
+		default:
+			i = SkipNumber(v, i, out_error);
+			break;
+		}
 	}
+	PHANTASMA_EXCEPTION("Unterminated array");
+	out_error = true;
+	return i == JSONValue::npos ? i : i + 1;
+}
+inline size_t SkipObject(const JSONValue& v, size_t i, bool& out_error)
+{
+	if( v[i] != '{' )
+	{
+		PHANTASMA_EXCEPTION("Invalid object");
+		out_error = true;
+		return i + 1;
+	}
+	for( ; i < v.size(); )
+	{
+		size_t keyBegin = v.find_first_of(PHANTASMA_LITERAL("\"}"), i);
+		if( keyBegin == JSONValue::npos || v[keyBegin] == '}' )
+		{
+			break;
+		} //no more keys
+		size_t keyEnd = v.find_first_of('"', keyBegin + 1);
+		if( keyEnd == JSONValue::npos )
+		{
+			PHANTASMA_EXCEPTION("Unterminated string");
+			out_error = true;
+			break;
+		}
+		size_t valueBegin = v.find_first_not_of(PHANTASMA_LITERAL(" \t\r\n\f\b:"), keyEnd + 1);
+		if( valueBegin == JSONValue::npos )
+		{
+			PHANTASMA_EXCEPTION("No value following object key");
+			out_error = true;
+			break;
+		}
+		Char value0 = v[valueBegin];
+		switch( value0 )
+		{
+		case '{':
+			i = SkipObject(v, valueBegin, out_error);
+			break;
+		case '[':
+			i = SkipArray(v, valueBegin, out_error);
+			break;
+		case '"':
+			i = SkipString(v, valueBegin, out_error);
+			break;
+		case 't':
+		case 'f':
+		case 'n':
+			i = SkipBoolNull(v, valueBegin, out_error);
+			break;
+		default:
+			i = SkipNumber(v, valueBegin, out_error);
+			break;
+		}
+	}
+	return i == JSONValue::npos ? i : i + 1;
+}
 
-	PHANTASMA_FUNCTION bool LookupBool(const JSONValue& v, const Char* field, bool& out_error)       { return AsBool( LookupValue(v, field, out_error), out_error); }
-	PHANTASMA_FUNCTION Int32 LookupInt32(const JSONValue& v, const Char* field, bool& out_error)     { return AsInt32( LookupValue(v, field, out_error), out_error); }
-	PHANTASMA_FUNCTION UInt32 LookupUInt32(const JSONValue& v, const Char* field, bool& out_error)   { return AsUInt32(LookupValue(v, field, out_error), out_error); }
-	PHANTASMA_FUNCTION Int64 LookupInt64(const JSONValue& v, const Char* field, bool& out_error)     { return AsInt64( LookupValue(v, field, out_error), out_error); }
-	PHANTASMA_FUNCTION UInt64 LookupUInt64(const JSONValue& v, const Char* field, bool& out_error)   { return AsUInt64(LookupValue(v, field, out_error), out_error); }
-	PHANTASMA_FUNCTION String LookupString(const JSONValue& v, const Char* field, bool& out_error)   { return AsString(LookupValue(v, field, out_error), out_error); }
-	PHANTASMA_FUNCTION JSONArray LookupArray(const JSONValue& v, const Char* field, bool& out_error) { return AsArray(LookupValue(v, field, out_error), out_error); }
-	PHANTASMA_FUNCTION bool HasField(const JSONValue& v, const Char* field, bool& out_error)         { return JSONValue() != LookupValue(v, field, out_error); }
-	PHANTASMA_FUNCTION bool HasArrayField(const JSONValue& v, const Char* field, bool& out_error)    { return IsArray(LookupValue(v, field, out_error), out_error); }
-	PHANTASMA_FUNCTION JSONValue LookupValue(const JSONValue& v, const Char* field, bool& out_error)
+PHANTASMA_FUNCTION bool LookupBool(const JSONValue& v, const Char* field, bool& out_error) { return AsBool(LookupValue(v, field, out_error), out_error); }
+PHANTASMA_FUNCTION Int32 LookupInt32(const JSONValue& v, const Char* field, bool& out_error) { return AsInt32(LookupValue(v, field, out_error), out_error); }
+PHANTASMA_FUNCTION UInt32 LookupUInt32(const JSONValue& v, const Char* field, bool& out_error) { return AsUInt32(LookupValue(v, field, out_error), out_error); }
+PHANTASMA_FUNCTION Int64 LookupInt64(const JSONValue& v, const Char* field, bool& out_error) { return AsInt64(LookupValue(v, field, out_error), out_error); }
+PHANTASMA_FUNCTION UInt64 LookupUInt64(const JSONValue& v, const Char* field, bool& out_error) { return AsUInt64(LookupValue(v, field, out_error), out_error); }
+PHANTASMA_FUNCTION String LookupString(const JSONValue& v, const Char* field, bool& out_error) { return AsString(LookupValue(v, field, out_error), out_error); }
+PHANTASMA_FUNCTION JSONArray LookupArray(const JSONValue& v, const Char* field, bool& out_error) { return AsArray(LookupValue(v, field, out_error), out_error); }
+PHANTASMA_FUNCTION bool HasField(const JSONValue& v, const Char* field, bool& out_error) { return JSONValue() != LookupValue(v, field, out_error); }
+PHANTASMA_FUNCTION bool HasArrayField(const JSONValue& v, const Char* field, bool& out_error) { return IsArray(LookupValue(v, field, out_error), out_error); }
+PHANTASMA_FUNCTION JSONValue LookupValue(const JSONValue& v, const Char* field, bool& out_error)
+{
+	if( v.length() < 1 || v[0] != '{' )
 	{
-		if( v.length() < 1 || v[0] != '{' ) { out_error = true; return JSONValue(); }
-		size_t fieldLen = PHANTASMA_STRLEN(field);
-		for(size_t i=0; i<v.size();)
-		{
-			size_t keyBegin = v.find_first_of(PHANTASMA_LITERAL("\"}"), i);
-			if( keyBegin == JSONValue::npos || v[keyBegin] == '}' ) { break; }//no more keys
-			++keyBegin;
-			size_t keyEnd = v.find_first_of('"', keyBegin);
-			if( keyEnd == JSONValue::npos ) { PHANTASMA_EXCEPTION("Unterminated string"); out_error = true; break; }
-			size_t valueBegin = v.find_first_not_of(PHANTASMA_LITERAL(" \t\r\n\f\b:"), keyEnd+1);
-			if( valueBegin == JSONValue::npos ) { PHANTASMA_EXCEPTION("No value following object key"); out_error = true; break; }
-			size_t keyLen = keyEnd-keyBegin;
-			bool correctKey = fieldLen == keyLen && 0==v.compare(keyBegin, keyLen, field);
-			if( correctKey )
-				return v.substr(valueBegin);//should really be using string views if this was a serious json parser...
-			Char value0 = v[valueBegin];
-			switch(value0)
-			{
-			case '{': i = SkipObject(v, valueBegin, out_error); break;
-			case '[': i = SkipArray( v, valueBegin, out_error); break;
-			case '"': i = SkipString(v, valueBegin, out_error); break;
-			case 't': case 'f': case 'n': i = SkipBoolNull(v, valueBegin, out_error); break;
-			default:  i = SkipNumber(v, valueBegin, out_error); break;
-			}
-		}
-		return JSONValue();
-	}
-	PHANTASMA_FUNCTION bool AsBool(const JSONValue& v, bool& out_error)
-	{
-		if( v.length() < 1 ) { out_error = true; return false; }
-		switch(v[0])
-		{
-		default: PHANTASMA_EXCEPTION("Casting non-bool value to bool"); out_error = true;
-		case 'f': return false;
-		case 't': return true;
-		}
-	}
-	PHANTASMA_FUNCTION Int32  AsInt32(const JSONValue& v, bool& out_error)
-	{
-		const Char* numeric = PHANTASMA_LITERAL("-0123456789");
-		size_t begin = v.find_first_of(numeric, 0);
-		if( begin != 0 ) { PHANTASMA_EXCEPTION("Invalid number"); out_error = true; return 0; }
-		size_t pos = v.find_first_not_of(numeric, 0);
-		if( pos == 0 ) { PHANTASMA_EXCEPTION("Invalid number"); out_error = true; return 0; }
-		JSONValue n = pos == JSONValue::npos ? v : v.substr(0, pos);
-		return (Int32)PHANTASMA_STRTOINT(n.data());
-	}
-	PHANTASMA_FUNCTION UInt32 AsUInt32(const JSONValue& v, bool& out_error) { return (UInt32)AsInt32(v, out_error); }
-	PHANTASMA_FUNCTION Int64  AsInt64(const JSONValue& v, bool& out_error)
-	{
-		const Char* numeric = PHANTASMA_LITERAL("-0123456789");
-		size_t begin = v.find_first_of(numeric, 0);
-		if( begin != 0 ) { PHANTASMA_EXCEPTION("Invalid number"); out_error = true; return 0; }
-		size_t pos = v.find_first_not_of(numeric, 0);
-		if( pos == 0 ) { PHANTASMA_EXCEPTION("Invalid number"); out_error = true; return 0; }
-		JSONValue n = pos == JSONValue::npos ? v : v.substr(0, pos);
-		return (Int64)PHANTASMA_STRTOINT(n.data());
-	}
-	PHANTASMA_FUNCTION UInt64 AsUInt64(const JSONValue& v, bool& out_error)
-	{
-		const Char* numeric = PHANTASMA_LITERAL("-0123456789");
-		size_t begin = v.find_first_of(numeric, 0);
-		if( begin != 0 ) { PHANTASMA_EXCEPTION("Invalid number"); out_error = true; return 0; }
-		size_t pos = v.find_first_not_of(numeric, 0);
-		if( pos == 0 ) { PHANTASMA_EXCEPTION("Invalid number"); out_error = true; return 0; }
-		JSONValue n = pos == JSONValue::npos ? v : v.substr(0, pos);
-		return (UInt64)std::strtoull(n.data(), nullptr, 10);
-	}
-	PHANTASMA_FUNCTION String AsString(const JSONValue& v, bool& out_error)
-	{
-		if( v.length() < 1 || v[0] != '"' ) { PHANTASMA_EXCEPTION("Casting non-string value to string"); out_error = true; return String(); }
-		size_t pos = v.find('"', 1);
-		if( pos == JSONValue::npos ) { PHANTASMA_EXCEPTION("Unterminated string"); out_error = true; return String(); }
-		return String(v.substr(1, pos-1));
-	}
-	PHANTASMA_FUNCTION JSONArray AsArray(const JSONValue& v, bool& out_error) { if(!IsArray(v, out_error)) { PHANTASMA_EXCEPTION("Casting non-array value to array"); out_error = true; } return v; }
-	PHANTASMA_FUNCTION bool IsArray(const JSONValue& v, bool& out_error)
-	{
-		if( v.length() < 1 ) { out_error = true; return false; }
-		return v[0] == '[';
-	}
-	PHANTASMA_FUNCTION bool IsObject(const JSONValue& v, bool& out_error)
-	{
-		if( v.length() < 1 ) { out_error = true; return false; }
-		return v[0] == '{';
-	}
-
-	PHANTASMA_FUNCTION int ArraySize(const JSONArray& v, bool& out_error)
-	{
-		if( v[0] != '[' ) { PHANTASMA_EXCEPTION("Invalid Array"); out_error = true; return 0; }
-		int count = 0;
-		for(size_t i=1; i<v.size();)
-		{
-			i = v.find_first_not_of(PHANTASMA_LITERAL(", \t\r\n\f\b"), i);
-			if( i == JSONValue::npos ) { PHANTASMA_EXCEPTION("Unterminated array"); out_error = true; return count; }
-			switch( v[i] )
-			{
-			case ']': return count;
-			case '{': i = SkipObject(v, i, out_error); count++; break;
-			case '[': i = SkipArray(v, i, out_error);  count++; break;
-			case '"': i = SkipString(v, i, out_error); count++; break;
-			case 't': case 'f': case 'n': i = SkipBoolNull(v, i, out_error); break;
-			default:  i = SkipNumber(v, i, out_error); count++; break;
-			}
-		}
-		return count;
-	}
-	PHANTASMA_FUNCTION JSONValue IndexArray(const JSONArray& v, int index, bool& out_error)
-	{
-		if( v[0] != '[' ) { PHANTASMA_EXCEPTION("Invalid Array"); out_error = true; return JSONValue(); }
-		int count = 0;
-		for(size_t i=1; i<v.size();)
-		{
-			i = v.find_first_not_of(PHANTASMA_LITERAL(", \t\r\n\f\b"), i);
-			if( i == JSONValue::npos ) { PHANTASMA_EXCEPTION("Unterminated array"); out_error = true; return JSONValue(); }
-			if( count == index )
-				return v.substr(i);
-			switch( v[i] )
-			{
-			case ']': goto err;
-			case '{': i = SkipObject(v, i, out_error); count++; break;
-			case '[': i = SkipArray(v, i, out_error);  count++; break;
-			case '"': i = SkipString(v, i, out_error); count++; break;
-			case 't': case 'f': case 'n': i = SkipBoolNull(v, i, out_error); break;
-			default:  i = SkipNumber(v, i, out_error); count++; break;
-			}
-		}
-	err:
-		PHANTASMA_EXCEPTION("Array index out of bounds"); 
 		out_error = true;
 		return JSONValue();
 	}
+	size_t fieldLen = PHANTASMA_STRLEN(field);
+	for( size_t i = 0; i < v.size(); )
+	{
+		size_t keyBegin = v.find_first_of(PHANTASMA_LITERAL("\"}"), i);
+		if( keyBegin == JSONValue::npos || v[keyBegin] == '}' )
+		{
+			break;
+		} //no more keys
+		++keyBegin;
+		size_t keyEnd = v.find_first_of('"', keyBegin);
+		if( keyEnd == JSONValue::npos )
+		{
+			PHANTASMA_EXCEPTION("Unterminated string");
+			out_error = true;
+			break;
+		}
+		size_t valueBegin = v.find_first_not_of(PHANTASMA_LITERAL(" \t\r\n\f\b:"), keyEnd + 1);
+		if( valueBegin == JSONValue::npos )
+		{
+			PHANTASMA_EXCEPTION("No value following object key");
+			out_error = true;
+			break;
+		}
+		size_t keyLen = keyEnd - keyBegin;
+		bool correctKey = fieldLen == keyLen && 0 == v.compare(keyBegin, keyLen, field);
+		if( correctKey )
+			return v.substr(valueBegin); //should really be using string views if this was a serious json parser...
+		Char value0 = v[valueBegin];
+		switch( value0 )
+		{
+		case '{':
+			i = SkipObject(v, valueBegin, out_error);
+			break;
+		case '[':
+			i = SkipArray(v, valueBegin, out_error);
+			break;
+		case '"':
+			i = SkipString(v, valueBegin, out_error);
+			break;
+		case 't':
+		case 'f':
+		case 'n':
+			i = SkipBoolNull(v, valueBegin, out_error);
+			break;
+		default:
+			i = SkipNumber(v, valueBegin, out_error);
+			break;
+		}
+	}
+	return JSONValue();
+}
+PHANTASMA_FUNCTION bool AsBool(const JSONValue& v, bool& out_error)
+{
+	if( v.length() < 1 )
+	{
+		out_error = true;
+		return false;
+	}
+	switch( v[0] )
+	{
+	default:
+		PHANTASMA_EXCEPTION("Casting non-bool value to bool");
+		out_error = true;
+	case 'f':
+		return false;
+	case 't':
+		return true;
+	}
+}
+PHANTASMA_FUNCTION Int32 AsInt32(const JSONValue& v, bool& out_error)
+{
+	const Char* numeric = PHANTASMA_LITERAL("-0123456789");
+	size_t begin = v.find_first_of(numeric, 0);
+	if( begin != 0 )
+	{
+		PHANTASMA_EXCEPTION("Invalid number");
+		out_error = true;
+		return 0;
+	}
+	size_t pos = v.find_first_not_of(numeric, 0);
+	if( pos == 0 )
+	{
+		PHANTASMA_EXCEPTION("Invalid number");
+		out_error = true;
+		return 0;
+	}
+	JSONValue n = pos == JSONValue::npos ? v : v.substr(0, pos);
+	return (Int32)PHANTASMA_STRTOINT(n.data());
+}
+PHANTASMA_FUNCTION UInt32 AsUInt32(const JSONValue& v, bool& out_error) { return (UInt32)AsInt32(v, out_error); }
+PHANTASMA_FUNCTION Int64 AsInt64(const JSONValue& v, bool& out_error)
+{
+	const Char* numeric = PHANTASMA_LITERAL("-0123456789");
+	size_t begin = v.find_first_of(numeric, 0);
+	if( begin != 0 )
+	{
+		PHANTASMA_EXCEPTION("Invalid number");
+		out_error = true;
+		return 0;
+	}
+	size_t pos = v.find_first_not_of(numeric, 0);
+	if( pos == 0 )
+	{
+		PHANTASMA_EXCEPTION("Invalid number");
+		out_error = true;
+		return 0;
+	}
+	JSONValue n = pos == JSONValue::npos ? v : v.substr(0, pos);
+	return (Int64)PHANTASMA_STRTOINT(n.data());
+}
+PHANTASMA_FUNCTION UInt64 AsUInt64(const JSONValue& v, bool& out_error)
+{
+	const Char* numeric = PHANTASMA_LITERAL("-0123456789");
+	size_t begin = v.find_first_of(numeric, 0);
+	if( begin != 0 )
+	{
+		PHANTASMA_EXCEPTION("Invalid number");
+		out_error = true;
+		return 0;
+	}
+	size_t pos = v.find_first_not_of(numeric, 0);
+	if( pos == 0 )
+	{
+		PHANTASMA_EXCEPTION("Invalid number");
+		out_error = true;
+		return 0;
+	}
+	JSONValue n = pos == JSONValue::npos ? v : v.substr(0, pos);
+	return (UInt64)std::strtoull(n.data(), nullptr, 10);
+}
+PHANTASMA_FUNCTION String AsString(const JSONValue& v, bool& out_error)
+{
+	if( v.length() < 1 || v[0] != '"' )
+	{
+		PHANTASMA_EXCEPTION("Casting non-string value to string");
+		out_error = true;
+		return String();
+	}
+	size_t pos = v.find('"', 1);
+	if( pos == JSONValue::npos )
+	{
+		PHANTASMA_EXCEPTION("Unterminated string");
+		out_error = true;
+		return String();
+	}
+	return String(v.substr(1, pos - 1));
+}
+PHANTASMA_FUNCTION JSONArray AsArray(const JSONValue& v, bool& out_error)
+{
+	if( !IsArray(v, out_error) )
+	{
+		PHANTASMA_EXCEPTION("Casting non-array value to array");
+		out_error = true;
+	}
+	return v;
+}
+PHANTASMA_FUNCTION bool IsArray(const JSONValue& v, bool& out_error)
+{
+	if( v.length() < 1 )
+	{
+		out_error = true;
+		return false;
+	}
+	return v[0] == '[';
+}
+PHANTASMA_FUNCTION bool IsObject(const JSONValue& v, bool& out_error)
+{
+	if( v.length() < 1 )
+	{
+		out_error = true;
+		return false;
+	}
+	return v[0] == '{';
+}
+
+PHANTASMA_FUNCTION int ArraySize(const JSONArray& v, bool& out_error)
+{
+	if( v[0] != '[' )
+	{
+		PHANTASMA_EXCEPTION("Invalid Array");
+		out_error = true;
+		return 0;
+	}
+	int count = 0;
+	for( size_t i = 1; i < v.size(); )
+	{
+		i = v.find_first_not_of(PHANTASMA_LITERAL(", \t\r\n\f\b"), i);
+		if( i == JSONValue::npos )
+		{
+			PHANTASMA_EXCEPTION("Unterminated array");
+			out_error = true;
+			return count;
+		}
+		switch( v[i] )
+		{
+		case ']':
+			return count;
+		case '{':
+			i = SkipObject(v, i, out_error);
+			count++;
+			break;
+		case '[':
+			i = SkipArray(v, i, out_error);
+			count++;
+			break;
+		case '"':
+			i = SkipString(v, i, out_error);
+			count++;
+			break;
+		case 't':
+		case 'f':
+		case 'n':
+			i = SkipBoolNull(v, i, out_error);
+			break;
+		default:
+			i = SkipNumber(v, i, out_error);
+			count++;
+			break;
+		}
+	}
+	return count;
+}
+PHANTASMA_FUNCTION JSONValue IndexArray(const JSONArray& v, int index, bool& out_error)
+{
+	if( v[0] != '[' )
+	{
+		PHANTASMA_EXCEPTION("Invalid Array");
+		out_error = true;
+		return JSONValue();
+	}
+	int count = 0;
+	for( size_t i = 1; i < v.size(); )
+	{
+		i = v.find_first_not_of(PHANTASMA_LITERAL(", \t\r\n\f\b"), i);
+		if( i == JSONValue::npos )
+		{
+			PHANTASMA_EXCEPTION("Unterminated array");
+			out_error = true;
+			return JSONValue();
+		}
+		if( count == index )
+			return v.substr(i);
+		switch( v[i] )
+		{
+		case ']':
+			goto err;
+		case '{':
+			i = SkipObject(v, i, out_error);
+			count++;
+			break;
+		case '[':
+			i = SkipArray(v, i, out_error);
+			count++;
+			break;
+		case '"':
+			i = SkipString(v, i, out_error);
+			count++;
+			break;
+		case 't':
+		case 'f':
+		case 'n':
+			i = SkipBoolNull(v, i, out_error);
+			break;
+		default:
+			i = SkipNumber(v, i, out_error);
+			count++;
+			break;
+		}
+	}
+err:
+	PHANTASMA_EXCEPTION("Array index out of bounds");
+	out_error = true;
+	return JSONValue();
+}
 #endif
 #ifndef PHANTASMA_JSONBUILDER
-	PHANTASMA_FUNCTION void BeginObject(JSONBuilder& b)                                   { b.BeginObject(); }
-	PHANTASMA_FUNCTION void AddString(JSONBuilder& b, const Char* key, const Char* value) { b.AddString(key, value); }
-	template<class... Args>
-	void AddArray(JSONBuilder& b, const Char* key, Args... args)                          { b.AddArray(key, args...); }
-	PHANTASMA_FUNCTION void EndObject(JSONBuilder& b)                                     { b.EndObject(); }
+PHANTASMA_FUNCTION void BeginObject(JSONBuilder& b) { b.BeginObject(); }
+PHANTASMA_FUNCTION void AddString(JSONBuilder& b, const Char* key, const Char* value) { b.AddString(key, value); }
+template<class... Args>
+void AddArray(JSONBuilder& b, const Char* key, Args... args) { b.AddArray(key, args...); }
+PHANTASMA_FUNCTION void EndObject(JSONBuilder& b) { b.EndObject(); }
 #endif
 #endif
-}
-}
+} // namespace rpc
+} // namespace phantasma
 #endif

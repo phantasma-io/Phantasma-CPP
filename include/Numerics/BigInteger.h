@@ -1,7 +1,7 @@
 #pragma once
 #ifndef PHANTASMA_API_INCLUDED
 #error "Configure and include PhantasmaAPI.h first"
-#endif 
+#endif
 
 #include <ctype.h>
 #include <math.h>
@@ -17,27 +17,35 @@
 */
 namespace phantasma {
 
-template<bool B, class True, class False> struct SelectType                   { typedef True  Type; };
-template<        class True, class False> struct SelectType<false,True,False> { typedef False Type; };
+template<bool B, class True, class False>
+struct SelectType {
+	typedef True Type;
+};
+template<class True, class False>
+struct SelectType<false, True, False> {
+	typedef False Type;
+};
 
-template<class T> class SecureVector;
-template<bool S> class TBigInteger;
+template<class T>
+class SecureVector;
+template<bool S>
+class TBigInteger;
 
 typedef TBigInteger<false> BigInteger;
 typedef TBigInteger<true> SecureBigInteger;
 
-template<bool UseSecureMemory=false>
+template<bool UseSecureMemory = false>
 class TBigInteger
 {
-private:
+  private:
 	int _sign = 0;
 	typedef PHANTASMA_VECTOR<UInt32> Data_Fast;
-	typedef SecureVector<UInt32>     Data_Secure;
+	typedef SecureVector<UInt32> Data_Secure;
 
 	typedef typename SelectType<UseSecureMemory, Data_Secure, Data_Fast>::Type Data;
 	Data _data;
 
-	constexpr static int _Base = sizeof(UInt32) * 8;    //number of bits required for shift operations
+	constexpr static int _Base = sizeof(UInt32) * 8; //number of bits required for shift operations
 	constexpr static UInt32 _MaxVal = 0xFFFFFFFFU;
 
 	void Trim()
@@ -47,21 +55,20 @@ private:
 		if( _data.empty() || (_data.size() == 1 && _data.back() == 0) )
 			_sign = 0;
 	}
-public:
-	static const TBigInteger Zero() { return TBigInteger{0L}; }
-	static const TBigInteger One()  { return TBigInteger{1L}; }
+
+  public:
+	static const TBigInteger Zero() { return TBigInteger{ 0L }; }
+	static const TBigInteger One() { return TBigInteger{ 1L }; }
 
 	TBigInteger() : TBigInteger(0) {}
 
 	TBigInteger(TBigInteger&& other)
-		: _sign(other._sign)
-		, _data(other._data)
+	    : _sign(other._sign), _data(other._data)
 	{
 	}
 
 	TBigInteger(const TBigInteger& other)
-		: _sign(other._sign)
-		, _data(other._data)
+	    : _sign(other._sign), _data(other._data)
 	{
 	}
 
@@ -81,13 +88,13 @@ public:
 	TBigInteger(Data&& buffer, int sign = 1)
 	{
 		_sign = sign;
-		InitFromArray(buffer.empty()?0:&buffer.front(), (int)buffer.size());
+		InitFromArray(buffer.empty() ? 0 : &buffer.front(), (int)buffer.size());
 	}
 
 	TBigInteger(const Data& buffer, int sign = 1)
 	{
 		_sign = sign;
-		InitFromArray(buffer.empty()?0:&buffer.front(), (int)buffer.size());
+		InitFromArray(buffer.empty() ? 0 : &buffer.front(), (int)buffer.size());
 	}
 
 	TBigInteger(Int32 val) : TBigInteger((Int64)val)
@@ -116,7 +123,7 @@ public:
 	}
 
 	static TBigInteger FromSignedArray(const Byte* signedArray, int signedArrayLength)
-	{//todo - do this without the extra copy
+	{ //todo - do this without the extra copy
 		ByteArray temp;
 		if( signedArray && signedArrayLength > 0 )
 		{
@@ -126,7 +133,7 @@ public:
 		return BigInteger(temp);
 	}
 
-    //following constructors assume that the byte array is in Two's complement notation
+	//following constructors assume that the byte array is in Two's complement notation
 	template<class Byte, size_t N>
 	TBigInteger(const Byte (&bytes)[N])
 	{
@@ -142,8 +149,8 @@ public:
 		// Two's complement uses the sign bit, not a strict 0x00/0xFF guard.
 		// Example: -257 is encoded as FF FE (LSB..MSB). Last byte is 0xFE, but the sign bit is set.
 		int sign = (msb & 0x80) ? -1 : 1;
-		
-		if (sign == -1)
+
+		if( sign == -1 )
 		{
 			*this = TBigInteger(ApplyTwosComplement(bytes), sign);
 		}
@@ -153,10 +160,10 @@ public:
 		}
 	}
 	template<class Byte>
-	TBigInteger(const PHANTASMA_VECTOR<Byte> &bytes)
+	TBigInteger(const PHANTASMA_VECTOR<Byte>& bytes)
 	{
 		using std::empty;
-		if (empty(bytes))
+		if( empty(bytes) )
 		{
 			_sign = 0;
 			_data.push_back(0);
@@ -168,7 +175,7 @@ public:
 		// Example: -257 is encoded as FF FE (LSB..MSB). Last byte is 0xFE, but the sign bit is set.
 		int sign = (msb & 0x80) ? -1 : 1;
 
-		if (sign == -1)
+		if( sign == -1 )
 		{
 			*this = TBigInteger(ApplyTwosComplement(bytes), sign);
 		}
@@ -178,10 +185,10 @@ public:
 		}
 	}
 	template<class Byte>
-	TBigInteger(const phantasma::SecureVector<Byte> &bytes)
+	TBigInteger(const phantasma::SecureVector<Byte>& bytes)
 	{
 		using std::empty;
-		if (empty(bytes))
+		if( empty(bytes) )
 		{
 			_sign = 0;
 			_data.push_back(0);
@@ -193,7 +200,7 @@ public:
 		// Example: -257 is encoded as FF FE (LSB..MSB). Last byte is 0xFE, but the sign bit is set.
 		int sign = (msb & 0x80) ? -1 : 1;
 
-		if (sign == -1)
+		if( sign == -1 )
 		{
 			*this = TBigInteger(ApplyTwosComplement(bytes), sign);
 		}
@@ -203,7 +210,7 @@ public:
 		}
 	}
 
-private:
+  private:
 	template<class Bytes>
 	TBigInteger(const Bytes& bytes, int sign)
 	{
@@ -211,18 +218,18 @@ private:
 
 		if( !bytes.empty() && (bytes.size() % 4) == 0 )
 		{
-			InitFromArray((UInt32*)&bytes.front(), (int)bytes.size()/4);
+			InitFromArray((UInt32*)&bytes.front(), (int)bytes.size() / 4);
 		}
 		else
 		{
 			Data uintArray;
-			uintArray.resize((bytes.size()+3) / 4);
+			uintArray.resize((bytes.size() + 3) / 4);
 
 			int bytePosition = 0;
-			for (int i = 0, j = -1, end = (int)bytes.size(); i < end; i++)
+			for( int i = 0, j = -1, end = (int)bytes.size(); i < end; i++ )
 			{
 				bytePosition = i % 4;
-				if (bytePosition == 0)
+				if( bytePosition == 0 )
 					j++;
 				uintArray[j] |= (UInt32)(bytes[i] << (bytePosition * 8));
 			}
@@ -230,26 +237,26 @@ private:
 			InitFromArray(&uintArray.front(), (int)uintArray.size());
 		}
 	}
-public:
 
+  public:
 	TBigInteger(const Byte* bytes, int numBytes, int sign = 1)
 	{
 		_sign = sign;
 
 		if( (numBytes % 4) == 0 )
 		{
-			InitFromArray((UInt32*)bytes, numBytes/4);
+			InitFromArray((UInt32*)bytes, numBytes / 4);
 		}
 		else
 		{
 			Data uintArray;
-			uintArray.resize((numBytes+3) / 4);
+			uintArray.resize((numBytes + 3) / 4);
 
 			int bytePosition = 0;
-			for (int i = 0, j = -1, end = (int)numBytes; i < end; i++)
+			for( int i = 0, j = -1, end = (int)numBytes; i < end; i++ )
 			{
 				bytePosition = i % 4;
-				if (bytePosition == 0)
+				if( bytePosition == 0 )
 					j++;
 				uintArray[j] |= (UInt32)(bytes[i] << (bytePosition * 8));
 			}
@@ -260,7 +267,7 @@ public:
 
 	TBigInteger(Int64 val)
 	{
-		if (val == 0)
+		if( val == 0 )
 		{
 			_sign = 0;
 			_data.push_back(0);
@@ -269,7 +276,8 @@ public:
 
 		_sign = val < 0 ? -1 : 1;
 
-		if (val < 0) val = -val;
+		if( val < 0 )
+			val = -val;
 
 		UInt32 uintBytes[2];
 		memcpy(uintBytes, &val, 8);
@@ -277,13 +285,13 @@ public:
 		InitFromArray(uintBytes, 2);
 	}
 
-private:
+  private:
 	void InitFromArray(const UInt32* digits, int length)
 	{
 		int n = length;
-		for (int i = n - 1; i >= 0; i--)
+		for( int i = n - 1; i >= 0; i-- )
 		{
-			if (digits[i] == 0)
+			if( digits[i] == 0 )
 			{
 				n--;
 			}
@@ -293,7 +301,7 @@ private:
 			}
 		}
 
-		if (n <= 0)
+		if( n <= 0 )
 		{
 			_data.resize(1);
 			_data[0] = 0;
@@ -302,30 +310,30 @@ private:
 		else
 		{
 			_data.resize(n);
-			PHANTASMA_COPY(digits, digits+n, &_data.front());
+			PHANTASMA_COPY(digits, digits + n, &_data.front());
 		}
 	}
 
-public:
-	TBigInteger(const String& str, int radix, bool* out_error=0)
-		:TBigInteger(str.c_str(), (int)str.length(), radix, out_error)
+  public:
+	TBigInteger(const String& str, int radix, bool* out_error = 0)
+	    : TBigInteger(str.c_str(), (int)str.length(), radix, out_error)
 	{
 	}
-	TBigInteger(const SecureString& str, int radix, bool* out_error=0)
-		:TBigInteger(str.c_str(), (int)str.length(), radix, out_error)
+	TBigInteger(const SecureString& str, int radix, bool* out_error = 0)
+	    : TBigInteger(str.c_str(), (int)str.length(), radix, out_error)
 	{
 	}
-	TBigInteger(const Char* str, int strLength, int radix, bool* out_error=0)
+	TBigInteger(const Char* str, int strLength, int radix, bool* out_error = 0)
 	{
 		TBigInteger bigInteger = Zero();
 		TBigInteger bi = One();
 
-		if (str && strLength == 0)
+		if( str && strLength == 0 )
 		{
 			strLength = (int)PHANTASMA_STRLEN(str);
 		}
 
-		if (strLength == 0 || str[0] == '\0' || (strLength == 1 && str[0] == '0'))
+		if( strLength == 0 || str[0] == '\0' || (strLength == 1 && str[0] == '0') )
 		{
 			_sign = 0;
 			_data.push_back(0);
@@ -349,9 +357,9 @@ public:
 			_sign = 1;
 		}
 
-		int length = (int)(last+1 - first);
+		int length = (int)(last + 1 - first);
 
-		for (int i = 0; i < length; i++)
+		for( int i = 0; i < length; i++ )
 		{
 			int val = toupper(last[-i]);
 			val = ((val >= '0' && val <= '9') ? (val - '0') : ((val < 'A' || val > 'Z') ? 9999999 : (val - 'A' + 10)));
@@ -365,7 +373,7 @@ public:
 
 			bigInteger += bi * val;
 
-			if (i + 1 < length)
+			if( i + 1 < length )
 				bi *= radix;
 		}
 
@@ -379,12 +387,12 @@ public:
 
 	explicit operator int() const
 	{
-		if (_data.empty())
+		if( _data.empty() )
 			return 0;
 
 		int result = (int)(_data[0] & 0x7FFFFFFF);
 
-		if (_sign < 0)
+		if( _sign < 0 )
 			result *= -1;
 
 		return result;
@@ -392,15 +400,15 @@ public:
 
 	explicit operator Int64() const
 	{
-		if (_data.empty())
+		if( _data.empty() )
 			return 0;
 
 		Int64 result = _data[0];
 
-		if(_data.size() > 1)
+		if( _data.size() > 1 )
 			result |= (Int64)(((UInt64)_data[1]) << 32);
 
-		if (_sign < 0)
+		if( _sign < 0 )
 			result *= -1;
 
 		return result;
@@ -428,7 +436,7 @@ public:
 		const Char* digits = PHANTASMA_LITERAL("0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ");
 
 		TBigInteger bi = TBigInteger(radix);
-		if (_data.empty() || (_data.size() == 1 && _data[0] == 0))
+		if( _data.empty() || (_data.size() == 1 && _data[0] == 0) )
 		{
 			return String(PHANTASMA_LITERAL("0"));
 		}
@@ -439,10 +447,10 @@ public:
 			largeInteger._sign = 1;
 			TBigInteger largeInteger2;
 			TBigInteger largeInteger3;
-			while (largeInteger._data.size() > 1 || (largeInteger._data.size() == 1 && largeInteger._data[0] != 0))
+			while( largeInteger._data.size() > 1 || (largeInteger._data.size() == 1 && largeInteger._data[0] != 0) )
 			{
 				DivideAndModulus(largeInteger, bi, largeInteger2, largeInteger3);
-				if (largeInteger3._data.size() == 0)
+				if( largeInteger3._data.size() == 0 )
 				{
 					String temp(PHANTASMA_LITERAL("0"));
 					temp.append(text2);
@@ -452,13 +460,13 @@ public:
 				{
 					int idx = largeInteger3._data[0];
 					String temp;
-					temp.append({digits[idx]});
+					temp.append({ digits[idx] });
 					temp.append(text2);
 					text2 = temp;
 				}
 				largeInteger = largeInteger2;
 			}
-			if (_sign < 1 && 0!=text2.compare(PHANTASMA_LITERAL("0")))
+			if( _sign < 1 && 0 != text2.compare(PHANTASMA_LITERAL("0")) )
 			{
 				String temp(PHANTASMA_LITERAL("-"));
 				temp.append(text2);
@@ -475,7 +483,7 @@ public:
 
 		// Whole code is written to be compatible with little-endian arch only.
 		// Here we should process digits in reverse order.
-		for (UInt32 i = (UInt32)_data.size(); i --> 0;)
+		for( UInt32 i = (UInt32)_data.size(); i-- > 0; )
 		{
 			Char buffer[10];
 			snprintf(buffer, sizeof(buffer), "%08x", _data[i]);
@@ -487,7 +495,7 @@ public:
 		return result;
 	}
 
-private: 
+  private:
 	static Data Add(const Data& X, const Data& Y)
 	{
 		int sizeX = (int)X.size();
@@ -496,10 +504,10 @@ private:
 		Data r;
 		if( longest == 0 )
 			return r;
-		r.resize(longest+1);
+		r.resize(longest + 1);
 
 		UInt32 overflow = 0;
-		for (int i = 0; i < longest; i++)
+		for( int i = 0; i < longest; i++ )
 		{
 			UInt32 x = i < sizeX ? X[i] : 0;
 			UInt32 y = i < sizeY ? Y[i] : 0;
@@ -525,7 +533,7 @@ private:
 
 		Int64 carry = 0;
 
-		for (int i = 0; i < longest; i++)
+		for( int i = 0; i < longest; i++ )
 		{
 			Int64 x = i < sizeX ? X[i] : 0;
 			Int64 y = i < sizeY ? Y[i] : 0;
@@ -546,15 +554,15 @@ private:
 			return output;
 		output.resize(sizeX + sizeY + 1);
 
-		for (int i = 0; i < sizeX; i++)
+		for( int i = 0; i < sizeX; i++ )
 		{
-			if (X[i] == 0)
+			if( X[i] == 0 )
 				continue;
 
 			UInt64 carry = 0uL;
 			Int32 k = i;
 
-			for (int j = 0; j < sizeY; j++, k++)
+			for( int j = 0; j < sizeY; j++, k++ )
 			{
 				UInt64 tmp = (UInt64)(X[i] * (Int64)Y[j] + output[k] + (Int64)carry);
 				output[k] = (UInt32)(tmp);
@@ -567,7 +575,7 @@ private:
 		return output;
 	}
 
-public: 
+  public:
 	TBigInteger operator+(const TBigInteger& b) const
 	{
 		const TBigInteger& a = *this;
@@ -575,14 +583,14 @@ public:
 
 		//all these if-else's are to make sure we don't attempt operations that would give a negative result,
 		//allowing the large int operations to deal only in the scope of unsigned numbers
-		if (a._sign < 0 && b._sign < 0)
+		if( a._sign < 0 && b._sign < 0 )
 		{
 			result._data = Add(a._data, b._data);
 			result._sign = (int)result == 0 ? 0 : -1;
 		}
-		else if (a._sign < 0)
+		else if( a._sign < 0 )
 		{
-			if (Abs(a) < b)
+			if( Abs(a) < b )
 			{
 				result = TBigInteger(Subtract(b._data, a._data));
 				result._sign = result == 0 ? 0 : 1;
@@ -593,9 +601,9 @@ public:
 				result._sign = result == 0 ? 0 : -1;
 			}
 		}
-		else if (b._sign < 0)
+		else if( b._sign < 0 )
 		{
-			if (a < Abs(b))
+			if( a < Abs(b) )
 			{
 				result = TBigInteger(Subtract(b._data, a._data));
 				result._sign = result == 0 ? 0 : -1;
@@ -616,21 +624,21 @@ public:
 
 		return result;
 	}
-	TBigInteger& operator +=(const TBigInteger& b)
+	TBigInteger& operator+=(const TBigInteger& b)
 	{
 		return (*this = *this + b);
 	}
 
-	TBigInteger operator -(const TBigInteger& b) const
+	TBigInteger operator-(const TBigInteger& b) const
 	{
 		const TBigInteger& a = *this;
 		TBigInteger result;
 
 		//all these if-else's are to make sure we don't attempt operations that would give a negative result,
 		//allowing the large int operations to deal only in the scope of unsigned numbers
-		if (a._sign < 0 && b._sign < 0)
+		if( a._sign < 0 && b._sign < 0 )
 		{
-			if (Abs(a) < Abs(b))
+			if( Abs(a) < Abs(b) )
 			{
 				result = TBigInteger(Subtract(b._data, a._data));
 				result._sign = result == 0 ? 0 : 1;
@@ -641,39 +649,38 @@ public:
 				result._sign = result == 0 ? 0 : -1;
 			}
 		}
+		else if( a._sign < 0 )
+		{
+			result = TBigInteger(Add(a._data, b._data));
+			result._sign = result == 0 ? 0 : -1;
+		}
+		else if( b._sign < 0 )
+		{
+			result = TBigInteger(Add(a._data, b._data));
+			result._sign = result == 0 ? 0 : 1;
+		}
 		else
-			if (a._sign < 0)
+		{
+			if( a < b )
 			{
-				result = TBigInteger(Add(a._data, b._data));
+				result = TBigInteger(Subtract(b._data, a._data));
 				result._sign = result == 0 ? 0 : -1;
-			}
-			else if (b._sign < 0)
-			{
-				result = TBigInteger(Add(a._data, b._data));
-				result._sign = result == 0 ? 0 : 1;
 			}
 			else
 			{
-				if (a < b)
-				{
-					result = TBigInteger(Subtract(b._data, a._data));
-					result._sign = result == 0 ? 0 : -1;
-				}
-				else
-				{
-					result = TBigInteger(Subtract(a._data, b._data));
-					result._sign = result == 0 ? 0 : 1;
-				}
+				result = TBigInteger(Subtract(a._data, b._data));
+				result._sign = result == 0 ? 0 : 1;
 			}
+		}
 
 		return result;
 	}
-	TBigInteger& operator -=(const TBigInteger& b)
+	TBigInteger& operator-=(const TBigInteger& b)
 	{
 		return (*this = *this - b);
 	}
 
-	TBigInteger operator *(const TBigInteger& b) const
+	TBigInteger operator*(const TBigInteger& b) const
 	{
 		const TBigInteger& a = *this;
 		TBigInteger result;
@@ -682,12 +689,12 @@ public:
 		result.Trim();
 		return result;
 	}
-	TBigInteger& operator *=(const TBigInteger& b)
+	TBigInteger& operator*=(const TBigInteger& b)
 	{
 		return (*this = *this * b);
 	}
 
-	TBigInteger operator /(const TBigInteger& b) const
+	TBigInteger operator/(const TBigInteger& b) const
 	{
 		const TBigInteger& a = *this;
 		TBigInteger quot, rem;
@@ -695,12 +702,12 @@ public:
 		quot._sign = quot._sign == 0 ? 0 : a._sign * b._sign;
 		return quot;
 	}
-	TBigInteger& operator /=(const TBigInteger& b)
+	TBigInteger& operator/=(const TBigInteger& b)
 	{
 		return (*this = *this / b);
 	}
 
-	TBigInteger operator %(const TBigInteger& b) const
+	TBigInteger operator%(const TBigInteger& b) const
 	{
 		const TBigInteger& a = *this;
 		TBigInteger quot, rem;
@@ -709,7 +716,7 @@ public:
 		rem._sign = rem.GetBitLength() == 0 ? 0 : a._sign;
 		return rem;
 	}
-	TBigInteger& operator %=(const TBigInteger& b)
+	TBigInteger& operator%=(const TBigInteger& b)
 	{
 		return (*this = *this % b);
 	}
@@ -717,25 +724,24 @@ public:
 	static void DivideAndModulus(const TBigInteger& a, const TBigInteger& b, TBigInteger& quot, TBigInteger& rem)
 	{
 		// Avoid operator int(): the low word can be zero for non-zero values (e.g., 2^32).
-		if (b._sign == 0)
+		if( b._sign == 0 )
 		{
 			quot = Zero();
 			rem = Zero();
 			return;
 		}
 
-		if (a._data.size() < b._data.size())
+		if( a._data.size() < b._data.size() )
 		{
 			quot = Zero();
 			rem = TBigInteger(a);
 			return;
 		}
 
-		if (b._data.size() == 1)
+		if( b._data.size() == 1 )
 			SingleDigitDivMod(a, b, quot, rem);
 		else
 			MultiDigitDivMod(a, b, quot, rem);
-
 
 		rem._sign = a._sign;
 		rem = (int)a >= 0 ? rem : b + rem;
@@ -744,7 +750,7 @@ public:
 		rem._sign = rem.GetBitLength() == 0 ? 0 : rem._sign;
 	}
 
-private:
+  private:
 	//do not access this function directly under any circumstances, always go through DivideAndModulus
 	static void SingleDigitDivMod(const TBigInteger& numerator, const TBigInteger& denominator, TBigInteger& quotient, TBigInteger& remainder)
 	{
@@ -752,17 +758,17 @@ private:
 		tmpQuotArray.resize(numerator._data.size() - denominator._data.size() + 1);
 		remArray.resize(numerator._data.size());
 
-		for (int i = 0, end = (int)numerator._data.size(); i < end; i++)
+		for( int i = 0, end = (int)numerator._data.size(); i < end; i++ )
 		{
 			remArray[i] = numerator._data[i];
 		}
 
-		int quotIter = 0;   //quotient array iterator index
-		UInt64 quickDen = denominator._data[0];  //quick denominator
-		int remIter = (int)remArray.size() - 1;  //remainder array iterator index
-		UInt64 tmpRem = remArray[remIter];   //temporary remainder digit
+		int quotIter = 0; //quotient array iterator index
+		UInt64 quickDen = denominator._data[0]; //quick denominator
+		int remIter = (int)remArray.size() - 1; //remainder array iterator index
+		UInt64 tmpRem = remArray[remIter]; //temporary remainder digit
 
-		if (tmpRem >= quickDen)
+		if( tmpRem >= quickDen )
 		{
 			UInt64 tmpQuot = tmpRem / quickDen;
 			tmpQuotArray[quotIter++] = (UInt32)tmpQuot;
@@ -770,7 +776,7 @@ private:
 		}
 
 		remIter--;
-		while (remIter >= 0)
+		while( remIter >= 0 )
 		{
 			tmpRem = ((UInt64)remArray[remIter + 1] << 32) + remArray[remIter];
 			UInt64 tmpQuot = tmpRem / quickDen;
@@ -781,7 +787,7 @@ private:
 
 		Data quotArray;
 		quotArray.resize(quotIter);
-		for (int i = (int)quotArray.size() - 1, j = 0; i >= 0; i--, j++)
+		for( int i = (int)quotArray.size() - 1, j = 0; i >= 0; i--, j++ )
 		{
 			quotArray[j] = tmpQuotArray[i];
 		}
@@ -803,15 +809,15 @@ private:
 		remArray.resize(numerator._data.size() + 1);
 
 		UInt32 tmp = 0x80000000u;
-		UInt32 tmp2 = denominator._data[denominator._data.size() - 1];    //denominator most significant digit
+		UInt32 tmp2 = denominator._data[denominator._data.size() - 1]; //denominator most significant digit
 		int shiftCount = 0;
 
-		while (tmp != 0 && (tmp2 & tmp) == 0)
+		while( tmp != 0 && (tmp2 & tmp) == 0 )
 		{
 			shiftCount++;
 			tmp >>= 1;
 		}
-		for (int i = 0, end = (int)numerator._data.size(); i < end; i++)
+		for( int i = 0, end = (int)numerator._data.size(); i < end; i++ )
 		{
 			remArray[i] = numerator._data[i];
 		}
@@ -821,51 +827,51 @@ private:
 
 		int j = (int)numerator._data.size() - (int)denominator._data.size() + 1;
 		int remIter = (int)numerator._data.size(); //yes, numerator, not remArray
-		UInt64 denMsd = denominator._data[(int)denominator._data.size() - 1];       //denominator most significant digit
-		UInt64 denSubMsd = denominator._data[(int)denominator._data.size() - 2];    //denominator second most significant digit
+		UInt64 denMsd = denominator._data[(int)denominator._data.size() - 1]; //denominator most significant digit
+		UInt64 denSubMsd = denominator._data[(int)denominator._data.size() - 2]; //denominator second most significant digit
 		int denSize = (int)denominator._data.size() + 1;
 
 		Data tmpRemSubArray;
 		tmpRemSubArray.resize(denSize);
 
-		while (j > 0)
+		while( j > 0 )
 		{
 			UInt64 quickDenominator = ((UInt64)remArray[remIter] << 32) + remArray[remIter - 1];
 			UInt64 tmpQuot = quickDenominator / denMsd;
 			UInt64 tmpRem = quickDenominator % denMsd;
 			bool flag = false;
-			while (!flag)
+			while( !flag )
 			{
 				flag = true;
-				if (tmpQuot == 0x100000000LL || tmpQuot * denSubMsd > (tmpRem << 32) + remArray[remIter - 2])
+				if( tmpQuot == 0x100000000LL || tmpQuot * denSubMsd > (tmpRem << 32) + remArray[remIter - 2] )
 				{
 					tmpQuot--;
 					tmpRem += denMsd;
-					if (tmpRem < 0x100000000LL)
+					if( tmpRem < 0x100000000LL )
 					{
 						flag = false;
 					}
 				}
 			}
 
-			for (int k = 0; k < denSize; k++)
+			for( int k = 0; k < denSize; k++ )
 			{
 				tmpRemSubArray[(tmpRemSubArray.size() - 1) - k] = remArray[remIter - k];
 			}
 
 			TBigInteger tmpRemBigInt(tmpRemSubArray);
-			TBigInteger estimNumBigInt = denominator * (Int64)tmpQuot;  //current numerator estimate
-			while (estimNumBigInt > tmpRemBigInt)
+			TBigInteger estimNumBigInt = denominator * (Int64)tmpQuot; //current numerator estimate
+			while( estimNumBigInt > tmpRemBigInt )
 			{
 				tmpQuot--;
 				estimNumBigInt -= denominator;
 			}
-			TBigInteger estimRemBigInt = tmpRemBigInt - estimNumBigInt;    //current remainder estimate
-			for (int k = 0; k < denSize; k++)
+			TBigInteger estimRemBigInt = tmpRemBigInt - estimNumBigInt; //current remainder estimate
+			for( int k = 0; k < denSize; k++ )
 			{
 				tmp = denominator._data.size() - k < estimRemBigInt._data.size()
-					? estimRemBigInt._data[denominator._data.size() - k]
-					: 0;
+				          ? estimRemBigInt._data[denominator._data.size() - k]
+				          : 0;
 				remArray[remIter - k] = tmp;
 			}
 
@@ -884,19 +890,19 @@ private:
 		rem.Trim();
 	}
 
-public:
+  public:
 	static TBigInteger DivideAndRoundToClosest(const TBigInteger& numerator, const TBigInteger& denominator)
 	{
 		//from https://stackoverflow.com/a/2422723
 		return (numerator + (denominator / 2)) / denominator;
 	}
 
-	TBigInteger operator >>(int bits) const
+	TBigInteger operator>>(int bits) const
 	{
-		if (_data.empty())
+		if( _data.empty() )
 			return *this;
 		bits = bits < 0 ? -bits : bits;
-		if (_sign < 0)
+		if( _sign < 0 )
 		{
 			// Arithmetic shift for negative values (C# BigInteger semantics).
 			// Equivalent to floor(a / 2^bits) via |a| + (2^bits - 1).
@@ -905,7 +911,7 @@ public:
 			TBigInteger r = temp;
 			ShiftRight(r._data, bits);
 			// ShiftRight can reduce the buffer to empty (e.g., shifting zero), so guard index access.
-			if (!r._data.empty() && r._data[0] == 0 && r._data.size() == 1)
+			if( !r._data.empty() && r._data[0] == 0 && r._data.size() == 1 )
 				r._sign = 0;
 			else
 				r._sign = -1;
@@ -915,10 +921,10 @@ public:
 		TBigInteger r = *this;
 		ShiftRight(r._data, bits);
 		// ShiftRight can reduce the buffer to empty (e.g., shifting zero), so guard index access.
-		if (!r._data.empty() && r._data[0] == 0 && r._data.size() == 1)
+		if( !r._data.empty() && r._data[0] == 0 && r._data.size() == 1 )
 			r._sign = 0;
 		r.Trim();
-		if (r._data.empty())
+		if( r._data.empty() )
 		{
 			// Keep zero normalized for comparisons (Zero() uses size 1 with 0).
 			// Empty buffers previously caused ModPow to never terminate.
@@ -927,12 +933,12 @@ public:
 		}
 		return r;
 	}
-	TBigInteger& operator >>=(int bits)
+	TBigInteger& operator>>=(int bits)
 	{
-		if (_data.empty())
+		if( _data.empty() )
 			return *this;
 		bits = bits < 0 ? -bits : bits;
-		if (_sign < 0)
+		if( _sign < 0 )
 		{
 			// Arithmetic shift for negative values (C# BigInteger semantics).
 			// Equivalent to floor(a / 2^bits) via |a| + (2^bits - 1).
@@ -940,7 +946,7 @@ public:
 			TBigInteger temp = Abs(*this) + (adjust - One());
 			ShiftRight(temp._data, bits);
 			// ShiftRight can reduce the buffer to empty (e.g., shifting zero), so guard index access.
-			if (!temp._data.empty() && temp._data[0] == 0 && temp._data.size() == 1)
+			if( !temp._data.empty() && temp._data[0] == 0 && temp._data.size() == 1 )
 				temp._sign = 0;
 			else
 				temp._sign = -1;
@@ -949,10 +955,10 @@ public:
 		}
 		ShiftRight(_data, bits);
 		// ShiftRight can reduce the buffer to empty (e.g., shifting zero), so guard index access.
-		if (!_data.empty() && _data[0] == 0 && _data.size() == 1)
+		if( !_data.empty() && _data[0] == 0 && _data.size() == 1 )
 			_sign = 0;
 		Trim();
-		if (_data.empty())
+		if( _data.empty() )
 		{
 			// Keep zero normalized for comparisons (Zero() uses size 1 with 0).
 			// Empty buffers previously caused ModPow to never terminate.
@@ -961,25 +967,25 @@ public:
 		}
 		return *this;
 	}
-private:
+
+  private:
 	static void ShiftRight(Data& buffer, int shiftBitCount)
 	{
 		int length = (int)buffer.size();
 		if( length == 0 )
 			return;
 
-		int shrinkage = shiftBitCount / 32;  //amount of digits we need to cut from the buffer
+		int shrinkage = shiftBitCount / 32; //amount of digits we need to cut from the buffer
 
 		int quickShiftAmount = shiftBitCount % 32;
 
-
-		UInt32 msd = buffer[length - 1] >> quickShiftAmount;  //shifts the most significant digit
-		int extraShrinkage = (msd == 0) ? 1 : 0;    //if that shift goes to 0, it means we need to cut
-													//an extra position of the array to account for an MSD == 0
+		UInt32 msd = buffer[length - 1] >> quickShiftAmount; //shifts the most significant digit
+		int extraShrinkage = (msd == 0) ? 1 : 0; //if that shift goes to 0, it means we need to cut
+		//an extra position of the array to account for an MSD == 0
 
 		int newLength = length - shrinkage - extraShrinkage;
 
-		if (newLength <= 0)
+		if( newLength <= 0 )
 		{
 			buffer.resize(0);
 			return;
@@ -988,13 +994,13 @@ private:
 		Data newBuffer;
 		newBuffer.resize(newLength);
 
-		quickShiftAmount = 32 - quickShiftAmount;   //we'll use this new shift amount to pre-left shift the applicable digits
-													//so we have easy access to the potential underflow of any given digit's right shift operation
+		quickShiftAmount = 32 - quickShiftAmount; //we'll use this new shift amount to pre-left shift the applicable digits
+		//so we have easy access to the potential underflow of any given digit's right shift operation
 
-		if (extraShrinkage == 1)
+		if( extraShrinkage == 1 )
 			newBuffer[newLength - 1] = buffer[length - 1] << quickShiftAmount;
 
-		for (int i = length - (1 + extraShrinkage), j = newLength - 1; j >= 1; i--, j--)
+		for( int i = length - (1 + extraShrinkage), j = newLength - 1; j >= 1; i--, j-- )
 		{
 			UInt64 upshiftedVal = (UInt64)buffer[i] << quickShiftAmount;
 
@@ -1009,44 +1015,45 @@ private:
 
 		PHANTASMA_SWAP(buffer, newBuffer);
 	}
-public:
-	TBigInteger operator <<(int bits) const
+
+  public:
+	TBigInteger operator<<(int bits) const
 	{
-		if (_data.empty())
+		if( _data.empty() )
 			return *this;
 		bits = bits < 0 ? -bits : bits;
 		TBigInteger r = *this;
 		ShiftLeft(r._data, bits);
 		return r;
 	}
-	TBigInteger& operator <<=(int bits)
+	TBigInteger& operator<<=(int bits)
 	{
-		if (_data.empty())
+		if( _data.empty() )
 			return *this;
 		bits = bits < 0 ? -bits : bits;
 		ShiftLeft(_data, bits);
 		return *this;
 	}
 
-private:
+  private:
 	static void ShiftLeft(Data& buffer, int shiftBitCount)
 	{
 		auto length = buffer.size();
 		if( length == 0 )
 			return;
 
-		int amountOfZeros = shiftBitCount / 32;  //amount of least significant digit zero padding we need
+		int amountOfZeros = shiftBitCount / 32; //amount of least significant digit zero padding we need
 		int quickShiftAmount = shiftBitCount % 32;
 
-		Int64 msd = ((Int64)buffer[length - 1]) << quickShiftAmount;  //shifts the most significant digit
+		Int64 msd = ((Int64)buffer[length - 1]) << quickShiftAmount; //shifts the most significant digit
 
-		int extraDigit = (msd != (UInt32)msd) ? 1 : 0;  //if it goes above the UInt32 range, we need to add
-														//a new position for the new MSD
+		int extraDigit = (msd != (UInt32)msd) ? 1 : 0; //if it goes above the UInt32 range, we need to add
+		//a new position for the new MSD
 
 		Data newBuffer;
 		newBuffer.resize(length + amountOfZeros + extraDigit);
 
-		for (UInt32 i = 0, j = amountOfZeros; i < length; i++, j++)
+		for( UInt32 i = 0, j = amountOfZeros; i < length; i++, j++ )
 		{
 			UInt64 shiftedVal = ((UInt64)buffer[i]) << quickShiftAmount;
 
@@ -1055,37 +1062,37 @@ private:
 
 			newBuffer[j] |= shiftLsd;
 
-			if (shiftMsd > 0)
+			if( shiftMsd > 0 )
 				newBuffer[j + 1] |= shiftMsd;
 		}
 
 		PHANTASMA_SWAP(buffer, newBuffer);
 	}
 
-public:
-	TBigInteger& operator ++()
+  public:
+	TBigInteger& operator++()
 	{
 		return (*this = *this + 1);
 	}
-	TBigInteger operator ++(int)
+	TBigInteger operator++(int)
 	{
 		TBigInteger pre = *this;
 		*this = *this + 1;
 		return pre;
 	}
 
-	TBigInteger& operator --()
+	TBigInteger& operator--()
 	{
 		return (*this = *this - 1);
 	}
-	TBigInteger operator --(int)
+	TBigInteger operator--(int)
 	{
 		TBigInteger pre = *this;
 		*this = *this - 1;
 		return pre;
 	}
 
-	TBigInteger operator -() const
+	TBigInteger operator-() const
 	{
 		TBigInteger n = *this;
 		n._sign = -n._sign;
@@ -1102,58 +1109,58 @@ public:
 		return _sign < 0;
 	}
 
-	bool operator ==(const TBigInteger& b) const
+	bool operator==(const TBigInteger& b) const
 	{
 		return _data.size() == b._data.size() && _sign == b._sign && PHANTASMA_EQUAL(_data.begin(), _data.end(), b._data.begin());
 	}
 
-	bool operator !=(const TBigInteger& b) const
+	bool operator!=(const TBigInteger& b) const
 	{
 		return _data.size() != b._data.size() || _sign != b._sign || !PHANTASMA_EQUAL(_data.begin(), _data.end(), b._data.begin());
 	}
 
-private:
+  private:
 	static bool LogicalCompare(const TBigInteger& a, const TBigInteger& b, bool op)
 	{
-		if (a._sign < b._sign)
+		if( a._sign < b._sign )
 		{
 			return op;
 		}
 
-		if (a._sign > b._sign)
+		if( a._sign > b._sign )
 		{
 			return !op;
 		}
 
-		if (a._sign < 0)
+		if( a._sign < 0 )
 		{
 			// For negative values, reverse magnitude comparison.
 			// Example: -5 < -3, so larger magnitude means smaller numeric value.
 			op = !op;
 		}
 
-		if (a._data.size() < b._data.size())
+		if( a._data.size() < b._data.size() )
 		{
 			return op;
 		}
 
-		if (a._data.size() > b._data.size())
+		if( a._data.size() > b._data.size() )
 		{
 			return !op;
 		}
 
 		const Data& A = a._data;
 		const Data& B = b._data;
-		for (int i = (int)A.size() - 1; i >= 0; i--)
+		for( int i = (int)A.size() - 1; i >= 0; i-- )
 		{
 			UInt32 x = A[i];
 			UInt32 y = B[i];
-			if (x < y)
+			if( x < y )
 			{
 				return op;
 			}
 
-			if (x > y)
+			if( x > y )
 			{
 				return !op;
 			}
@@ -1162,30 +1169,30 @@ private:
 		return false;
 	}
 
-public:
-	bool operator <(const TBigInteger& b) const
+  public:
+	bool operator<(const TBigInteger& b) const
 	{
 		return LogicalCompare(*this, b, true);
 	}
 
-	bool operator >(const TBigInteger& b) const
+	bool operator>(const TBigInteger& b) const
 	{
 		return LogicalCompare(*this, b, false);
 	}
 
-	bool operator <=(const TBigInteger& b) const
+	bool operator<=(const TBigInteger& b) const
 	{
 		const TBigInteger& a = *this;
 		return (a == b || a < b);
 	}
 
-	bool operator >=(const TBigInteger& b) const
+	bool operator>=(const TBigInteger& b) const
 	{
 		const TBigInteger& a = *this;
 		return (a == b || a > b);
 	}
 
-private:
+  private:
 	static void PrepareBitwiseOperands(const TBigInteger& a, const TBigInteger& b, ByteArray& aBytes, ByteArray& bBytes)
 	{
 		// Match .NET BigInteger semantics: operate on two's complement with sign extension.
@@ -1201,8 +1208,8 @@ private:
 		bBytes.resize(len, bPad);
 	}
 
-public:
-	TBigInteger operator ^(const TBigInteger& b) const
+  public:
+	TBigInteger operator^(const TBigInteger& b) const
 	{
 		const TBigInteger& a = *this;
 		ByteArray aBytes;
@@ -1211,7 +1218,7 @@ public:
 
 		ByteArray result;
 		result.resize(aBytes.size());
-		for (size_t i = 0; i < result.size(); ++i)
+		for( size_t i = 0; i < result.size(); ++i )
 		{
 			result[i] = (Byte)(aBytes[i] ^ bBytes[i]);
 		}
@@ -1219,7 +1226,7 @@ public:
 		return TBigInteger(result);
 	}
 
-	TBigInteger operator |(const TBigInteger& b) const
+	TBigInteger operator|(const TBigInteger& b) const
 	{
 		const TBigInteger& a = *this;
 		ByteArray aBytes;
@@ -1228,7 +1235,7 @@ public:
 
 		ByteArray result;
 		result.resize(aBytes.size());
-		for (size_t i = 0; i < result.size(); ++i)
+		for( size_t i = 0; i < result.size(); ++i )
 		{
 			result[i] = (Byte)(aBytes[i] | bBytes[i]);
 		}
@@ -1236,14 +1243,14 @@ public:
 		return TBigInteger(result);
 	}
 
-	TBigInteger operator ~() const
+	TBigInteger operator~() const
 	{
 		// Two's complement identity: ~x == -(x + 1).
 		// Keeps results consistent with C# BigInteger for negative values.
 		return -(*this + One());
 	}
 
-	TBigInteger operator &(const TBigInteger& b) const
+	TBigInteger operator&(const TBigInteger& b) const
 	{
 		const TBigInteger& a = *this;
 		ByteArray aBytes;
@@ -1252,7 +1259,7 @@ public:
 
 		ByteArray result;
 		result.resize(aBytes.size());
-		for (size_t i = 0; i < result.size(); ++i)
+		for( size_t i = 0; i < result.size(); ++i )
 		{
 			result[i] = (Byte)(aBytes[i] & bBytes[i]);
 		}
@@ -1265,7 +1272,7 @@ public:
 		//BH!!!
 		//this used to ignore _sign and broke comparisons for negative values.
 		//C# BigInteger equality includes sign, so comparisons must too.
-		if (other._sign != _sign || other._data.size() != _data.size())
+		if( other._sign != _sign || other._data.size() != _data.size() )
 		{
 			return false;
 		}
@@ -1275,12 +1282,12 @@ public:
 
 	int CompareTo(const TBigInteger& other) const
 	{
-		if (Equals(other))
+		if( Equals(other) )
 		{
 			return 0;
 		}
 
-		if (*this < other)
+		if( *this < other )
 		{
 			return -1;
 		}
@@ -1293,7 +1300,7 @@ public:
 		TBigInteger val = One();
 		TBigInteger i = Zero();
 
-		while (i < powExp)
+		while( i < powExp )
 		{
 			val *= powBase;
 			i = i + One();
@@ -1321,18 +1328,18 @@ public:
 			return Zero();
 		}
 
-		if (exp._sign < 0)
+		if( exp._sign < 0 )
 			return ModInverse(mod).ModPow(-exp, mod);
 
-		if (exp == 1)
+		if( exp == 1 )
 			return *this % mod;
 
 		TBigInteger s = One();
 		TBigInteger t = *this;
 
-		while (exp != Zero())
+		while( exp != Zero() )
 		{
-			if ((exp & One()) == One())
+			if( (exp & One()) == One() )
 				s = (s * t) % mod;
 
 			exp = exp >> 1;
@@ -1344,14 +1351,12 @@ public:
 
 	TBigInteger ModInverse(TBigInteger modulus) const
 	{
-		TBigInteger array[2] =
-		{
+		TBigInteger array[2] = {
 			Zero(),
 			One()
 		};
 		TBigInteger array2[2] = {};
-		TBigInteger array3[2] = 
-		{
+		TBigInteger array3[2] = {
 			Zero(),
 			Zero()
 		};
@@ -1361,15 +1366,15 @@ public:
 		// Normalize to positive residue to match C# BigInteger.ModInverse semantics.
 		// The extended Euclid loop expects a in [0, modulus).
 		bigInteger = bigInteger % modulus;
-		if (bigInteger._sign < 0)
+		if( bigInteger._sign < 0 )
 		{
 			bigInteger += modulus;
 		}
-		while (bigInteger._data.size() > 1 || (bigInteger._data.size() == 1 && bigInteger._data[0] != 0))
+		while( bigInteger._data.size() > 1 || (bigInteger._data.size() == 1 && bigInteger._data[0] != 0) )
 		{
 			TBigInteger bigInteger2;
 			TBigInteger bigInteger3;
-			if (num > 1)
+			if( num > 1 )
 			{
 				TBigInteger bigInteger4 = (array[0] - array[1] * array2[0]) % modulus;
 				array[0] = array[1];
@@ -1394,7 +1399,7 @@ public:
 		}
 
 		TBigInteger bigInteger5 = (array[0] - array[1] * array2[0]) % modulus;
-		if (bigInteger5._sign < 0)
+		if( bigInteger5._sign < 0 )
 		{
 			bigInteger5 += modulus;
 		}
@@ -1408,15 +1413,15 @@ public:
 
 	int GetLowestSetBit() const
 	{
-		if (_sign == 0)
+		if( _sign == 0 )
 			return -1;
 
 		ByteArray b = ToSignedByteArray();
 		int w = 0;
-		while (b[w] == 0)
+		while( b[w] == 0 )
 			w++;
-		for (int x = 0; x < 8; x++)
-			if ((b[w] & 1 << x) > 0)
+		for( int x = 0; x < 8; x++ )
+			if( (b[w] & 1 << x) > 0 )
 				return x + w * 8;
 		PHANTASMA_EXCEPTION("GetLowestSetBit error");
 		return -1;
@@ -1445,12 +1450,12 @@ public:
 
 	int GetBitLength() const
 	{
-		if (_data.empty() || (_data.size() == 1 && _data[0] == 0))
+		if( _data.empty() || (_data.size() == 1 && _data[0] == 0) )
 			return 0;
 
 		auto result = (_data.size() - 1) * 32;
 
-		result += (int) log2(_data[(int)_data.size() - 1]) + 1;
+		result += (int)log2(_data[(int)_data.size() - 1]) + 1;
 
 		return (int)result;
 	}
@@ -1474,7 +1479,7 @@ public:
 			return Zero();
 		}
 
-		if (*this == 0)
+		if( *this == 0 )
 		{
 			return Zero();
 		}
@@ -1487,7 +1492,7 @@ public:
 
 		UInt32 num3;
 
-		if (b == 0)
+		if( b == 0 )
 		{
 			num3 = 0x80000000u;
 		}
@@ -1499,13 +1504,13 @@ public:
 
 		Data sqrtArray;
 		sqrtArray.resize(num2);
-		for (int num4 = (int)(num2 - 1); num4 >= 0; num4--)
+		for( int num4 = (int)(num2 - 1); num4 >= 0; num4-- )
 		{
-			while (num3 != 0)
+			while( num3 != 0 )
 			{
 				sqrtArray[num4] ^= num3;
 				TBigInteger tmp(sqrtArray);
-				if (tmp * tmp > *this)
+				if( tmp * tmp > *this )
 				{
 					sqrtArray[num4] ^= num3;
 				}
@@ -1516,22 +1521,22 @@ public:
 		return TBigInteger(std::move(sqrtArray));
 	}
 
-    /// <summary>
-    /// IF YOU USE THIS METHOD, DON'T FEED THE RESULTING BYTE ARRAY TO THE BigInteger(byte[] array) CONSTRUCTOR
-    /// That constructor depends on having a byte array using the Two's Complement convention, where the MSB is either 0 or FF
-    /// This method does not produce an extra byte for the sign, that only happens on the ToSignedByteArray method.
-    ///
-    /// tl;dr:  if the byte array will be used to reconstruct a bigint, use ToSignedByteArray
-    ///         if you just need to manipulate the raw byte array without having to reconstruct a bigint, AND you don't care about sign, use ToUnsignedByteArray.
-    /// </summary>
-    /// <returns></returns>
+	/// <summary>
+	/// IF YOU USE THIS METHOD, DON'T FEED THE RESULTING BYTE ARRAY TO THE BigInteger(byte[] array) CONSTRUCTOR
+	/// That constructor depends on having a byte array using the Two's Complement convention, where the MSB is either 0 or FF
+	/// This method does not produce an extra byte for the sign, that only happens on the ToSignedByteArray method.
+	///
+	/// tl;dr:  if the byte array will be used to reconstruct a bigint, use ToSignedByteArray
+	///         if you just need to manipulate the raw byte array without having to reconstruct a bigint, AND you don't care about sign, use ToUnsignedByteArray.
+	/// </summary>
+	/// <returns></returns>
 	int ToUnsignedByteArray(Byte* result, int resultSize) const
 	{
 		int bitLength = GetBitLength();
 		UInt32 byteArraySize = (bitLength / 8) + (UInt32)((bitLength % 8 > 0) ? 1 : 0);
-		if(!result)
+		if( !result )
 			return (int)byteArraySize;
-		if(resultSize < 0 || (int)byteArraySize > resultSize )
+		if( resultSize < 0 || (int)byteArraySize > resultSize )
 		{
 			PHANTASMA_EXCEPTION("invalid argument");
 			return 0;
@@ -1542,12 +1547,12 @@ public:
 		{
 			PHANTASMA_LOCKMEM(bytes, 4);
 		}
-		for (UInt32 i = 0, j = 0, end = (UInt32)_data.size(); i < end; i++, j += 4)
+		for( UInt32 i = 0, j = 0, end = (UInt32)_data.size(); i < end; i++, j += 4 )
 		{
 			memcpy(bytes, &_data[i], 4);
-			for (int k = 0; k < 4; k++)
+			for( int k = 0; k < 4; k++ )
 			{
-				if (j + k >= byteArraySize)
+				if( j + k >= byteArraySize )
 					break;
 				result[j + k] = bytes[k];
 			}
@@ -1559,16 +1564,16 @@ public:
 
 		return (int)byteArraySize;
 	}
-	
-    /// <summary>
-    /// IF YOU USE THIS METHOD, DON'T FEED THE RESULTING BYTE ARRAY TO THE BigInteger(byte[] array) CONSTRUCTOR
-    /// That constructor depends on having a byte array using the Two's Complement convention, where the MSB is either 0 or FF
-    /// This method does not produce an extra byte for the sign, that only happens on the ToSignedByteArray method.
-    ///
-    /// tl;dr:  if the byte array will be used to reconstruct a bigint, use ToSignedByteArray
-    ///         if you just need to manipulate the raw byte array without having to reconstruct a bigint, AND you don't care about sign, use ToUnsignedByteArray.
-    /// </summary>
-    /// <returns></returns>
+
+	/// <summary>
+	/// IF YOU USE THIS METHOD, DON'T FEED THE RESULTING BYTE ARRAY TO THE BigInteger(byte[] array) CONSTRUCTOR
+	/// That constructor depends on having a byte array using the Two's Complement convention, where the MSB is either 0 or FF
+	/// This method does not produce an extra byte for the sign, that only happens on the ToSignedByteArray method.
+	///
+	/// tl;dr:  if the byte array will be used to reconstruct a bigint, use ToSignedByteArray
+	///         if you just need to manipulate the raw byte array without having to reconstruct a bigint, AND you don't care about sign, use ToUnsignedByteArray.
+	/// </summary>
+	/// <returns></returns>
 	ByteArray ToUnsignedByteArray() const
 	{
 		int bitLength = GetBitLength();
@@ -1576,13 +1581,13 @@ public:
 		ByteArray result;
 		result.resize(byteArraySize);
 
-		for (UInt32 i = 0, j = 0, end = (UInt32)_data.size(); i < end; i++, j += 4)
+		for( UInt32 i = 0, j = 0, end = (UInt32)_data.size(); i < end; i++, j += 4 )
 		{
 			Byte bytes[4];
 			memcpy(bytes, &_data[i], 4);
-			for (int k = 0; k < 4; k++)
+			for( int k = 0; k < 4; k++ )
 			{
-				if (bytes[k] == 0)
+				if( bytes[k] == 0 )
 					continue;
 
 				result[j + k] = bytes[k];
@@ -1602,22 +1607,22 @@ public:
 	// - The output must be parseable by BigInteger(signed bytes) without losing width or sign.
 	ByteArray ToSignedByteArray() const
 	{
-		if (_sign == 0)
+		if( _sign == 0 )
 		{
 			return ByteArray{ (Byte)0x00 };
 		}
 
 		const bool applyTwosComplement = _sign < 0;
 		ByteArray result;
-		if (!applyTwosComplement)
+		if( !applyTwosComplement )
 		{
 			// Positive path: emit magnitude bytes and add a sign guard if MSB could be interpreted as negative.
 			result = ToUnsignedByteArray();
-			if (result.empty())
+			if( result.empty() )
 			{
 				result.push_back(0x00);
 			}
-			if (result.back() & 0x80)
+			if( result.back() & 0x80 )
 			{
 				result.push_back(0x00);
 			}
@@ -1628,41 +1633,41 @@ public:
 			// We invert the magnitude bytes, add 1, and then ensure the sign bit stays set.
 			const TBigInteger tmp = Abs(*this);
 			result = tmp.ToUnsignedByteArray();
-			if (result.empty())
+			if( result.empty() )
 			{
 				result.push_back(0x00);
 			}
-			for (auto& b : result)
+			for( auto& b : result )
 			{
 				b = (Byte)~b;
 			}
 			uint16_t carry = 1;
-			for (size_t i = 0; i < result.size() && carry; ++i)
+			for( size_t i = 0; i < result.size() && carry; ++i )
 			{
 				const uint16_t sum = (uint16_t)result[i] + carry;
 				result[i] = (Byte)sum;
 				carry = (sum >> 8);
 			}
-			if (carry)
+			if( carry )
 			{
 				result.push_back((Byte)carry);
 			}
-			if ((result.back() & 0x80) == 0)
+			if( (result.back() & 0x80) == 0 )
 			{
 				result.push_back(0xFF);
 			}
 		}
 
-		if (applyTwosComplement)
+		if( applyTwosComplement )
 		{
 			// Phantasma tail guard: negatives keep a trailing 0xFF extension.
 			// This matches the Initial Phantasma C# implementation (e.g., -1 => [FF, FF, FF]).
-			if (result.size() == 1)
+			if( result.size() == 1 )
 			{
 				result.push_back(0xFF);
 				result.push_back(0xFF);
 			}
-			else if (result.back() == 0xFF)
+			else if( result.back() == 0xFF )
 			{
 				result.push_back(0xFF);
 			}
@@ -1670,7 +1675,7 @@ public:
 		else
 		{
 			// Phantasma tail guard: positives must end with 0x00.
-			if (result.back() != 0x00)
+			if( result.back() != 0x00 )
 			{
 				result.push_back(0x00);
 			}
@@ -1685,7 +1690,7 @@ public:
 		ByteArray buffer;
 		buffer.resize(bytes.size());
 
-		for (int i = 0, end = (int)bytes.size(); i < end; i++)
+		for( int i = 0, end = (int)bytes.size(); i < end; i++ )
 		{
 			buffer[i] = (Byte)~bytes[i];
 		}
@@ -1704,7 +1709,7 @@ public:
 		Int64 hashCode = -1521134295 * _sign;
 
 		// Rotate by 3 bits and XOR the new value
-		for (UInt32 word : _data)
+		for( UInt32 word : _data )
 		{
 			hashCode = (int)((hashCode << 3) | (hashCode >> (29)) ^ word);
 		}
@@ -1724,7 +1729,7 @@ public:
 };
 
 template<bool S>
-inline String DecimalConversion( const TBigInteger<S>& value, UInt32 decimals, Char decimalPoint='.', bool alwaysShowDecimalPoint=false )
+inline String DecimalConversion(const TBigInteger<S>& value, UInt32 decimals, Char decimalPoint = '.', bool alwaysShowDecimalPoint = false)
 {
 	//todo - is it better to just convert value to text, and then insert the decimal point in the right place? :D
 	if( decimals > 0 || alwaysShowDecimalPoint )
@@ -1733,7 +1738,7 @@ inline String DecimalConversion( const TBigInteger<S>& value, UInt32 decimals, C
 		if( decimals > 0 )
 		{
 			TBigInteger<S> radix = TBigInteger<S>::Pow(10, decimals);
-			TBigInteger<S>::DivideAndModulus( value, radix, q, r );
+			TBigInteger<S>::DivideAndModulus(value, radix, q, r);
 		}
 		else
 		{
@@ -1744,14 +1749,14 @@ inline String DecimalConversion( const TBigInteger<S>& value, UInt32 decimals, C
 		{
 			String rstr = r.ToString();
 			UInt32 trailingZeros = 0;
-			for( UInt32 i=(UInt32)rstr.length(); i-->0; ++trailingZeros )
+			for( UInt32 i = (UInt32)rstr.length(); i-- > 0; ++trailingZeros )
 				if( rstr[i] != '0' )
 					break;
 			String result = q.ToString();
-			result.append({decimalPoint});
-			for( UInt32 i=(UInt32)rstr.length(); i<decimals; ++i)
+			result.append({ decimalPoint });
+			for( UInt32 i = (UInt32)rstr.length(); i < decimals; ++i )
 				result.append(PHANTASMA_LITERAL("0"));
-			for( UInt32 i=0, end=(UInt32)rstr.length()-trailingZeros; i<end; ++i)
+			for( UInt32 i = 0, end = (UInt32)rstr.length() - trailingZeros; i < end; ++i )
 			{
 				Char ch[2] = { rstr[i], '\0' };
 				result.append(ch);
@@ -1766,14 +1771,14 @@ inline String DecimalConversion( const TBigInteger<S>& value, UInt32 decimals, C
 }
 
 template<bool S, class CharArray, class String>
-inline TBigInteger<S> _DecimalConversion( const String& value, UInt32 decimals, Char decimalPoint='.', Char toleratedSeparator='\0' )
+inline TBigInteger<S> _DecimalConversion(const String& value, UInt32 decimals, Char decimalPoint = '.', Char toleratedSeparator = '\0')
 {
 	int decimalIdx = -1;
 	UInt32 fractionalDecimals = 0;
-	for( int i=0, end=(int)value.length(); i!=end; ++i )
+	for( int i = 0, end = (int)value.length(); i != end; ++i )
 	{
 		Char c = value[i];
-		if(c == decimalPoint)
+		if( c == decimalPoint )
 		{
 			if( decimalIdx < 0 )
 				decimalIdx = i;
@@ -1783,7 +1788,7 @@ inline TBigInteger<S> _DecimalConversion( const String& value, UInt32 decimals, 
 				return {};
 			}
 		}
-		else if(c >= '0' && c <= '9')
+		else if( c >= '0' && c <= '9' )
 		{
 			if( decimalIdx >= 0 )
 				++fractionalDecimals;
@@ -1794,10 +1799,10 @@ inline TBigInteger<S> _DecimalConversion( const String& value, UInt32 decimals, 
 			return {};
 		}
 	}
-	if(decimalIdx < 0)//easy case, no decimal point in the input!
+	if( decimalIdx < 0 ) //easy case, no decimal point in the input!
 	{
 		TBigInteger<S> parsed = TBigInteger<S>::Parse(value);
-		if( decimals == 0 )//easy case, no fractional part allowed!
+		if( decimals == 0 ) //easy case, no fractional part allowed!
 			return parsed;
 		TBigInteger<S> multiplier = TBigInteger<S>::Pow(10, decimals);
 		return parsed * multiplier;
@@ -1807,44 +1812,44 @@ inline TBigInteger<S> _DecimalConversion( const String& value, UInt32 decimals, 
 		//shift the fractional part over the decimal point
 		CharArray copy;
 		copy.resize(value.length());
-		for( int i=0; i<decimalIdx; ++i )
+		for( int i = 0; i < decimalIdx; ++i )
 		{
 			copy[i] = value[i];
 		}
-		for( int i=decimalIdx, end=(int)value.length()-1; i<end; ++i )
+		for( int i = decimalIdx, end = (int)value.length() - 1; i < end; ++i )
 		{
-			copy[i] = value[i+1];
+			copy[i] = value[i + 1];
 		}
 
 		int newLength;
-		if(fractionalDecimals > decimals)//user has provided a value that is too precise. Truncate their input.
+		if( fractionalDecimals > decimals ) //user has provided a value that is too precise. Truncate their input.
 		{
 			int excess = fractionalDecimals - decimals;
 			fractionalDecimals = decimals;
-			newLength = (int)value.length()-(excess+1);
+			newLength = (int)value.length() - (excess + 1);
 		}
 		else // we shifted everything down one place, so insert a new null terminator in the last place
 		{
-			newLength = (int)value.length()-1;
+			newLength = (int)value.length() - 1;
 		}
 		copy[newLength] = '\0';
 
 		TBigInteger<S> parsed = TBigInteger<S>::Parse(String(&copy.front(), newLength));
-		if( decimals == fractionalDecimals )//easy case, the user input had the exact right number of decimal places! (or too many, but we truncated)
+		if( decimals == fractionalDecimals ) //easy case, the user input had the exact right number of decimal places! (or too many, but we truncated)
 			return parsed;
-		TBigInteger<S> multiplier = TBigInteger<S>::Pow(10, decimals-fractionalDecimals);
+		TBigInteger<S> multiplier = TBigInteger<S>::Pow(10, decimals - fractionalDecimals);
 		return parsed * multiplier;
 	}
 }
 
-inline BigInteger DecimalConversion( const String& value, UInt32 decimals, Char decimalPoint='.', Char toleratedSeparator='\0' )
+inline BigInteger DecimalConversion(const String& value, UInt32 decimals, Char decimalPoint = '.', Char toleratedSeparator = '\0')
 {
-	return _DecimalConversion<false, PHANTASMA_VECTOR<Char>>( value, decimals, decimalPoint, toleratedSeparator );
+	return _DecimalConversion<false, PHANTASMA_VECTOR<Char>>(value, decimals, decimalPoint, toleratedSeparator);
 }
 
-inline SecureBigInteger DecimalConversion( const SecureString& value, UInt32 decimals, Char decimalPoint='.', Char toleratedSeparator='\0' )
+inline SecureBigInteger DecimalConversion(const SecureString& value, UInt32 decimals, Char decimalPoint = '.', Char toleratedSeparator = '\0')
 {
-	return _DecimalConversion<true, SecureVector<Char>>( value, decimals, decimalPoint, toleratedSeparator );
+	return _DecimalConversion<true, SecureVector<Char>>(value, decimals, decimalPoint, toleratedSeparator);
 }
 
-}
+} // namespace phantasma

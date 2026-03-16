@@ -8,9 +8,9 @@ namespace phantasma {
 
 #define PHANTASMA_SHA256_LENGTH 32
 
-inline void SHA256( Byte* output, int outputSize, const Byte* input, int inputSize )
+inline void SHA256(Byte* output, int outputSize, const Byte* input, int inputSize)
 {
-	if(!output || !input || outputSize != PHANTASMA_SHA256_LENGTH || inputSize < 0 )
+	if( !output || !input || outputSize != PHANTASMA_SHA256_LENGTH || inputSize < 0 )
 	{
 		PHANTASMA_EXCEPTION("Invalid arguments");
 		return;
@@ -18,7 +18,7 @@ inline void SHA256( Byte* output, int outputSize, const Byte* input, int inputSi
 	PHANTASMA_SHA256(output, outputSize, input, inputSize);
 }
 
-inline ByteArray SHA256( const ByteArray& input )
+inline ByteArray SHA256(const ByteArray& input)
 {
 	ByteArray result;
 	result.resize(PHANTASMA_SHA256_LENGTH);
@@ -26,4 +26,4 @@ inline ByteArray SHA256( const ByteArray& input )
 	return result;
 }
 
-}
+} // namespace phantasma

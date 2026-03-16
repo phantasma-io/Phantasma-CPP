@@ -22,12 +22,12 @@ int main()
 
 		std::wcout << L"Balance description for address " << wif << std::endl;
 
-		for (int i = 0; i < account.balances.size(); i++) 
+		for( int i = 0; i < account.balances.size(); i++ )
 		{
 			std::wcout << account.balances[i].amount << " " << account.balances[i].symbol << " tokens available on " << account.balances[i].chain << " chain" << std::endl;
 		}
 	}
-	catch(std::exception& e)
+	catch( std::exception& e )
 	{
 		std::wcout << e.what();
 	}

@@ -7,33 +7,33 @@
 
 namespace phantasma {
 
-class Ed25519Signature 
+class Ed25519Signature
 {
-public:
+  public:
 	Ed25519Signature()
 	{
-		for( int i=0; i!=Length; ++i )
+		for( int i = 0; i != Length; ++i )
 			bytes[i] = 0;
 	}
-	Ed25519Signature( const Byte* signature, int signatureLength )
-		: Ed25519Signature()
+	Ed25519Signature(const Byte* signature, int signatureLength)
+	    : Ed25519Signature()
 	{
 		if( signatureLength == Length )
 		{
-			PHANTASMA_COPY(signature, signature+Length, bytes);
+			PHANTASMA_COPY(signature, signature + Length, bytes);
 		}
-		else if(signatureLength != 0)
+		else if( signatureLength != 0 )
 		{
-			PHANTASMA_EXCEPTION( "Invalid Ed25519 signature length, should be 64 bytes" );
+			PHANTASMA_EXCEPTION("Invalid Ed25519 signature length, should be 64 bytes");
 		}
 	}
-	Ed25519Signature( const ByteArray& signature )
-			: Ed25519Signature(signature.empty() ? 0 : &signature.front(), (int)signature.size())
+	Ed25519Signature(const ByteArray& signature)
+	    : Ed25519Signature(signature.empty() ? 0 : &signature.front(), (int)signature.size())
 	{
 	}
 	Ed25519Signature& operator=(const Ed25519Signature& o)
 	{
-		PHANTASMA_COPY(o.bytes, o.bytes+Length, bytes);
+		PHANTASMA_COPY(o.bytes, o.bytes + Length, bytes);
 		return *this;
 	}
 
@@ -41,13 +41,13 @@ public:
 	constexpr static SignatureKind Kind = SignatureKind::Ed25519;
 
 	const Byte* Bytes() const { return bytes; }
-	
+
 	bool Verify(const Byte* message, int messageLength, const Address* addresses, int numAddresses) const
 	{
 		if( messageLength <= 0 )
 			return false;
 
-		for(int i=0; i<numAddresses; ++i)
+		for( int i = 0; i < numAddresses; ++i )
 		{
 			const Address& address = addresses[i];
 			if( !address.IsUser() )
@@ -55,18 +55,18 @@ public:
 
 			const Byte* pubKey = address.ToByteArray() + 2;
 			int pubKeyLength = address.GetSize() - 2;
-			if (Ed25519::Verify(bytes, Length, message, messageLength, pubKey, pubKeyLength))
+			if( Ed25519::Verify(bytes, Length, message, messageLength, pubKey, pubKeyLength) )
 			{
 				return true;
 			}
 		}
-	
+
 		return false;
 	}
 
-	bool operator==( const Ed25519Signature& o ) const
+	bool operator==(const Ed25519Signature& o) const
 	{
-		return PHANTASMA_EQUAL( bytes, bytes+Length, o.bytes );
+		return PHANTASMA_EQUAL(bytes, bytes + Length, o.bytes);
 	}
 
 	template<class BinaryWriter>
@@ -80,11 +80,11 @@ public:
 	{
 		reader.ReadByteArray(bytes, Length);
 	}
-	
+
 	template<class IKeyPair>
 	static Ed25519Signature Generate(const IKeyPair& keypair, const Byte* message, int messageLength)
 	{
-		if(!message || messageLength <=0)
+		if( !message || messageLength <= 0 )
 		{
 			PHANTASMA_EXCEPTION("Can't sign an empty message");
 			return Ed25519Signature();
@@ -92,9 +92,9 @@ public:
 		PinnedBytes<64> expandedPrivateKey;
 		{
 			SecureByteReader read = keypair.GetPrivateKey().Read();
-			Ed25519::ExpandedPrivateKeyFromSeed( expandedPrivateKey.bytes, 64, read.Bytes(), PrivateKey::Length );
+			Ed25519::ExpandedPrivateKeyFromSeed(expandedPrivateKey.bytes, 64, read.Bytes(), PrivateKey::Length);
 		}
-		ByteArray sign = Ed25519::Sign( message, messageLength, expandedPrivateKey.bytes, 64 );
+		ByteArray sign = Ed25519::Sign(message, messageLength, expandedPrivateKey.bytes, 64);
 		return Ed25519Signature(sign);
 	}
 	template<class IKeyPair>
@@ -107,8 +107,9 @@ public:
 		}
 		return Generate(keypair, &message.front(), (int)message.size());
 	}
-private:
+
+  private:
 	Byte bytes[Length];
 };
 
-}
+} // namespace phantasma

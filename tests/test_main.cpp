@@ -30,7 +30,7 @@ int main()
 	testcases::RunIntXIs8ByteSafeTests(ctx);
 	testcases::RunCallSectionsTests(ctx);
 
-	if (ctx.failed == 0)
+	if( ctx.failed == 0 )
 	{
 		std::cout << "All " << ctx.total << " tests passed." << std::endl;
 		return 0;

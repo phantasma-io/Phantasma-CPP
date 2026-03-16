@@ -32,7 +32,6 @@
 #include "../../include/VM/ScriptBuilder.h"
 #include "../../include/Utils/RpcUtils.h"
 
-
 using namespace std;
 using namespace phantasma;
 namespace carbon = phantasma::carbon;
@@ -69,7 +68,7 @@ void Write(const wchar_t* text)
 #if defined(_WIN32)
 	Cout() << text;
 #else
-	const std::wstring wide{text};
+	const std::wstring wide{ text };
 	Cout() << std::string(wide.begin(), wide.end());
 #endif
 }
@@ -102,7 +101,7 @@ String ReadLine()
 {
 	String str;
 	std::getline(Cin(), str);
-	if (!Cin())
+	if( !Cin() )
 	{
 		Cin().clear();
 	}
@@ -111,15 +110,15 @@ String ReadLine()
 
 static int GetTokenDecimals(const String& tokenSymbol, const vector<rpc::Token>& tokens)
 {
-	for(const auto& token : tokens)
+	for( const auto& token : tokens )
 		if( token.symbol == tokenSymbol )
 			return token.decimals;
 	return 0;
 }
-	
+
 static String GetChainName(const String& chainAddress, const vector<rpc::Chain>& chains)
 {
-	for(const auto& chain : chains)
+	for( const auto& chain : chains )
 		if( chain.address == chainAddress )
 			return chain.name;
 	return {};
@@ -136,16 +135,19 @@ class Program
 	PhantasmaKeys _key;
 	vector<rpc::Chain> _chains;
 	vector<rpc::Token> _tokens;
-public:
+
+  public:
 	Program(const String& nexus, const String& host)
-		: _nexus(nexus)
-		, _host(host)
+	    : _nexus(nexus), _host(host)
 #if defined(_WIN32)
-		, _http(_host.c_str())
+	      ,
+	      _http(_host.c_str())
 #else
-		, _http(_host)
+	      ,
+	      _http(_host)
 #endif
-		, _phantasmaApiService(_http)
+	      ,
+	      _phantasmaApiService(_http)
 	{
 		WriteLine("Welcome to Phantasma Wallet sample.");
 		WriteLine("Initializing...");
@@ -158,15 +160,15 @@ public:
 
 		bool loggedIn = false;
 
-		while (!loggedIn)
+		while( !loggedIn )
 		{
 			try
 			{
-				SecureString wif = SecureString{ReadLine()};
+				SecureString wif = SecureString{ ReadLine() };
 				_key = PhantasmaKeys::FromWIF(wif); //KeyPair.Generate();
 				loggedIn = true;
 			}
-			catch (std::exception&)
+			catch( std::exception& )
 			{
 				WriteLine("Incorrect wif, enter again:");
 			}
@@ -176,7 +178,7 @@ public:
 	void RunConsole()
 	{
 		bool logout = false;
-		while (!logout)
+		while( !logout )
 		{
 			WriteLine();
 			WriteLine();
@@ -192,7 +194,7 @@ public:
 			String strOption = ReadLine();
 			int option = std::stoi(strOption);
 			WriteLine();
-			switch (option)
+			switch( option )
 			{
 			case 1:
 				WriteLine(_key.GetAddress().ToString());
@@ -228,7 +230,7 @@ public:
 	void ListTransactions()
 	{
 		auto txs = _phantasmaApiService.GetAddressTransactions(_key.GetAddress().ToString().c_str(), 1, 10);
-		for(const auto& tx : txs.txs)
+		for( const auto& tx : txs.txs )
 		{
 			WriteLine(GetTxDescription(tx, _chains, _tokens).c_str());
 		}
@@ -241,73 +243,74 @@ public:
 		WriteLine();
 		WriteLine("Address Name: ", name.c_str());
 		WriteLine();
-		if (_account.balances.empty())
+		if( _account.balances.empty() )
 		{
 			WriteLine("No funds");
 		}
 		else
 		{
-			if (_tokens.empty()) _tokens = _phantasmaApiService.GetTokens(true);
-			for(const auto& balanceSheet : _account.balances)
+			if( _tokens.empty() )
+				_tokens = _phantasmaApiService.GetTokens(true);
+			for( const auto& balanceSheet : _account.balances )
 			{
 				WriteLine("********************");
 				WriteLine("Token: ", balanceSheet.symbol.c_str());
 				WriteLine("Chain: ", balanceSheet.chain.c_str());
 				WriteLine("Amount: ", DecimalConversion(BigInteger::Parse(balanceSheet.amount), balanceSheet.decimals).c_str());
-				if (detailed)
+				if( detailed )
 				{
 					const rpc::Token* tokenInfo = nullptr;
-					for (const auto& tk : _tokens)
+					for( const auto& tk : _tokens )
 					{
-						if (tk.symbol == balanceSheet.symbol)
+						if( tk.symbol == balanceSheet.symbol )
 						{
 							tokenInfo = &tk;
 							break;
 						}
 					}
-					if (!tokenInfo)
+					if( !tokenInfo )
 					{
 						try
 						{
 							_tokens.push_back(_phantasmaApiService.GetToken(balanceSheet.symbol.c_str(), true));
 							tokenInfo = &_tokens.back();
 						}
-						catch (const std::exception& ex)
+						catch( const std::exception& ex )
 						{
 							WriteLine("Warn: failed to fetch token info: ", ex.what());
 						}
 					}
-					if (tokenInfo)
+					if( tokenInfo )
 					{
-						if (!tokenInfo->carbonId.empty())
+						if( !tokenInfo->carbonId.empty() )
 						{
 							WriteLine("Carbon Id: ", tokenInfo->carbonId.c_str());
 						}
-						if (!tokenInfo->burnedSupply.empty())
+						if( !tokenInfo->burnedSupply.empty() )
 						{
 							WriteLine("Burned: ", DecimalConversion(BigInteger::Parse(tokenInfo->burnedSupply), tokenInfo->decimals).c_str());
 						}
-						if (!tokenInfo->metadata.empty())
+						if( !tokenInfo->metadata.empty() )
 						{
 							WriteLine("Metadata:");
-							for (const auto& prop : tokenInfo->metadata)
+							for( const auto& prop : tokenInfo->metadata )
 							{
 								WriteLine("\t", prop.Key.c_str(), ": ", prop.Value.c_str());
 							}
 						}
-						if (!tokenInfo->series.empty())
+						if( !tokenInfo->series.empty() )
 						{
 							WriteLine("Series:");
-							for (const auto& series : tokenInfo->series)
+							for( const auto& series : tokenInfo->series )
 							{
 								WriteLine("\tID: ", series.seriesID, " carbonTokenId: ", series.carbonTokenId.c_str(), " carbonSeriesId: ", series.carbonSeriesId.c_str());
-								if (!series.burnedSupply.empty())
+								if( !series.burnedSupply.empty() )
 								{
 									WriteLine("\tBurned: ", series.burnedSupply.c_str());
 								}
-								if (!series.metadata.empty())
+								if( !series.metadata.empty() )
 								{
-									for (const auto& prop : series.metadata)
+									for( const auto& prop : series.metadata )
 									{
 										WriteLine("\t\t", prop.Key.c_str(), ": ", prop.Value.c_str());
 									}
@@ -329,7 +332,7 @@ public:
 
 	bool HaveTokenBalanceToTransfer()
 	{
-		for(const auto& token : _account.balances)
+		for( const auto& token : _account.balances )
 			if( BigInteger::Parse(token.amount) > BigInteger::Zero() )
 				return true;
 		return false;
@@ -341,13 +344,13 @@ public:
 		try
 		{
 			const auto tokenInfo = _phantasmaApiService.GetToken(symbol.c_str(), true, &err);
-			if (err.code != 0)
+			if( err.code != 0 )
 			{
 				WriteLine("RPC error: ", err.message.c_str());
 				return false;
 			}
 
-			if (tokenInfo.carbonId.empty())
+			if( tokenInfo.carbonId.empty() )
 			{
 				WriteLine("RPC error: missing carbon id in token info");
 				return false;
@@ -356,11 +359,11 @@ public:
 			carbonId = std::stoull(tokenInfo.carbonId);
 			return true;
 		}
-		catch (const std::invalid_argument&)
+		catch( const std::invalid_argument& )
 		{
 			WriteLine("RPC error: invalid carbon id format");
 		}
-		catch (const std::exception& ex)
+		catch( const std::exception& ex )
 		{
 			WriteLine("RPC error: ", ex.what());
 		}
@@ -374,12 +377,12 @@ public:
 		{
 			txHash = SignAndSendCarbonTransaction(_phantasmaApiService, msg, keys, &err);
 		}
-		catch (const std::exception& ex)
+		catch( const std::exception& ex )
 		{
 			WriteLine("RPC error: ", ex.what());
 			return false;
 		}
-		if (err.code != 0)
+		if( err.code != 0 )
 		{
 			WriteLine("RPC error: ", err.message.c_str());
 			return false;
@@ -390,9 +393,9 @@ public:
 
 	void CrossChainTransfer()
 	{
-		if (_account.address.empty())
+		if( _account.address.empty() )
 			_account = _phantasmaApiService.GetAccount(_key.GetAddress().ToString().c_str());
-		if (!HaveTokenBalanceToTransfer())
+		if( !HaveTokenBalanceToTransfer() )
 		{
 			WriteLine("No tokens to transfer");
 			return;
@@ -400,13 +403,13 @@ public:
 
 		WriteLine("Select token and chain: ");
 
-		for (size_t i = 0; i < _account.balances.size(); ++i)
+		for( size_t i = 0; i < _account.balances.size(); ++i )
 		{
 			WriteLine(i + 1, " - ", _account.balances[i].symbol, " in ", _account.balances[i].chain, " chain");
 		}
 
 		const int selectedTokenOption = std::stoi(ReadLine());
-		if (selectedTokenOption < 1 || static_cast<size_t>(selectedTokenOption) > _account.balances.size())
+		if( selectedTokenOption < 1 || static_cast<size_t>(selectedTokenOption) > _account.balances.size() )
 		{
 			WriteLine("Invalid selection");
 			return;
@@ -429,14 +432,13 @@ public:
 		// }
 		// const auto& destinationChain = _chains[selectedChainOption - 1];
 
-
 		WriteLine("Enter amount: (max ", DecimalConversion(BigInteger::Parse(token.amount), token.decimals), ")");
 		String amount = ReadLine();
 
 		WriteLine("Enter destination address: ");
 		String destinationAddress = ReadLine();
 
-		if (!Address::IsValidAddress(destinationAddress))
+		if( !Address::IsValidAddress(destinationAddress) )
 		{
 			WriteLine("Invalid address");
 			return;
@@ -447,24 +449,24 @@ public:
 
 	void CarbonTransfer()
 	{
-		if (_account.address.empty())
+		if( _account.address.empty() )
 		{
 			_account = _phantasmaApiService.GetAccount(_key.GetAddress().ToString().c_str());
 		}
-		if (!HaveTokenBalanceToTransfer())
+		if( !HaveTokenBalanceToTransfer() )
 		{
 			WriteLine("No tokens to transfer");
 			return;
 		}
 
 		WriteLine("Select token for Carbon transfer: ");
-		for (size_t i = 0; i < _account.balances.size(); ++i)
+		for( size_t i = 0; i < _account.balances.size(); ++i )
 		{
 			WriteLine(i + 1, " - ", _account.balances[i].symbol, " in ", _account.balances[i].chain, " chain");
 		}
 
 		const int selectedTokenOption = std::stoi(ReadLine());
-		if (selectedTokenOption < 1 || static_cast<size_t>(selectedTokenOption) > _account.balances.size())
+		if( selectedTokenOption < 1 || static_cast<size_t>(selectedTokenOption) > _account.balances.size() )
 		{
 			WriteLine("Invalid selection");
 			return;
@@ -473,13 +475,13 @@ public:
 		const auto& token = _account.balances[selectedTokenIndex];
 
 		uint64_t carbonTokenId = 0;
-		if (!TryGetCarbonTokenId(token.symbol, carbonTokenId))
+		if( !TryGetCarbonTokenId(token.symbol, carbonTokenId) )
 		{
 			WriteLine("Unable to resolve Carbon token id for ", token.symbol.c_str());
 			return;
 		}
 
-		if (_tokens.empty())
+		if( _tokens.empty() )
 		{
 			_tokens = _phantasmaApiService.GetTokens(false);
 		}
@@ -492,13 +494,13 @@ public:
 		{
 			bigAmount = DecimalConversion(amountInput, decimals);
 		}
-		catch (const std::exception& ex)
+		catch( const std::exception& ex )
 		{
 			WriteLine("Invalid amount: ", ex.what());
 			return;
 		}
 
-		if (bigAmount < BigInteger::Zero())
+		if( bigAmount < BigInteger::Zero() )
 		{
 			WriteLine("Amount must be positive");
 			return;
@@ -509,7 +511,7 @@ public:
 		{
 			amount = std::stoull(bigAmount.ToString());
 		}
-		catch (const std::exception&)
+		catch( const std::exception& )
 		{
 			WriteLine("Amount is too large for Carbon transaction");
 			return;
@@ -518,7 +520,7 @@ public:
 		WriteLine("Enter destination address: ");
 		const String destinationAddress = ReadLine();
 
-		if (!Address::IsValidAddress(destinationAddress))
+		if( !Address::IsValidAddress(destinationAddress) )
 		{
 			WriteLine("Invalid address");
 			return;
@@ -527,7 +529,8 @@ public:
 		const Address destination = Address::FromText(destinationAddress);
 
 		const auto nowMs = std::chrono::duration_cast<std::chrono::milliseconds>(
-			std::chrono::system_clock::now().time_since_epoch()).count();
+		    std::chrono::system_clock::now().time_since_epoch())
+		                       .count();
 
 		cbc::TxMsg msg;
 		msg.type = cbc::TxTypes::TransferFungible;
@@ -543,7 +546,7 @@ public:
 		};
 
 		String txHash;
-		if (TrySendCarbonTransaction(msg, _key, txHash))
+		if( TrySendCarbonTransaction(msg, _key, txHash) )
 		{
 			WriteLine("Carbon transaction sent. Tx hash: ", txHash.c_str());
 		}
@@ -561,10 +564,10 @@ public:
 		auto bigIntAmount = DecimalConversion(amount, decimals);
 
 		const auto& script = ScriptBuilder::BeginScript()
-			.AllowGas(_key.GetAddress(), Address(), 100000, 9999)
-			.TransferTokens(tokenSymbol, _key.GetAddress(), destinationAddress, bigIntAmount)
-			.SpendGas(_key.GetAddress())
-			.EndScript();
+		                         .AllowGas(_key.GetAddress(), Address(), 100000, 9999)
+		                         .TransferTokens(tokenSymbol, _key.GetAddress(), destinationAddress, bigIntAmount)
+		                         .SpendGas(_key.GetAddress())
+		                         .EndScript();
 
 		SignAndSendTx(script, chain);
 	}
@@ -577,14 +580,14 @@ public:
 		Hash block = Hash::Parse(blockHash);
 
 		auto settleTxScript = ScriptBuilder::BeginScript()
-			.CallContract(PHANTASMA_LITERAL("token"), PHANTASMA_LITERAL("SettleBlock"), sourceChain, block)
-			.AllowGas(_key.GetAddress(), Address(), 1, 9999)
-			.SpendGas(_key.GetAddress())
-			.EndScript();
+		                          .CallContract(PHANTASMA_LITERAL("token"), PHANTASMA_LITERAL("SettleBlock"), sourceChain, block)
+		                          .AllowGas(_key.GetAddress(), Address(), 1, 9999)
+		                          .SpendGas(_key.GetAddress())
+		                          .EndScript();
 		return SignAndSendTx(settleTxScript, destinationChainName);
 	}
 
-/*	String CrossChainTransferToken(const String& addressTo, const String& chainName, const String& destinationChain, const String& symbol, const String& amount)
+	/*	String CrossChainTransferToken(const String& addressTo, const String& chainName, const String& destinationChain, const String& symbol, const String& amount)
 	{
 		String toChain = GetChainAddress(destinationChain, _chains);
 		Address destinationAddress = Address::FromText(addressTo);
@@ -606,7 +609,7 @@ public:
 
 	void RegisterName()
 	{
-		if (!HaveTokenBalanceToTransfer())
+		if( !HaveTokenBalanceToTransfer() )
 		{
 			WriteLine("Insuficient funds");
 			return;
@@ -614,10 +617,10 @@ public:
 		WriteLine("Enter name for address: ");
 		String name = ReadLine();
 		auto script = ScriptBuilder::BeginScript()
-			.AllowGas(_key.GetAddress(), Address(), 100000, 9999)
-			.CallContract(PHANTASMA_LITERAL("account"), PHANTASMA_LITERAL("RegisterName"), _key.GetAddress(), name)
-			.SpendGas(_key.GetAddress())
-			.EndScript();
+		                  .AllowGas(_key.GetAddress(), Address(), 100000, 9999)
+		                  .CallContract(PHANTASMA_LITERAL("account"), PHANTASMA_LITERAL("RegisterName"), _key.GetAddress(), name)
+		                  .SpendGas(_key.GetAddress())
+		                  .EndScript();
 
 		SignAndSendTx(script, PHANTASMA_LITERAL("main"));
 	}
@@ -633,7 +636,7 @@ public:
 			WriteLine("Transaction sent. Tx hash: ", txResult);
 			return txResult;
 		}
-		catch (std::exception& ex)
+		catch( std::exception& ex )
 		{
 			WriteLine("Something happened. Error: ", ex.what());
 			return {};
@@ -644,14 +647,14 @@ public:
 int main()
 {
 #if defined(_WIN32)
-	if (sodium_init() == -1)
+	if( sodium_init() == -1 )
 	{
 		WriteLine("Could not initialize sodium library");
 		return 1;
 	}
 #endif
 
-	for(;;)
+	for( ;; )
 	{
 		try
 		{
@@ -665,7 +668,7 @@ int main()
 
 			String nexus;
 			String host;
-			switch (option)
+			switch( option )
 			{
 			case 1:
 				nexus = PHANTASMA_LITERAL("simnet");
@@ -687,7 +690,7 @@ int main()
 			program.RunConsole();
 			return 0;
 		}
-		catch (std::exception& ex)
+		catch( std::exception& ex )
 		{
 			WriteLine("An error occured: ", ex.what());
 		}

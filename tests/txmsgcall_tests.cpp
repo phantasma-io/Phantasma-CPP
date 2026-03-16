@@ -29,16 +29,16 @@ void RunCallSectionsTests(TestContext& ctx)
 	ReadView r(buf.empty() ? nullptr : (void*)buf.data(), buf.size());
 	Blockchain::TxMsgCall decoded{};
 	const bool decodedOk =
-		Read(decoded, r, alloc) &&
-		decoded.sections.numArgSections_negative == -2 &&
-		decoded.args.length == 0 &&
-		decoded.moduleId == call.moduleId &&
-		decoded.methodId == call.methodId &&
-		decoded.sections.argSections &&
-		decoded.sections.argSections[0].registerOffset == -1 &&
-		decoded.sections.argSections[0].args.length == 0 &&
-		decoded.sections.argSections[1].registerOffset == 0 &&
-		ByteArray(decoded.sections.argSections[1].args.bytes, decoded.sections.argSections[1].args.bytes + decoded.sections.argSections[1].args.length) == ByteArray({ (Byte)0x0A, (Byte)0x0B });
+	    Read(decoded, r, alloc) &&
+	    decoded.sections.numArgSections_negative == -2 &&
+	    decoded.args.length == 0 &&
+	    decoded.moduleId == call.moduleId &&
+	    decoded.methodId == call.methodId &&
+	    decoded.sections.argSections &&
+	    decoded.sections.argSections[0].registerOffset == -1 &&
+	    decoded.sections.argSections[0].args.length == 0 &&
+	    decoded.sections.argSections[1].registerOffset == 0 &&
+	    ByteArray(decoded.sections.argSections[1].args.bytes, decoded.sections.argSections[1].args.bytes + decoded.sections.argSections[1].args.length) == ByteArray({ (Byte)0x0A, (Byte)0x0B });
 	Report(ctx, decodedOk, "CALL-ARG-SECTIONS-DECODE");
 }
 

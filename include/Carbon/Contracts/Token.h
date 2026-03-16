@@ -22,8 +22,7 @@ enum TokensConfigFlags
 	TokensConfigFlags_RequireNftMetaId = 1 << 2,
 	TokensConfigFlags_RequireNftStandard = 1 << 3,
 };
-struct TokensConfig
-{
+struct TokensConfig {
 	uint8_t flags = TokensConfigFlags_None;
 };
 
@@ -34,8 +33,7 @@ enum TokenFlags
 	TokenFlags_NonFungible = 1 << 1,
 };
 
-struct TokenInfo
-{
+struct TokenInfo {
 	intx_pod maxSupply{};
 	TokenFlags flags = TokenFlags_None;
 	uint8_t decimals = 0;
@@ -44,20 +42,17 @@ struct TokenInfo
 	ByteView metadata{};
 	ByteView tokenSchemas{};
 };
-struct TokenInfo_FlagsOnly
-{
+struct TokenInfo_FlagsOnly {
 	TokenFlags flags = TokenFlags_None;
 };
 
-struct GasConfigWithTokens
-{
+struct GasConfigWithTokens {
 	Blockchain::GasConfig config{};
 	TokenInfo gasToken{};
 	TokenInfo dataToken{};
 };
 
-struct SeriesInfo
-{
+struct SeriesInfo {
 	uint32_t maxMint = 0;
 	uint32_t maxSupply = 0;
 	Bytes32 owner{};
@@ -66,8 +61,7 @@ struct SeriesInfo
 	VmStructSchema ram{};
 };
 
-struct SeriesSupply
-{
+struct SeriesSupply {
 	uint32_t mintCount = 0;
 	uint32_t currentSupply = 0;
 };
@@ -80,30 +74,26 @@ enum NftInstanceFlags : uint8_t
 	NftInstance_Staked = 1 << 2,
 };
 
-struct NftState
-{
+struct NftState {
 	int64_t lastTransfer = 0;
 	NftInstanceFlags flags = NftInstance_None;
 	VmDynamicVariable metaId{};
 };
 
-struct NftInstance
-{
+struct NftInstance {
 	Bytes32 originator{};
 	int64_t created = 0;
 	NftInstanceFlags flags = NftInstance_None;
 	ByteView rom{};
 };
 
-struct NftMintInfo
-{
+struct NftMintInfo {
 	uint32_t seriesId = 0;
 	ByteView rom{};
 	ByteView ram{};
 };
 
-struct NftInfo
-{
+struct NftInfo {
 	uint32_t seriesId = 0;
 	uint32_t mintNumber = 0;
 	Bytes32 originator{};
@@ -114,8 +104,7 @@ struct NftInfo
 	Bytes32 owner{};
 };
 
-struct NftSchema
-{
+struct NftSchema {
 	VmStructSchema tokenRom{};
 	VmStructSchema seriesRom{};
 	VmStructSchema tokenRam{};
@@ -126,8 +115,7 @@ struct NftSchema
 	SmallString tokenSymbol{};
 };
 
-struct NftImport
-{
+struct NftImport {
 	uint32_t mintNumber = 0;
 	Bytes32 originator{};
 	int64_t created = 0;
@@ -136,8 +124,7 @@ struct NftImport
 	Bytes32 owner{};
 };
 
-struct SeriesImport
-{
+struct SeriesImport {
 	uint64_t tokenId = 0;
 	SeriesInfo info{};
 	uint32_t numImports = 0;
@@ -155,7 +142,7 @@ inline void Write(const TokenInfo& in, WriteView& w)
 	Write(in.owner, w);
 	Write(in.symbol, w);
 	WriteArray(ByteArray(in.metadata.bytes, in.metadata.bytes + in.metadata.length), w);
-	if ((in.flags & TokenFlags_NonFungible) != 0)
+	if( (in.flags & TokenFlags_NonFungible) != 0 )
 	{
 		WriteArray(ByteArray(in.tokenSchemas.bytes, in.tokenSchemas.bytes + in.tokenSchemas.length), w);
 	}
@@ -181,7 +168,7 @@ inline void Write(const SeriesImport& in, WriteView& w)
 	Write8u(in.tokenId, w);
 	Write(in.info, w);
 	Write4((int32_t)in.numImports, w);
-	for (uint32_t i = 0; i != in.numImports; ++i)
+	for( uint32_t i = 0; i != in.numImports; ++i )
 	{
 		const NftImport& imp = in.imports[i];
 		Write(imp.originator, w);
@@ -252,8 +239,7 @@ inline void Write(const GasConfigWithTokens& in, WriteView& w)
 	Write(in.dataToken, w);
 }
 
-struct TokenInfoOwned
-{
+struct TokenInfoOwned {
 	TokenInfo view{};
 	ByteArray metadataStorage;
 	ByteArray schemasStorage;
@@ -267,8 +253,7 @@ struct TokenInfoOwned
 	}
 };
 
-struct SeriesInfoOwned
-{
+struct SeriesInfoOwned {
 	SeriesInfo view{};
 	ByteArray metadataStorage;
 
@@ -280,18 +265,17 @@ struct SeriesInfoOwned
 	}
 };
 
-struct TokenMetadataBuilder
-{
-private:
+struct TokenMetadataBuilder {
+  private:
 	static std::string TrimWhitespace(const std::string& text)
 	{
 		size_t start = 0;
-		while (start < text.size() && isspace((unsigned char)text[start]))
+		while( start < text.size() && isspace((unsigned char)text[start]) )
 		{
 			++start;
 		}
 		size_t end = text.size();
-		while (end > start && isspace((unsigned char)text[end - 1]))
+		while( end > start && isspace((unsigned char)text[end - 1]) )
 		{
 			--end;
 		}
@@ -301,7 +285,7 @@ private:
 	static std::string TrimEndEquals(const std::string& text)
 	{
 		size_t end = text.size();
-		while (end > 0 && text[end - 1] == '=')
+		while( end > 0 && text[end - 1] == '=' )
 		{
 			--end;
 		}
@@ -311,22 +295,22 @@ private:
 	static bool IsBase64Char(char c)
 	{
 		return (c >= 'A' && c <= 'Z') ||
-			(c >= 'a' && c <= 'z') ||
-			(c >= '0' && c <= '9') ||
-			c == '+' || c == '/' || c == '=';
+		       (c >= 'a' && c <= 'z') ||
+		       (c >= '0' && c <= '9') ||
+		       c == '+' || c == '/' || c == '=';
 	}
 
 	static bool StartsWithCaseInsensitive(const std::string& text, const std::string& prefix)
 	{
-		if (text.size() < prefix.size())
+		if( text.size() < prefix.size() )
 		{
 			return false;
 		}
-		for (size_t i = 0; i < prefix.size(); ++i)
+		for( size_t i = 0; i < prefix.size(); ++i )
 		{
 			char a = (char)tolower((unsigned char)text[i]);
 			char b = (char)tolower((unsigned char)prefix[i]);
-			if (a != b)
+			if( a != b )
 			{
 				return false;
 			}
@@ -337,88 +321,89 @@ private:
 	static void ValidateIcon(const std::string& icon)
 	{
 		const std::string trimmed = TrimWhitespace(icon);
-		if (trimmed.empty())
+		if( trimmed.empty() )
 		{
 			PHANTASMA_EXCEPTION("Token metadata icon must be a base64-encoded data URI (PNG, JPEG, or WebP)");
 		}
 
-		if (!StartsWithCaseInsensitive(trimmed, "data:image/"))
+		if( !StartsWithCaseInsensitive(trimmed, "data:image/") )
 		{
 			PHANTASMA_EXCEPTION("Token metadata icon must be a base64-encoded data URI (PNG, JPEG, or WebP)");
 		}
 		const auto comma = trimmed.find(',');
-		if (comma == std::string::npos)
+		if( comma == std::string::npos )
 		{
 			PHANTASMA_EXCEPTION("Token metadata icon must be a base64-encoded data URI (PNG, JPEG, or WebP)");
 		}
 		const std::string mimePart = trimmed.substr(0, comma);
-		if (!StartsWithCaseInsensitive(mimePart, "data:image/png;base64") &&
-			!StartsWithCaseInsensitive(mimePart, "data:image/jpeg;base64") &&
-			!StartsWithCaseInsensitive(mimePart, "data:image/webp;base64"))
+		if( !StartsWithCaseInsensitive(mimePart, "data:image/png;base64") &&
+		    !StartsWithCaseInsensitive(mimePart, "data:image/jpeg;base64") &&
+		    !StartsWithCaseInsensitive(mimePart, "data:image/webp;base64") )
 		{
 			PHANTASMA_EXCEPTION("Token metadata icon must be a base64-encoded data URI (PNG, JPEG, or WebP)");
 		}
 
 		std::string payload = TrimWhitespace(trimmed.substr(comma + 1));
-		if (payload.empty())
+		if( payload.empty() )
 		{
 			PHANTASMA_EXCEPTION("Token metadata icon must include a non-empty base64 payload");
 		}
 
-		if ((payload.size() % 4) != 0)
+		if( (payload.size() % 4) != 0 )
 		{
 			PHANTASMA_EXCEPTION("Token metadata icon payload is not valid base64");
 		}
-		for (const char c : payload)
+		for( const char c : payload )
 		{
-			if (!IsBase64Char(c))
+			if( !IsBase64Char(c) )
 			{
 				PHANTASMA_EXCEPTION("Token metadata icon payload is not valid base64");
 			}
 		}
 
 		const ByteArray decoded = Base64::Decode(payload.c_str(), (int)payload.size());
-		if (decoded.empty())
+		if( decoded.empty() )
 		{
 			PHANTASMA_EXCEPTION("Token metadata icon must include a non-empty base64 payload");
 		}
 
 		const String encoded = Base64::Encode(decoded);
 		const std::string encodedStr(encoded.begin(), encoded.end());
-		if (TrimEndEquals(encodedStr) != TrimEndEquals(payload))
+		if( TrimEndEquals(encodedStr) != TrimEndEquals(payload) )
 		{
 			PHANTASMA_EXCEPTION("Token metadata icon payload is not valid base64");
 		}
 	}
 
-public:
+  public:
 	static ByteArray BuildAndSerialize(const std::vector<std::pair<std::string, std::string>>& metaFields)
 	{
 		const std::vector<std::string> required = { "name", "icon", "url", "description" };
 		std::map<std::string, std::string> lookup;
-		for (const auto& kv : metaFields)
+		for( const auto& kv : metaFields )
 		{
 			lookup[kv.first] = kv.second;
 		}
-		if (lookup.size() < required.size())
+		if( lookup.size() < required.size() )
 		{
 			PHANTASMA_EXCEPTION("Token metadata is mandatory");
 		}
 		std::vector<std::string> missing;
-		for (const auto& field : required)
+		for( const auto& field : required )
 		{
 			auto it = lookup.find(field);
-			if (it == lookup.end() || TrimWhitespace(it->second).empty())
+			if( it == lookup.end() || TrimWhitespace(it->second).empty() )
 			{
 				missing.push_back(field);
 			}
 		}
-		if (!missing.empty())
+		if( !missing.empty() )
 		{
 			std::string list;
-			for (size_t i = 0; i < missing.size(); ++i)
+			for( size_t i = 0; i < missing.size(); ++i )
 			{
-				if (i > 0) list += ", ";
+				if( i > 0 )
+					list += ", ";
 				list += missing[i];
 			}
 			PHANTASMA_EXCEPTION_MESSAGE("Token metadata is missing required fields", list.c_str());
@@ -429,12 +414,12 @@ public:
 		storage.reserve(lookup.size());
 		std::vector<VmNamedDynamicVariable> fields;
 		fields.reserve(lookup.size());
-		for (const auto& kv : lookup)
+		for( const auto& kv : lookup )
 		{
 			storage.push_back(kv.second);
 			fields.push_back(VmNamedDynamicVariable{
-				SmallString(kv.first.c_str(), (phantasma::carbon::size_t)kv.first.size()),
-				VmDynamicVariable(storage.back().c_str()) });
+			    SmallString(kv.first.c_str(), (phantasma::carbon::size_t)kv.first.size()),
+			    VmDynamicVariable(storage.back().c_str()) });
 		}
 
 		VmDynamicStruct meta = VmDynamicStruct::Sort((uint32_t)fields.size(), fields.data());
@@ -445,12 +430,11 @@ public:
 	}
 };
 
-struct TokenSeriesMetadataBuilder
-{
+struct TokenSeriesMetadataBuilder {
 	static ByteArray BuildAndSerialize(
-		const VmStructSchema& seriesMetadataSchema,
-		const uint256& phantasmaSeriesId,
-		const std::vector<MetadataField>& metadata)
+	    const VmStructSchema& seriesMetadataSchema,
+	    const uint256& phantasmaSeriesId,
+	    const std::vector<MetadataField>& metadata)
 	{
 		Allocator alloc;
 		const ByteArray sharedRom = MetadataHelper::GetOptionalBytesField(metadata, "rom");
@@ -461,19 +445,19 @@ struct TokenSeriesMetadataBuilder
 			VmNamedDynamicVariable{ SmallString("rom"), VmDynamicVariable(ByteView{ sharedRom.data(), sharedRom.size() }) },
 		};
 
-		for (uint32_t i = 0; i != seriesMetadataSchema.numFields; ++i)
+		for( uint32_t i = 0; i != seriesMetadataSchema.numFields; ++i )
 		{
 			const VmNamedVariableSchema& schemaField = seriesMetadataSchema.fields[i];
 			bool isDefault = false;
-			for (const auto& field : MetadataHelper::SeriesDefaultMetadataFields)
+			for( const auto& field : MetadataHelper::SeriesDefaultMetadataFields )
 			{
-				if (field.name == schemaField.name.c_str())
+				if( field.name == schemaField.name.c_str() )
 				{
 					isDefault = true;
 					break;
 				}
 			}
-			if (isDefault)
+			if( isDefault )
 			{
 				continue;
 			}
@@ -489,23 +473,22 @@ struct TokenSeriesMetadataBuilder
 	}
 
 	static ByteArray BuildAndSerialize(
-		const VmStructSchema& seriesMetadataSchema,
-		const int256& phantasmaSeriesId,
-		const std::vector<MetadataField>& metadata)
+	    const VmStructSchema& seriesMetadataSchema,
+	    const int256& phantasmaSeriesId,
+	    const std::vector<MetadataField>& metadata)
 	{
 		return BuildAndSerialize(seriesMetadataSchema, phantasmaSeriesId.Unsigned(), metadata);
 	}
 };
 
-struct SeriesInfoBuilder
-{
+struct SeriesInfoBuilder {
 	static SeriesInfoOwned Build(
-		const VmStructSchema& seriesMetadataSchema,
-		const uint256& phantasmaSeriesId,
-		uint32_t maxMint,
-		uint32_t maxSupply,
-		const Bytes32& ownerPublicKey,
-		const std::vector<MetadataField>& metadata)
+	    const VmStructSchema& seriesMetadataSchema,
+	    const uint256& phantasmaSeriesId,
+	    uint32_t maxMint,
+	    uint32_t maxSupply,
+	    const Bytes32& ownerPublicKey,
+	    const std::vector<MetadataField>& metadata)
 	{
 		SeriesInfoOwned owned;
 		owned.view.maxMint = maxMint;
@@ -518,19 +501,19 @@ struct SeriesInfoBuilder
 	}
 
 	static SeriesInfoOwned Build(
-		const VmStructSchema& seriesMetadataSchema,
-		const int256& phantasmaSeriesId,
-		uint32_t maxMint,
-		uint32_t maxSupply,
-		const Bytes32& ownerPublicKey,
-		const std::vector<MetadataField>& metadata)
+	    const VmStructSchema& seriesMetadataSchema,
+	    const int256& phantasmaSeriesId,
+	    uint32_t maxMint,
+	    uint32_t maxSupply,
+	    const Bytes32& ownerPublicKey,
+	    const std::vector<MetadataField>& metadata)
 	{
 		return Build(seriesMetadataSchema, phantasmaSeriesId.Unsigned(), maxMint, maxSupply, ownerPublicKey, metadata);
 	}
 
 	static SeriesInfoOwned Build(const int256& phantasmaSeriesId, uint32_t maxMint, uint32_t maxSupply, const Bytes32& ownerPublicKey, const ByteArray* metadata = nullptr)
 	{
-		if (!metadata)
+		if( !metadata )
 		{
 			PHANTASMA_EXCEPTION("series metadata is required");
 		}
@@ -545,12 +528,11 @@ struct SeriesInfoBuilder
 	}
 };
 
-struct NftRomBuilder
-{
+struct NftRomBuilder {
 	static ByteArray BuildAndSerialize(
-		const VmStructSchema& nftRomSchema,
-		const uint256& phantasmaNftId,
-		const std::vector<MetadataField>& metadata)
+	    const VmStructSchema& nftRomSchema,
+	    const uint256& phantasmaNftId,
+	    const std::vector<MetadataField>& metadata)
 	{
 		Allocator alloc;
 		const ByteArray rom = MetadataHelper::GetOptionalBytesField(metadata, "rom");
@@ -560,19 +542,19 @@ struct NftRomBuilder
 			VmNamedDynamicVariable{ SmallString("rom"), VmDynamicVariable(ByteView{ rom.data(), rom.size() }) },
 		};
 
-		for (uint32_t i = 0; i != nftRomSchema.numFields; ++i)
+		for( uint32_t i = 0; i != nftRomSchema.numFields; ++i )
 		{
 			const VmNamedVariableSchema& schemaField = nftRomSchema.fields[i];
 			bool isDefault = false;
-			for (const auto& field : MetadataHelper::NftDefaultMetadataFields)
+			for( const auto& field : MetadataHelper::NftDefaultMetadataFields )
 			{
-				if (field.name == schemaField.name.c_str())
+				if( field.name == schemaField.name.c_str() )
 				{
 					isDefault = true;
 					break;
 				}
 			}
-			if (isDefault)
+			if( isDefault )
 			{
 				continue;
 			}
@@ -588,26 +570,26 @@ struct NftRomBuilder
 	}
 
 	static ByteArray BuildAndSerialize(
-		const VmStructSchema& nftRomSchema,
-		const int256& phantasmaNftId,
-		const std::vector<MetadataField>& metadata)
+	    const VmStructSchema& nftRomSchema,
+	    const int256& phantasmaNftId,
+	    const std::vector<MetadataField>& metadata)
 	{
 		return BuildAndSerialize(nftRomSchema, phantasmaNftId.Unsigned(), metadata);
 	}
 
 	static ByteArray BuildAndSerialize(
-		const int256& phantasmaNftId,
-		const std::string& name,
-		const std::string& description,
-		const std::string& imageURL,
-		const std::string& infoURL,
-		uint32_t royalties,
-		const ByteArray& rom,
-		const TokenSchemas* tokenSchemas)
+	    const int256& phantasmaNftId,
+	    const std::string& name,
+	    const std::string& description,
+	    const std::string& imageURL,
+	    const std::string& infoURL,
+	    uint32_t royalties,
+	    const ByteArray& rom,
+	    const TokenSchemas* tokenSchemas)
 	{
 		const TokenSchemasOwned tsOwned = tokenSchemas
-			? TokenSchemasOwned{ *tokenSchemas, {}, {}, {} }
-			: TokenSchemasBuilder::PrepareStandardTokenSchemas();
+		                                      ? TokenSchemasOwned{ *tokenSchemas, {}, {}, {} }
+		                                      : TokenSchemasBuilder::PrepareStandardTokenSchemas();
 
 		std::vector<MetadataField> metadata = {
 			MetadataField{ "name", MetadataValue::FromString(name) },
@@ -622,27 +604,26 @@ struct NftRomBuilder
 	}
 };
 
-struct TokenInfoBuilder
-{
+struct TokenInfoBuilder {
 	static TokenInfoOwned Build(const std::string& symbol, const intx& maxSupply, bool isNFT, uint8_t decimals, const Bytes32& creatorPublicKey, const ByteArray& metadata, const ByteArray* tokenSchemas = nullptr)
 	{
-		if (symbol.empty())
+		if( symbol.empty() )
 		{
 			PHANTASMA_EXCEPTION("Symbol validation error: Empty string is invalid");
 		}
-		if (symbol.size() > 255)
+		if( symbol.size() > 255 )
 		{
 			PHANTASMA_EXCEPTION("Symbol validation error: Too long");
 		}
-		for (char c : symbol)
+		for( char c : symbol )
 		{
-			if (c < 'A' || c > 'Z')
+			if( c < 'A' || c > 'Z' )
 			{
 				PHANTASMA_EXCEPTION("Symbol validation error: Anything outside A-Z is forbidden (digits, accents, etc.)");
 			}
 		}
 
-		if (metadata.empty())
+		if( metadata.empty() )
 		{
 			PHANTASMA_EXCEPTION("metadata is required");
 		}
@@ -652,15 +633,15 @@ struct TokenInfoBuilder
 		TokenInfoOwned owned;
 		owned.view.maxSupply = (const intx_pod&)maxSupply;
 		owned.view.flags = TokenFlags_None;
-		if (isNFT)
+		if( isNFT )
 		{
-			if (!isInt64Safe)
+			if( !isInt64Safe )
 			{
 				PHANTASMA_EXCEPTION("NFT maximum supply must fit into Int64");
 			}
 			owned.view.flags = TokenFlags_NonFungible;
 		}
-		else if (!isInt64Safe)
+		else if( !isInt64Safe )
 		{
 			owned.view.flags = TokenFlags_BigFungible;
 		}
@@ -668,9 +649,9 @@ struct TokenInfoBuilder
 		owned.view.owner = creatorPublicKey;
 		owned.view.symbol = SmallString(symbol.c_str(), (phantasma::carbon::size_t)symbol.size());
 		owned.metadataStorage = metadata;
-		if (isNFT)
+		if( isNFT )
 		{
-			if (!tokenSchemas)
+			if( !tokenSchemas )
 			{
 				PHANTASMA_EXCEPTION("tokenSchemas is required for NFTs");
 			}

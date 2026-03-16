@@ -14,10 +14,10 @@ class BinaryReader
 	const ByteArray& stream;
 	UInt32 cursor;
 	bool error = false;
-public:
+
+  public:
 	BinaryReader(const ByteArray& stream, int cursor = 0)
-		: stream(stream)
-		, cursor((UInt32)cursor)
+	    : stream(stream), cursor((UInt32)cursor)
 	{
 	}
 
@@ -27,21 +27,21 @@ public:
 
 	const ByteArray& ToArray() { return stream; }
 
-	Byte ReadByte() 
+	Byte ReadByte()
 	{
 		Byte b = 0;
 		Read(b);
 		return b;
 	}
-	bool ReadBool() 
+	bool ReadBool()
 	{
 		Byte b = 0;
 		Read(b);
 		return b != 0;
 	}
-	void Read(uint8_t& b) 
+	void Read(uint8_t& b)
 	{
-		if(cursor >= stream.size())
+		if( cursor >= stream.size() )
 		{
 			error = true;
 			PHANTASMA_EXCEPTION("stream error");
@@ -49,9 +49,9 @@ public:
 		else
 			b = (uint8_t)stream[cursor++];
 	}
-	void Read( int8_t& b)
+	void Read(int8_t& b)
 	{
-		if(cursor >= stream.size())
+		if( cursor >= stream.size() )
 		{
 			error = true;
 			PHANTASMA_EXCEPTION("stream error");
@@ -66,7 +66,7 @@ public:
 		Read(b1);
 		b = ((uint16_t)b0) | (((uint16_t)b1) << 8);
 	}
-	void Read( int16_t& b)
+	void Read(int16_t& b)
 	{
 		Read((uint16_t&)b);
 	}
@@ -77,12 +77,12 @@ public:
 		Read(b1);
 		Read(b2);
 		Read(b3);
-		b =  ((uint32_t)b0) | 
-			(((uint32_t)b1) <<  8) |
-			(((uint32_t)b2) << 16) |
-			(((uint32_t)b3) << 24);
+		b = ((uint32_t)b0) |
+		    (((uint32_t)b1) << 8) |
+		    (((uint32_t)b2) << 16) |
+		    (((uint32_t)b3) << 24);
 	}
-	void Read( int32_t& b)
+	void Read(int32_t& b)
 	{
 		Read((uint32_t&)b);
 	}
@@ -93,17 +93,17 @@ public:
 		Read(i1);
 		b = ((uint64_t)i0) | (((uint64_t)i1) << 32);
 	}
-	void Read( int64_t& b)
+	void Read(int64_t& b)
 	{
 		Read((uint64_t&)b);
 	}
-	
+
 	void Read(Byte* b, int size)
 	{
 		UInt32 end = (UInt32)stream.size();
-		for( int i=0; i<size; ++i )
+		for( int i = 0; i < size; ++i )
 		{
-			if(cursor >= end)
+			if( cursor >= end )
 			{
 				error = true;
 				PHANTASMA_EXCEPTION("stream error");
@@ -112,46 +112,42 @@ public:
 			b[i] = stream[cursor++];
 		}
 	}
-	
-	void Read( ByteArray& bytes, int size )
+
+	void Read(ByteArray& bytes, int size)
 	{
 		bytes.resize(size);
-		if(size) 
+		if( size )
 			Read(&bytes.front(), size);
 	}
-	
+
 	void ReadVarInt(Int64& output)
 	{
 		Byte header;
 		Read(header);
-		switch(header)
+		switch( header )
 		{
-			case 0xFD:
-			{
-				uint16_t value;
-				Read(value);
-				output = value;
-				return;
-			}
-			case 0xFE:
-			{
-				UInt32 value;
-				Read(value);
-				output = value;
-				return;
-			}
-			case 0xFF:
-			{
-				Int64 value;
-				Read(value);
-				output = value;
-				return;
-			}
-			default:
-			{
-				output = header;
-				return;
-			}
+		case 0xFD: {
+			uint16_t value;
+			Read(value);
+			output = value;
+			return;
+		}
+		case 0xFE: {
+			UInt32 value;
+			Read(value);
+			output = value;
+			return;
+		}
+		case 0xFF: {
+			Int64 value;
+			Read(value);
+			output = value;
+			return;
+		}
+		default: {
+			output = header;
+			return;
+		}
 		}
 	}
 
@@ -168,12 +164,12 @@ public:
 	{
 		Read(n);
 	}
-	
-	void ReadByteArray(ByteArray& bytes) 
+
+	void ReadByteArray(ByteArray& bytes)
 	{
 		Int64 numBytes = 0;
 		ReadVarInt(numBytes);
-		if (numBytes == 0)
+		if( numBytes == 0 )
 			bytes.resize(0);
 		else
 			Read(bytes, (int)numBytes);
@@ -184,7 +180,7 @@ public:
 		ReadVarInt(numBytes);
 		if( numBytes )
 		{
-			if(numBytes > maxToRead)
+			if( numBytes > maxToRead )
 			{
 				error = true;
 				PHANTASMA_EXCEPTION("Unexpected byte array size");
@@ -193,23 +189,23 @@ public:
 		}
 		return (int)numBytes;
 	}
-	template<int N> 
-	void ReadByteArray( Byte(&bytes)[N] ) 
+	template<int N>
+	void ReadByteArray(Byte (&bytes)[N])
 	{
-		int read = ReadByteArray( bytes, N );
-		if(read != N)
+		int read = ReadByteArray(bytes, N);
+		if( read != N )
 		{
 			error = true;
 			PHANTASMA_EXCEPTION("Unexpected byte array size");
 		}
 	}
-	
+
 	void ReadVarString(String& text)
 	{
 		Int64 numBytes = 0;
 		ByteArray bytes;
 		ReadVarInt(numBytes);
-		if (numBytes== 0)
+		if( numBytes == 0 )
 		{
 			text = String{};
 			return;
@@ -228,4 +224,4 @@ public:
 	}
 };
 
-}
+} // namespace phantasma

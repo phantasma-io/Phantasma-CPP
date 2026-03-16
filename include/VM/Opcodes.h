@@ -1,10 +1,10 @@
-﻿#pragma once
+#pragma once
 
 #ifdef THIS
-# undef THIS
+#undef THIS
 #endif
 #ifdef DEBUG
-# undef DEBUG
+#undef DEBUG
 #endif
 
 namespace phantasma {
@@ -14,8 +14,8 @@ enum class Opcode
 	NOP,
 
 	// register
-	MOVE,    // copy reference
-	COPY,   // copy by value
+	MOVE, // copy reference
+	COPY, // copy by value
 	PUSH,
 	POP,
 	SWAP,

@@ -15,7 +15,7 @@ inline bool ComputeCarbonTxId(const Blockchain::TxMsg& msg, Bytes32& outTxId)
 	return false;
 #else
 	const ByteArray serialized = Blockchain::SerializeTx(msg);
-	if (serialized.empty())
+	if( serialized.empty() )
 		return false;
 	return crypto_generichash(outTxId.bytes, Bytes32::length, serialized.data(), serialized.size(), nullptr, 0) == 0;
 #endif

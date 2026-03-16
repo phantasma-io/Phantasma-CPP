@@ -1,0 +1,31 @@
+root = true
+
+[include/**]
+charset = utf-8
+end_of_line = lf
+insert_final_newline = true
+
+[tests/**]
+charset = utf-8
+end_of_line = lf
+insert_final_newline = true
+
+[samples/**]
+charset = utf-8
+end_of_line = lf
+insert_final_newline = true
+
+[include/**/*.{c,cc,cpp,cxx,h,hpp}]
+indent_style = tab
+indent_size = 4
+tab_width = 4
+
+[tests/**/*.{c,cc,cpp,cxx,h,hpp}]
+indent_style = tab
+indent_size = 4
+tab_width = 4
+
+[samples/**/*.{c,cc,cpp,cxx,h,hpp}]
+indent_style = tab
+indent_size = 4
+tab_width = 4

@@ -25,8 +25,8 @@ void RunVmObjectTests(TestContext& ctx)
 		BinaryReader r(bytes);
 		VMObject obj;
 		const bool ok = obj.DeserializeData(r) &&
-			obj.GetType() == VMType::Bytes &&
-			obj.Data<ByteArray>() == payload;
+		                obj.GetType() == VMType::Bytes &&
+		                obj.Data<ByteArray>() == payload;
 		Report(ctx, ok, "VMObject Bytes");
 	}
 	{
@@ -37,8 +37,8 @@ void RunVmObjectTests(TestContext& ctx)
 		BinaryReader r(bytes);
 		VMObject obj;
 		const bool ok = obj.DeserializeData(r) &&
-			obj.GetType() == VMType::String &&
-			obj.Data<String>() == PHANTASMA_LITERAL("hello world");
+		                obj.GetType() == VMType::String &&
+		                obj.Data<String>() == PHANTASMA_LITERAL("hello world");
 		Report(ctx, ok, "VMObject String");
 	}
 	{
@@ -49,8 +49,8 @@ void RunVmObjectTests(TestContext& ctx)
 		BinaryReader r(bytes);
 		VMObject obj;
 		const bool ok = obj.DeserializeData(r) &&
-			obj.GetType() == VMType::Number &&
-			obj.Data<BigInteger>().ToString() == PHANTASMA_LITERAL("123");
+		                obj.GetType() == VMType::Number &&
+		                obj.Data<BigInteger>().ToString() == PHANTASMA_LITERAL("123");
 		Report(ctx, ok, "VMObject Number");
 	}
 	{
@@ -65,14 +65,14 @@ void RunVmObjectTests(TestContext& ctx)
 		BinaryReader r(bytes);
 		VMObject obj;
 		bool ok = obj.DeserializeData(r) && obj.GetType() == VMType::Struct;
-		if (ok)
+		if( ok )
 		{
 			const VMStructure& data = obj.Data<VMStructure>();
 			ok = data.size() == 1 &&
-				data[0].first.GetType() == VMType::String &&
-				data[0].first.Data<String>() == PHANTASMA_LITERAL("name") &&
-				data[0].second.GetType() == VMType::Number &&
-				data[0].second.Data<BigInteger>().ToString() == PHANTASMA_LITERAL("7");
+			     data[0].first.GetType() == VMType::String &&
+			     data[0].first.Data<String>() == PHANTASMA_LITERAL("name") &&
+			     data[0].second.GetType() == VMType::Number &&
+			     data[0].second.Data<BigInteger>().ToString() == PHANTASMA_LITERAL("7");
 		}
 		Report(ctx, ok, "VMObject Struct");
 	}
@@ -83,7 +83,8 @@ void RunVmObjectTests(TestContext& ctx)
 
 void RunVmDynamicVariableTests(TestContext& ctx)
 {
-	auto roundtrip = [&](const std::string& name, VmType type, const VmDynamicVariable& input, auto&& check) {
+	auto roundtrip = [&](const std::string& name, VmType type, const VmDynamicVariable& input, auto&& check)
+	{
 		try
 		{
 			ByteArray buffer;
@@ -95,51 +96,46 @@ void RunVmDynamicVariableTests(TestContext& ctx)
 			const bool ok = Read(type, out, nullptr, r, alloc) && check(out);
 			Report(ctx, ok, name);
 		}
-		catch (const std::exception& ex)
+		catch( const std::exception& ex )
 		{
 			Report(ctx, false, name, ex.what());
 		}
-		catch (...)
+		catch( ... )
 		{
 			Report(ctx, false, name, "unexpected exception");
 		}
 	};
 
-	for (const uint8_t value : { (uint8_t)0, (uint8_t)1, (uint8_t)255 })
+	for( const uint8_t value : { (uint8_t)0, (uint8_t)1, (uint8_t)255 } )
 	{
 		const VmDynamicVariable input(value);
-		roundtrip("VmDynamic Int8 " + std::to_string(value), VmType::Int8, input, [&](const VmDynamicVariable& out) {
-			return out.type == VmType::Int8 && out.data.int8 == value;
-		});
+		roundtrip("VmDynamic Int8 " + std::to_string(value), VmType::Int8, input, [&](const VmDynamicVariable& out)
+		    { return out.type == VmType::Int8 && out.data.int8 == value; });
 	}
-	for (const int16_t value : { (int16_t)0, (int16_t)1, (int16_t)-32768, (int16_t)32767 })
+	for( const int16_t value : { (int16_t)0, (int16_t)1, (int16_t)-32768, (int16_t)32767 } )
 	{
 		const VmDynamicVariable input(value);
-		roundtrip("VmDynamic Int16 " + std::to_string(value), VmType::Int16, input, [&](const VmDynamicVariable& out) {
-			return out.type == VmType::Int16 && (int16_t)out.data.int16 == value;
-		});
+		roundtrip("VmDynamic Int16 " + std::to_string(value), VmType::Int16, input, [&](const VmDynamicVariable& out)
+		    { return out.type == VmType::Int16 && (int16_t)out.data.int16 == value; });
 	}
-	for (const int32_t value : { (int32_t)0, (int32_t)1, (int32_t)-2147483648, (int32_t)2147483647 })
+	for( const int32_t value : { (int32_t)0, (int32_t)1, (int32_t)-2147483648, (int32_t)2147483647 } )
 	{
 		const VmDynamicVariable input(value);
-		roundtrip("VmDynamic Int32 " + std::to_string(value), VmType::Int32, input, [&](const VmDynamicVariable& out) {
-			return out.type == VmType::Int32 && (int32_t)out.data.int32 == value;
-		});
+		roundtrip("VmDynamic Int32 " + std::to_string(value), VmType::Int32, input, [&](const VmDynamicVariable& out)
+		    { return out.type == VmType::Int32 && (int32_t)out.data.int32 == value; });
 	}
-	for (const uint64_t value : { (uint64_t)0, (uint64_t)1, std::numeric_limits<uint64_t>::max() })
+	for( const uint64_t value : { (uint64_t)0, (uint64_t)1, std::numeric_limits<uint64_t>::max() } )
 	{
 		const VmDynamicVariable input(value);
-		roundtrip("VmDynamic Int64 " + std::to_string((unsigned long long)value), VmType::Int64, input, [&](const VmDynamicVariable& out) {
-			return out.type == VmType::Int64 && out.data.int64 == value;
-		});
+		roundtrip("VmDynamic Int64 " + std::to_string((unsigned long long)value), VmType::Int64, input, [&](const VmDynamicVariable& out)
+		    { return out.type == VmType::Int64 && out.data.int64 == value; });
 	}
 	{
 		const intx valueX = intx::FromString("1234567890123456789012345678901234567890", 0, 10, nullptr);
 		const int256 value = valueX.Int256();
 		const VmDynamicVariable input(value);
-		roundtrip("VmDynamic Int256", VmType::Int256, input, [&](const VmDynamicVariable& out) {
-			return out.type == VmType::Int256 && out.data.int256.Signed().ToString() == value.ToString();
-		});
+		roundtrip("VmDynamic Int256", VmType::Int256, input, [&](const VmDynamicVariable& out)
+		    { return out.type == VmType::Int256 && out.data.int256.Signed().ToString() == value.ToString(); });
 	}
 	{
 		const uint256 value = uint256::FromString("342701406799689386264365071881606655601301200422094937311139938246178500459");
@@ -149,68 +145,61 @@ void RunVmDynamicVariableTests(TestContext& ctx)
 		// This exact live validator-backed sample used to drift by one byte in both SDK lines.
 		Write(input, w);
 		Report(ctx,
-			BytesToHex(buffer) == "0E1F6BEF11AE0FCA02D9B4B755ED7520861D2424EC2EE58931065269D5A84DF6C1",
-			"VmDynamic Int256 validator problematic encode");
+		    BytesToHex(buffer) == "0E1F6BEF11AE0FCA02D9B4B755ED7520861D2424EC2EE58931065269D5A84DF6C1",
+		    "VmDynamic Int256 validator problematic encode");
 
 		Allocator alloc;
 		const ByteArray expected = HexToBytes("0E1F6BEF11AE0FCA02D9B4B755ED7520861D2424EC2EE58931065269D5A84DF6C1");
 		ReadView r((void*)expected.data(), expected.size());
 		VmDynamicVariable out{};
-		const bool ok = Read(out, r, alloc)
-			&& out.type == VmType::Int256
-			&& out.data.int256 == value;
+		const bool ok = Read(out, r, alloc) && out.type == VmType::Int256 && out.data.int256 == value;
 		Report(ctx, ok, "VmDynamic Int256 validator problematic decode");
 	}
 	{
 		ByteArray bytes(32);
-		for (size_t i = 0; i < bytes.size(); ++i)
+		for( size_t i = 0; i < bytes.size(); ++i )
 		{
 			bytes[i] = (Byte)i;
 		}
 		const VmDynamicVariable input(ByteView{ bytes.data(), bytes.size() });
-		roundtrip("VmDynamic Bytes", VmType::Bytes, input, [&](const VmDynamicVariable& out) {
-			return out.type == VmType::Bytes && BytesFromView(out.data.bytes) == bytes;
-		});
+		roundtrip("VmDynamic Bytes", VmType::Bytes, input, [&](const VmDynamicVariable& out)
+		    { return out.type == VmType::Bytes && BytesFromView(out.data.bytes) == bytes; });
 	}
 	{
 		const char* text = "hello world";
 		const VmDynamicVariable input(text);
-		roundtrip("VmDynamic String", VmType::String, input, [&](const VmDynamicVariable& out) {
-			return out.type == VmType::String && std::string(out.data.string) == text;
-		});
+		roundtrip("VmDynamic String", VmType::String, input, [&](const VmDynamicVariable& out)
+		    { return out.type == VmType::String && std::string(out.data.string) == text; });
 	}
 	{
 		Bytes16 bytes{};
-		for (int i = 0; i < Bytes16::length; ++i)
+		for( int i = 0; i < Bytes16::length; ++i )
 		{
 			bytes.bytes[i] = (Byte)i;
 		}
 		const VmDynamicVariable input(bytes);
-		roundtrip("VmDynamic Bytes16", VmType::Bytes16, input, [&](const VmDynamicVariable& out) {
-			return out.type == VmType::Bytes16 && out.data.bytes16 == bytes;
-		});
+		roundtrip("VmDynamic Bytes16", VmType::Bytes16, input, [&](const VmDynamicVariable& out)
+		    { return out.type == VmType::Bytes16 && out.data.bytes16 == bytes; });
 	}
 	{
 		Bytes32 bytes{};
-		for (int i = 0; i < Bytes32::length; ++i)
+		for( int i = 0; i < Bytes32::length; ++i )
 		{
 			bytes.bytes[i] = (Byte)i;
 		}
 		const VmDynamicVariable input(bytes);
-		roundtrip("VmDynamic Bytes32", VmType::Bytes32, input, [&](const VmDynamicVariable& out) {
-			return out.type == VmType::Bytes32 && out.data.bytes32 == bytes;
-		});
+		roundtrip("VmDynamic Bytes32", VmType::Bytes32, input, [&](const VmDynamicVariable& out)
+		    { return out.type == VmType::Bytes32 && out.data.bytes32 == bytes; });
 	}
 	{
 		Bytes64 bytes{};
-		for (int i = 0; i < Bytes64::length; ++i)
+		for( int i = 0; i < Bytes64::length; ++i )
 		{
 			bytes.bytes[i] = (Byte)i;
 		}
 		const VmDynamicVariable input(bytes);
-		roundtrip("VmDynamic Bytes64", VmType::Bytes64, input, [&](const VmDynamicVariable& out) {
-			return out.type == VmType::Bytes64 && out.data.bytes64 == bytes;
-		});
+		roundtrip("VmDynamic Bytes64", VmType::Bytes64, input, [&](const VmDynamicVariable& out)
+		    { return out.type == VmType::Bytes64 && out.data.bytes64 == bytes; });
 	}
 }
 

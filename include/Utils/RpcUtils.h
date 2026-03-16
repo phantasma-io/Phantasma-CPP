@@ -25,7 +25,7 @@ inline TransactionState CheckConfirmation(rpc::PhantasmaAPI& api, const Char* tx
 	{
 		output = api.GetTransaction(txHash, &err);
 	}
-	PHANTASMA_CATCH( e )
+	PHANTASMA_CATCH(e)
 	{
 		err.code = 1;
 #ifdef PHANTASMA_EXCEPTION_ENABLE
@@ -51,10 +51,10 @@ inline TransactionState WaitForConfirmation(rpc::PhantasmaAPI* api, int numApi, 
 {
 	if( !api || numApi <= 0 )
 		return TransactionState::Unknown;
-	for(int i=0; ; i %= numApi)
+	for( int i = 0;; i %= numApi )
 	{
-		TransactionState state = CheckConfirmation( api[i], txHash, output );
-		switch(state)
+		TransactionState state = CheckConfirmation(api[i], txHash, output);
+		switch( state )
 		{
 		case TransactionState::Confirmed:
 		case TransactionState::Rejected:
@@ -96,16 +96,16 @@ inline TransactionState SendTransaction(rpc::PhantasmaAPI& api, const Transactio
 }
 
 inline String SignAndSendTransactionInternal(
-	rpc::PhantasmaAPI& api,
-	Transaction& tx,
-	const PhantasmaKeys& keys,
-	rpc::PhantasmaError* out_error)
+    rpc::PhantasmaAPI& api,
+    Transaction& tx,
+    const PhantasmaKeys& keys,
+    rpc::PhantasmaError* out_error)
 {
 	tx.Sign(keys);
 	const String expectedHash = tx.GetHash().ToString();
 	const String rawTx = Base16::Encode(tx.ToByteArray(true));
 	const String rpcHash = api.SendRawTransaction(rawTx.c_str(), out_error);
-	if (rpcHash != expectedHash)
+	if( rpcHash != expectedHash )
 	{
 		String msg = PHANTASMA_LITERAL("RPC returned different hash ");
 		msg += rpcHash;
@@ -118,13 +118,13 @@ inline String SignAndSendTransactionInternal(
 
 // Convenience helper for the script/VM transaction flow.
 inline String SignAndSendTransaction(
-	rpc::PhantasmaAPI& api,
-	const PhantasmaKeys& keys,
-	const Char* nexus,
-	const Char* chain,
-	const ByteArray& script,
-	const ByteArray& payload,
-	rpc::PhantasmaError* out_error = nullptr)
+    rpc::PhantasmaAPI& api,
+    const PhantasmaKeys& keys,
+    const Char* nexus,
+    const Char* chain,
+    const ByteArray& script,
+    const ByteArray& payload,
+    rpc::PhantasmaError* out_error = nullptr)
 {
 	Transaction tx(nexus, chain, script, Timestamp::Now() + Timespan::FromMinutes(1), payload);
 	return SignAndSendTransactionInternal(api, tx, keys, out_error);
@@ -132,13 +132,13 @@ inline String SignAndSendTransaction(
 
 // Convenience helper for the script/VM transaction flow.
 inline String SignAndSendTransaction(
-	rpc::PhantasmaAPI& api,
-	const PhantasmaKeys& keys,
-	const Char* nexus,
-	const Char* chain,
-	const ByteArray& script,
-	const String& payload,
-	rpc::PhantasmaError* out_error = nullptr)
+    rpc::PhantasmaAPI& api,
+    const PhantasmaKeys& keys,
+    const Char* nexus,
+    const Char* chain,
+    const ByteArray& script,
+    const String& payload,
+    rpc::PhantasmaError* out_error = nullptr)
 {
 	Transaction tx(nexus, chain, script, Timestamp::Now() + Timespan::FromMinutes(1), payload);
 	return SignAndSendTransactionInternal(api, tx, keys, out_error);
@@ -146,10 +146,10 @@ inline String SignAndSendTransaction(
 
 // Convenience helper for Carbon TxMsg flow (mirrors C# SignAndSendCarbonTransaction).
 inline String SignAndSendCarbonTransaction(
-	rpc::PhantasmaAPI& api,
-	const phantasma::carbon::Blockchain::TxMsg& txMsg,
-	const PhantasmaKeys& keys,
-	rpc::PhantasmaError* out_error = nullptr)
+    rpc::PhantasmaAPI& api,
+    const phantasma::carbon::Blockchain::TxMsg& txMsg,
+    const PhantasmaKeys& keys,
+    rpc::PhantasmaError* out_error = nullptr)
 {
 	const ByteArray signedBytes = phantasma::carbon::Blockchain::TxMsgSigner::SignAndSerialize(txMsg, keys);
 	const String rawTx = Base16::Encode(signedBytes);
@@ -165,11 +165,11 @@ inline TransactionState SendTransactionWaitConfirm(rpc::PhantasmaAPI* api, int n
 	if( TransactionState::Rejected == SendTransaction(api[0], tx, out_txHash) )
 		return TransactionState::Rejected;
 
-	if(numApi == 1)
+	if( numApi == 1 )
 	{
 		//Hack hack //todo clean this up
 		Timestamp end = Timestamp::Now() + Timespan::FromSeconds(3);
-		while(Timestamp::Now() <= end)
+		while( Timestamp::Now() <= end )
 		{
 			if( fnSleep )
 				fnSleep();
@@ -192,8 +192,7 @@ inline TransactionState SendTransactionWaitConfirm(rpc::PhantasmaAPI& api, const
 	return SendTransactionWaitConfirm(&api, 1, tx, txHash, confirmation, fnSleep);
 }
 
-struct TxTokenEvent
-{
+struct TxTokenEvent {
 	const rpc::Event* event;
 	TokenEventData data;
 };
@@ -201,42 +200,42 @@ struct TxTokenEvent
 // Did an address receive a particular token type from this transaction?
 // Who sent it, how many tokens were received?
 inline bool GetTxTokensReceived(
-	PHANTASMA_VECTOR<TxTokenEvent>& out_events, 
-	const rpc::Transaction& tx, 
-	const Char* addressTo = 0, 
-	const Char* tokenSymbol = PHANTASMA_LITERAL("SOUL"),
-	const Char* chainName = PHANTASMA_LITERAL("main"),
-	bool singleResult = false )
+    PHANTASMA_VECTOR<TxTokenEvent>& out_events,
+    const rpc::Transaction& tx,
+    const Char* addressTo = 0,
+    const Char* tokenSymbol = PHANTASMA_LITERAL("SOUL"),
+    const Char* chainName = PHANTASMA_LITERAL("main"),
+    bool singleResult = false)
 {
 	bool any = false;
-	for (int i=0, end=(int)tx.events.size(); i!=end; ++i)
+	for( int i = 0, end = (int)tx.events.size(); i != end; ++i )
 	{
 		const auto& evtA = tx.events[i];
-		if( addressTo && 0!=evtA.address.compare(addressTo) )
+		if( addressTo && 0 != evtA.address.compare(addressTo) )
 			continue;
 		EventKind eventKind = StringToEventKind(evtA.kind);
-		if(eventKind == EventKind::TokenReceive)
+		if( eventKind == EventKind::TokenReceive )
 		{
 			TokenEventData rcvData = Serialization<TokenEventData>::Unserialize(Base16::Decode(evtA.data));
-			if( tokenSymbol && 0!=rcvData.symbol.compare(tokenSymbol) )
+			if( tokenSymbol && 0 != rcvData.symbol.compare(tokenSymbol) )
 				continue;
-			if( chainName && 0!=rcvData.chainName.compare(chainName) )
+			if( chainName && 0 != rcvData.chainName.compare(chainName) )
 				continue;
 			if( rcvData.value.IsZero() )
 				continue;
 
-			for (int j=i-1; j>=0; --j)
+			for( int j = i - 1; j >= 0; --j )
 			{
 				const auto& evtB = tx.events[j];
 				EventKind eventKind = StringToEventKind(evtB.kind);
-				if(eventKind == EventKind::TokenSend)
+				if( eventKind == EventKind::TokenSend )
 				{
 					TokenEventData sendData = Serialization<TokenEventData>::Unserialize(Base16::Decode(evtB.data));
 					if( rcvData.symbol != sendData.symbol ||
-						rcvData.chainName != sendData.chainName ||
-						rcvData.value != sendData.value )
+					    rcvData.chainName != sendData.chainName ||
+					    rcvData.value != sendData.value )
 						continue;
-					out_events.push_back({&evtB, sendData});
+					out_events.push_back({ &evtB, sendData });
 					any = true;
 					if( singleResult )
 						return true;
@@ -249,19 +248,19 @@ inline bool GetTxTokensReceived(
 }
 
 inline bool GetTxTokensReceived(
-	BigInteger& out_value, 
-	String& out_addressFrom, 
-	const rpc::Transaction& tx, 
-	const String& addressTo, 
-	const Char* tokenSymbol = PHANTASMA_LITERAL("SOUL"),
-	const Char* chainName = PHANTASMA_LITERAL("main") )
+    BigInteger& out_value,
+    String& out_addressFrom,
+    const rpc::Transaction& tx,
+    const String& addressTo,
+    const Char* tokenSymbol = PHANTASMA_LITERAL("SOUL"),
+    const Char* chainName = PHANTASMA_LITERAL("main"))
 {
 	PHANTASMA_VECTOR<TxTokenEvent> events;
 	bool any = GetTxTokensReceived(events, tx, addressTo.c_str(), tokenSymbol, chainName, true);
 	if( any )
 	{
 		out_value = BigInteger::Zero();
-		for(const TxTokenEvent& ev : events)
+		for( const TxTokenEvent& ev : events )
 		{
 			out_value += ev.data.value;
 		}
@@ -270,47 +269,46 @@ inline bool GetTxTokensReceived(
 	return any;
 }
 
-
 inline bool GetTxTokensSent(
-	PHANTASMA_VECTOR<TxTokenEvent>& out_events,
-	const rpc::Transaction& tx,
-	const Char* addressFrom = 0,
-	const Char* tokenSymbol = PHANTASMA_LITERAL( "SOUL" ),
-	const Char* tokenIgnore = 0,
-	const Char* chainName = PHANTASMA_LITERAL( "main" ),
-	bool singleResult = false )
+    PHANTASMA_VECTOR<TxTokenEvent>& out_events,
+    const rpc::Transaction& tx,
+    const Char* addressFrom = 0,
+    const Char* tokenSymbol = PHANTASMA_LITERAL("SOUL"),
+    const Char* tokenIgnore = 0,
+    const Char* chainName = PHANTASMA_LITERAL("main"),
+    bool singleResult = false)
 {
 	bool any = false;
-	for (int i=0, end=(int)tx.events.size(); i!=end; ++i)
+	for( int i = 0, end = (int)tx.events.size(); i != end; ++i )
 	{
 		const auto& evtA = tx.events[i];
-		if( addressFrom && 0!=evtA.address.compare(addressFrom) )
+		if( addressFrom && 0 != evtA.address.compare(addressFrom) )
 			continue;
 		EventKind eventKind = StringToEventKind(evtA.kind);
-		if(eventKind == EventKind::TokenSend)
+		if( eventKind == EventKind::TokenSend )
 		{
 			TokenEventData sendData = Serialization<TokenEventData>::Unserialize(Base16::Decode(evtA.data));
-			if( tokenSymbol && 0!=sendData.symbol.compare(tokenSymbol) )
+			if( tokenSymbol && 0 != sendData.symbol.compare(tokenSymbol) )
 				continue;
-			if( tokenIgnore && 0==sendData.symbol.compare(tokenIgnore) )
+			if( tokenIgnore && 0 == sendData.symbol.compare(tokenIgnore) )
 				continue;
-			if( chainName && 0!=sendData.chainName.compare(chainName) )
+			if( chainName && 0 != sendData.chainName.compare(chainName) )
 				continue;
 			if( sendData.value.IsZero() )
 				continue;
 
-			for (int j=i+1; j<end; ++j)
+			for( int j = i + 1; j < end; ++j )
 			{
 				const auto& evtB = tx.events[j];
 				EventKind eventKind = StringToEventKind(evtB.kind);
-				if(eventKind == EventKind::TokenReceive)
+				if( eventKind == EventKind::TokenReceive )
 				{
 					TokenEventData rcvData = Serialization<TokenEventData>::Unserialize(Base16::Decode(evtB.data));
 					if( rcvData.symbol != sendData.symbol ||
-						rcvData.chainName != sendData.chainName ||
-						rcvData.value != sendData.value )
+					    rcvData.chainName != sendData.chainName ||
+					    rcvData.value != sendData.value )
 						continue;
-					out_events.push_back({&evtB, sendData});
+					out_events.push_back({ &evtB, sendData });
 					any = true;
 					if( singleResult )
 						return true;
@@ -323,14 +321,13 @@ inline bool GetTxTokensSent(
 }
 
 inline bool GetTxTokensSent(
-	BigInteger& out_value, 
-	String& out_addressTo, 
-	const rpc::Transaction& tx, 
-	const String& addressFrom, 
-	const Char* tokenSymbol = PHANTASMA_LITERAL("SOUL"),
-	const Char* tokenIgnore = PHANTASMA_LITERAL("KCAL"),
-	const Char* chainName = PHANTASMA_LITERAL("main")
-)
+    BigInteger& out_value,
+    String& out_addressTo,
+    const rpc::Transaction& tx,
+    const String& addressFrom,
+    const Char* tokenSymbol = PHANTASMA_LITERAL("SOUL"),
+    const Char* tokenIgnore = PHANTASMA_LITERAL("KCAL"),
+    const Char* chainName = PHANTASMA_LITERAL("main"))
 {
 	PHANTASMA_VECTOR<TxTokenEvent> events;
 	bool any = GetTxTokensSent(events, tx, addressFrom.c_str(), tokenSymbol, tokenIgnore, chainName);
@@ -342,30 +339,29 @@ inline bool GetTxTokensSent(
 	return any;
 }
 
-
 inline bool GetTxTokensMinted(
-	const rpc::Transaction& tx,
-	PHANTASMA_VECTOR<TxTokenEvent>* output,
-	const Char* addressTo = 0, 
-	const Char* tokenSymbol = 0,
-	const Char* chainName = 0)
+    const rpc::Transaction& tx,
+    PHANTASMA_VECTOR<TxTokenEvent>* output,
+    const Char* addressTo = 0,
+    const Char* tokenSymbol = 0,
+    const Char* chainName = 0)
 {
 	bool deserialize = tokenSymbol || chainName || output;
 	bool any = false;
-	for (int i=0, end=(int)tx.events.size(); i!=end; ++i)
+	for( int i = 0, end = (int)tx.events.size(); i != end; ++i )
 	{
 		const auto& evt = tx.events[i];
-		if( addressTo && 0!=evt.address.compare(addressTo) )
+		if( addressTo && 0 != evt.address.compare(addressTo) )
 			continue;
 		if( 0 == evt.kind.compare(PHANTASMA_LITERAL("TokenMint")) )
 		{
 			TokenEventData data = deserialize ? Serialization<TokenEventData>::Unserialize(Base16::Decode(evt.data)) : TokenEventData{};
-			if( tokenSymbol && 0!=data.symbol.compare(tokenSymbol) )
+			if( tokenSymbol && 0 != data.symbol.compare(tokenSymbol) )
 				continue;
-			if( chainName && 0!=data.chainName.compare(chainName) )
+			if( chainName && 0 != data.chainName.compare(chainName) )
 				continue;
 			if( output )
-				output->push_back({&evt, data});
+				output->push_back({ &evt, data });
 			any = true;
 		}
 	}
@@ -373,28 +369,28 @@ inline bool GetTxTokensMinted(
 }
 
 inline bool GetTxTokensBurnt(
-	const rpc::Transaction& tx,
-	PHANTASMA_VECTOR<TxTokenEvent>* output,
-	const Char* addressFrom = 0, 
-	const Char* tokenSymbol = 0,
-	const Char* chainName = 0)
+    const rpc::Transaction& tx,
+    PHANTASMA_VECTOR<TxTokenEvent>* output,
+    const Char* addressFrom = 0,
+    const Char* tokenSymbol = 0,
+    const Char* chainName = 0)
 {
 	bool deserialize = tokenSymbol || chainName || output;
 	bool any = false;
-	for (int i=0, end=(int)tx.events.size(); i!=end; ++i)
+	for( int i = 0, end = (int)tx.events.size(); i != end; ++i )
 	{
 		const auto& evt = tx.events[i];
-		if( addressFrom && 0!=evt.address.compare(addressFrom) )
+		if( addressFrom && 0 != evt.address.compare(addressFrom) )
 			continue;
 		if( 0 == evt.kind.compare(PHANTASMA_LITERAL("TokenBurn")) )
 		{
 			TokenEventData data = deserialize ? Serialization<TokenEventData>::Unserialize(Base16::Decode(evt.data)) : TokenEventData{};
-			if( tokenSymbol && 0!=data.symbol.compare(tokenSymbol) )
+			if( tokenSymbol && 0 != data.symbol.compare(tokenSymbol) )
 				continue;
-			if( chainName && 0!=data.chainName.compare(chainName) )
+			if( chainName && 0 != data.chainName.compare(chainName) )
 				continue;
 			if( output )
-				output->push_back({&evt, data});
+				output->push_back({ &evt, data });
 			any = true;
 		}
 	}
@@ -402,28 +398,28 @@ inline bool GetTxTokensBurnt(
 }
 
 inline bool GetTxTokensClaimed(
-	PHANTASMA_VECTOR<TxTokenEvent>* output,
-	const rpc::Transaction& tx,
-	const Char* addressTo = 0, 
-	const Char* tokenSymbol = 0,
-	const Char* chainName = 0)
+    PHANTASMA_VECTOR<TxTokenEvent>* output,
+    const rpc::Transaction& tx,
+    const Char* addressTo = 0,
+    const Char* tokenSymbol = 0,
+    const Char* chainName = 0)
 {
 	bool deserialize = tokenSymbol || chainName || output;
 	bool any = false;
-	for (int i=0, end=(int)tx.events.size(); i!=end; ++i)
+	for( int i = 0, end = (int)tx.events.size(); i != end; ++i )
 	{
 		const auto& evt = tx.events[i];
-		if( addressTo && 0!=evt.address.compare(addressTo) )
+		if( addressTo && 0 != evt.address.compare(addressTo) )
 			continue;
 		if( 0 == evt.kind.compare(PHANTASMA_LITERAL("TokenClaim")) )
 		{
 			TokenEventData data = deserialize ? Serialization<TokenEventData>::Unserialize(Base16::Decode(evt.data)) : TokenEventData{};
-			if( tokenSymbol && 0!=data.symbol.compare(tokenSymbol) )
+			if( tokenSymbol && 0 != data.symbol.compare(tokenSymbol) )
 				continue;
-			if( chainName && 0!=data.chainName.compare(chainName) )
+			if( chainName && 0 != data.chainName.compare(chainName) )
 				continue;
 			if( output )
-				output->push_back({&evt, data});
+				output->push_back({ &evt, data });
 			any = true;
 		}
 	}
@@ -431,28 +427,28 @@ inline bool GetTxTokensClaimed(
 }
 
 inline bool GetTxTokensStaked(
-	PHANTASMA_VECTOR<TxTokenEvent>* output,
-	const rpc::Transaction& tx,
-	const Char* addressFrom = 0, 
-	const Char* tokenSymbol = 0,
-	const Char* chainName = 0)
+    PHANTASMA_VECTOR<TxTokenEvent>* output,
+    const rpc::Transaction& tx,
+    const Char* addressFrom = 0,
+    const Char* tokenSymbol = 0,
+    const Char* chainName = 0)
 {
 	bool deserialize = tokenSymbol || chainName || output;
 	bool any = false;
-	for (int i=0, end=(int)tx.events.size(); i!=end; ++i)
+	for( int i = 0, end = (int)tx.events.size(); i != end; ++i )
 	{
 		const auto& evt = tx.events[i];
-		if( addressFrom && 0!=evt.address.compare(addressFrom) )
+		if( addressFrom && 0 != evt.address.compare(addressFrom) )
 			continue;
 		if( 0 == evt.kind.compare(PHANTASMA_LITERAL("TokenStake")) )
 		{
 			TokenEventData data = deserialize ? Serialization<TokenEventData>::Unserialize(Base16::Decode(evt.data)) : TokenEventData{};
-			if( tokenSymbol && 0!=data.symbol.compare(tokenSymbol) )
+			if( tokenSymbol && 0 != data.symbol.compare(tokenSymbol) )
 				continue;
-			if( chainName && 0!=data.chainName.compare(chainName) )
+			if( chainName && 0 != data.chainName.compare(chainName) )
 				continue;
 			if( output )
-				output->push_back({&evt, data});
+				output->push_back({ &evt, data });
 			any = true;
 		}
 	}
@@ -460,17 +456,17 @@ inline bool GetTxTokensStaked(
 }
 
 inline String GetTxDescription(
-	const rpc::Transaction& tx, 
-	const PHANTASMA_VECTOR<rpc::Chain>& phantasmaChains, 
-	const PHANTASMA_VECTOR<rpc::Token>& phantasmaTokens, 
-	const String& addressFrom = String{})
+    const rpc::Transaction& tx,
+    const PHANTASMA_VECTOR<rpc::Chain>& phantasmaChains,
+    const PHANTASMA_VECTOR<rpc::Token>& phantasmaTokens,
+    const String& addressFrom = String{})
 {
 	StringBuilder sb;
 	String description;
 
 	String senderToken;
 	String senderChain;
-	for(const auto& x : phantasmaChains)
+	for( const auto& x : phantasmaChains )
 	{
 		if( x.address == tx.chainAddress )
 		{
@@ -486,48 +482,43 @@ inline String GetTxDescription(
 
 	BigInteger amount;
 
-	for(const auto& evt : tx.events)
+	for( const auto& evt : tx.events )
 	{
 		auto eventKind = StringToEventKind(evt.kind);
-		switch (eventKind)
+		switch( eventKind )
 		{
 
-		case EventKind::TokenClaim:
-		{
+		case EventKind::TokenClaim: {
 			TokenEventData data = Serialization<TokenEventData>::Unserialize(Base16::Decode(evt.data));
-			if (0==data.symbol.compare(PHANTASMA_LITERAL("SOUL")))
+			if( 0 == data.symbol.compare(PHANTASMA_LITERAL("SOUL")) )
 			{
-				return String{PHANTASMA_LITERAL("Custom transaction")};
+				return String{ PHANTASMA_LITERAL("Custom transaction") };
 			}
 		}
 		break;
 
-
-		case EventKind::TokenStake:
-		{
+		case EventKind::TokenStake: {
 			TokenEventData data = Serialization<TokenEventData>::Unserialize(Base16::Decode(evt.data));
 			amount = data.value;
-			if (amount >= 1000000000)
+			if( amount >= 1000000000 )
 			{
-				if (0!=data.symbol.compare(PHANTASMA_LITERAL("KCAL")) &&
-					0!=data.symbol.compare(PHANTASMA_LITERAL("NEO")) &&
-					0!=data.symbol.compare(PHANTASMA_LITERAL("GAS")) )
+				if( 0 != data.symbol.compare(PHANTASMA_LITERAL("KCAL")) &&
+				    0 != data.symbol.compare(PHANTASMA_LITERAL("NEO")) &&
+				    0 != data.symbol.compare(PHANTASMA_LITERAL("GAS")) )
 				{
 					//return String{PHANTASMA_LITERAL("Stake transaction")};
-					return String{PHANTASMA_LITERAL("Custom transaction")};
+					return String{ PHANTASMA_LITERAL("Custom transaction") };
 				}
 			}
 		}
 		break;
 
-		case EventKind::TokenMint:
-		{
-			return String{PHANTASMA_LITERAL("Claim transaction")};
+		case EventKind::TokenMint: {
+			return String{ PHANTASMA_LITERAL("Claim transaction") };
 		}
 		break;
 
-		case EventKind::AddressRegister:
-		{
+		case EventKind::AddressRegister: {
 			auto name = Serialization<String>::Unserialize(Base16::Decode(evt.data));
 			sb << PHANTASMA_LITERAL("Register transaction: name '");
 			sb << name;
@@ -536,8 +527,7 @@ inline String GetTxDescription(
 		}
 		break;
 
-		case EventKind::TokenSend:
-		{
+		case EventKind::TokenSend: {
 			TokenEventData data = Serialization<TokenEventData>::Unserialize(Base16::Decode(evt.data));
 			amount = data.value;
 			senderAddress = Address::FromText(evt.address);
@@ -545,8 +535,7 @@ inline String GetTxDescription(
 		}
 		break;
 
-		case EventKind::TokenReceive:
-		{
+		case EventKind::TokenReceive: {
 			TokenEventData data = Serialization<TokenEventData>::Unserialize(Base16::Decode(evt.data));
 			amount = data.value;
 			receiverAddress = Address::FromText(evt.address);
@@ -554,17 +543,16 @@ inline String GetTxDescription(
 			receiverToken = data.symbol;
 		}
 		break;
-
 		}
 	}
 
-	if (description.empty())
+	if( description.empty() )
 	{
-		if (amount > 0 && !senderAddress.IsNull() && !receiverAddress.IsNull() &&
-			!senderToken.empty() && senderToken == receiverToken)
+		if( amount > 0 && !senderAddress.IsNull() && !receiverAddress.IsNull() &&
+		    !senderToken.empty() && senderToken == receiverToken )
 		{
 			//auto amountDecimal = UnitConversion.ToDecimal(amount, phantasmaTokens.Single(p => p.Symbol == senderToken).Decimals);
-			if(addressFrom.empty())
+			if( addressFrom.empty() )
 			{
 				sb << PHANTASMA_LITERAL("Receive transaction: from ");
 				sb << senderAddress.ToString();
@@ -572,7 +560,7 @@ inline String GetTxDescription(
 				sb << receiverAddress.ToString();
 				description = sb.str();
 			}
-			else if (addressFrom == senderAddress.ToString())
+			else if( addressFrom == senderAddress.ToString() )
 			{
 				sb << PHANTASMA_LITERAL("Send transaction: to ");
 				sb << receiverAddress.ToString();
@@ -584,9 +572,8 @@ inline String GetTxDescription(
 				sb << senderAddress.ToString();
 				description = sb.str();
 			}
-
 		}
-		else if (amount > 0 && !receiverAddress.IsNull() && !receiverToken.empty())
+		else if( amount > 0 && !receiverAddress.IsNull() && !receiverToken.empty() )
 		{
 			//Int32 decimals = -1;
 			//for(const auto& p : phantasmaTokens)
@@ -612,10 +599,9 @@ inline String GetTxDescription(
 		{
 			description = PHANTASMA_LITERAL("Custom transaction");
 		}
-
 	}
 
 	return description;
 }
 
-}
+} // namespace phantasma

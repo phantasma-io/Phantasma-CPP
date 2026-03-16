@@ -21,7 +21,7 @@ inline Bytes32 FromPhantasmaSystemAddress(const phantasma::Address& a)
 
 inline Bytes32 FromPhantasmaAddress(const phantasma::Address& a)
 {
-	if (a.IsUser())
+	if( a.IsUser() )
 	{
 		const phantasma::Byte* bytes = a.ToByteArray();
 		Throw::Assert(bytes != nullptr, "missing address bytes");
@@ -30,7 +30,7 @@ inline Bytes32 FromPhantasmaAddress(const phantasma::Address& a)
 		memcpy(result.bytes, bytes + 2, Bytes32::length);
 		return result;
 	}
-	if (a.IsSystem())
+	if( a.IsSystem() )
 	{
 		return FromPhantasmaSystemAddress(a);
 	}

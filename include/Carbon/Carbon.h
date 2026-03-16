@@ -16,11 +16,10 @@
 
 namespace phantasma::carbon {
 
-struct Throw
-{
+struct Throw {
 	static void If(bool condition, const char* message)
 	{
-		if (condition)
+		if( condition )
 		{
 			PHANTASMA_EXCEPTION(message);
 		}
@@ -35,7 +34,7 @@ struct Throw
 inline uint32_t CarbonComputeSerializedLength(const uint8_t* bytes, uint32_t size, uint8_t fill)
 {
 	uint32_t length = size;
-	while (length > 1 && bytes[length - 1] == fill && ((bytes[length - 2] & 0x80) == (fill & 0x80)))
+	while( length > 1 && bytes[length - 1] == fill && ((bytes[length - 2] & 0x80) == (fill & 0x80)) )
 	{
 		--length;
 	}
@@ -47,7 +46,7 @@ inline uint32_t CarbonComputeSerializedLength(const uint8_t* bytes, uint32_t siz
 //------------------------------------------------------------------------------
 inline void WriteBytes(const Byte* data, size_t count, WriteView& w)
 {
-	if (count == 0)
+	if( count == 0 )
 	{
 		return;
 	}
@@ -86,7 +85,7 @@ inline void Write64(const Byte* data, size_t length, WriteView& w)
 
 inline void WriteSz(const std::string& s, WriteView& w)
 {
-	for (unsigned char c : s)
+	for( unsigned char c : s )
 	{
 		Throw::Assert(c != 0, "string contains zero byte");
 	}
@@ -103,7 +102,7 @@ inline void Write(ByteView v, WriteView& w)
 inline void WriteArrayOfArrays(const std::vector<ByteArray>& arr, WriteView& w)
 {
 	Write4((int32_t)arr.size(), w);
-	for (const auto& a : arr)
+	for( const auto& a : arr )
 	{
 		WriteArray(a, w);
 	}
@@ -112,7 +111,7 @@ inline void WriteArrayOfArrays(const std::vector<ByteArray>& arr, WriteView& w)
 inline void WriteArray64u(const std::vector<uint64_t>& arr, WriteView& w)
 {
 	Write4((int32_t)arr.size(), w);
-	for (uint64_t v : arr)
+	for( uint64_t v : arr )
 	{
 		Write8u(v, w);
 	}
@@ -121,7 +120,7 @@ inline void WriteArray64u(const std::vector<uint64_t>& arr, WriteView& w)
 inline void WriteArray64(const std::vector<int64_t>& arr, WriteView& w)
 {
 	Write4((int32_t)arr.size(), w);
-	for (int64_t v : arr)
+	for( int64_t v : arr )
 	{
 		Write8(v, w);
 	}
@@ -130,7 +129,7 @@ inline void WriteArray64(const std::vector<int64_t>& arr, WriteView& w)
 inline void WriteArray32(const std::vector<int32_t>& arr, WriteView& w)
 {
 	Write4((int32_t)arr.size(), w);
-	for (int32_t v : arr)
+	for( int32_t v : arr )
 	{
 		Write4(v, w);
 	}
@@ -139,7 +138,7 @@ inline void WriteArray32(const std::vector<int32_t>& arr, WriteView& w)
 inline void WriteArray16(const std::vector<int16_t>& arr, WriteView& w)
 {
 	Write4((int32_t)arr.size(), w);
-	for (int16_t v : arr)
+	for( int16_t v : arr )
 	{
 		Write2(v, w);
 	}
@@ -148,7 +147,7 @@ inline void WriteArray16(const std::vector<int16_t>& arr, WriteView& w)
 inline void WriteArray8(const std::vector<int8_t>& arr, WriteView& w)
 {
 	Write4((int32_t)arr.size(), w);
-	for (int8_t v : arr)
+	for( int8_t v : arr )
 	{
 		Write1((uint8_t)v, w);
 	}
@@ -157,7 +156,7 @@ inline void WriteArray8(const std::vector<int8_t>& arr, WriteView& w)
 inline void WriteArraySz(const std::vector<std::string>& arr, WriteView& w)
 {
 	Write4((int32_t)arr.size(), w);
-	for (const auto& s : arr)
+	for( const auto& s : arr )
 	{
 		WriteSz(s, w);
 	}
@@ -201,7 +200,7 @@ inline uint64_t Read8u(ReadView& r) { return (uint64_t)Read8(r); }
 inline ByteArray ReadExactly(size_t count, ReadView& r)
 {
 	ByteArray out;
-	if (count == 0)
+	if( count == 0 )
 	{
 		return out;
 	}
@@ -213,12 +212,12 @@ inline ByteArray ReadExactly(size_t count, ReadView& r)
 inline std::string ReadSz(ReadView& r)
 {
 	std::string out;
-	while (true)
+	while( true )
 	{
 		Throw::If(r.length == 0, "end of stream reached");
 		const Byte b = r.bytes[0];
 		r.Advance(1);
-		if (b == 0)
+		if( b == 0 )
 		{
 			break;
 		}
@@ -233,7 +232,7 @@ inline std::vector<std::string> ReadArraySz(ReadView& r)
 	Throw::If(len < 0, "invalid array length");
 	std::vector<std::string> out;
 	out.reserve((size_t)len);
-	for (int i = 0; i < len; ++i)
+	for( int i = 0; i < len; ++i )
 	{
 		out.push_back(ReadSz(r));
 	}
@@ -253,7 +252,7 @@ inline std::vector<ByteArray> ReadArrayOfArrays(ReadView& r)
 	Throw::If(len < 0, "invalid array length");
 	std::vector<ByteArray> out;
 	out.reserve((size_t)len);
-	for (int i = 0; i < len; ++i)
+	for( int i = 0; i < len; ++i )
 	{
 		out.push_back(ReadArray(r));
 	}
@@ -266,7 +265,7 @@ inline std::vector<uint64_t> ReadArray64u(ReadView& r)
 	Throw::If(len < 0, "invalid array length");
 	std::vector<uint64_t> out;
 	out.reserve((size_t)len);
-	for (int i = 0; i < len; ++i)
+	for( int i = 0; i < len; ++i )
 	{
 		out.push_back(Read8u(r));
 	}
@@ -279,7 +278,7 @@ inline std::vector<int64_t> ReadArray64(ReadView& r)
 	Throw::If(len < 0, "invalid array length");
 	std::vector<int64_t> out;
 	out.reserve((size_t)len);
-	for (int i = 0; i < len; ++i)
+	for( int i = 0; i < len; ++i )
 	{
 		out.push_back(Read8(r));
 	}
@@ -292,7 +291,7 @@ inline std::vector<int32_t> ReadArray32(ReadView& r)
 	Throw::If(len < 0, "invalid array length");
 	std::vector<int32_t> out;
 	out.reserve((size_t)len);
-	for (int i = 0; i < len; ++i)
+	for( int i = 0; i < len; ++i )
 	{
 		out.push_back(Read4(r));
 	}
@@ -305,7 +304,7 @@ inline std::vector<int16_t> ReadArray16(ReadView& r)
 	Throw::If(len < 0, "invalid array length");
 	std::vector<int16_t> out;
 	out.reserve((size_t)len);
-	for (int i = 0; i < len; ++i)
+	for( int i = 0; i < len; ++i )
 	{
 		out.push_back(Read2(r));
 	}
@@ -318,7 +317,7 @@ inline std::vector<int8_t> ReadArray8(ReadView& r)
 	Throw::If(len < 0, "invalid array length");
 	std::vector<int8_t> out;
 	out.reserve((size_t)len);
-	for (int i = 0; i < len; ++i)
+	for( int i = 0; i < len; ++i )
 	{
 		out.push_back((int8_t)Read1(r));
 	}
@@ -352,7 +351,7 @@ T CarbonNew(const ByteArray& bytes, size_t offset = 0)
 inline void Write(const SmallString& s, WriteView& w)
 {
 	Write1(s.length, w);
-	if (s.length)
+	if( s.length )
 	{
 		WriteBytes((const Byte*)s.bytes, s.length, w);
 	}
@@ -361,7 +360,7 @@ inline bool Read(SmallString& s, ReadView& r)
 {
 	const uint8_t len = Read1(r);
 	s.length = len;
-	if (len)
+	if( len )
 	{
 		Throw::If(!r.ReadBytes(s.bytes, len), "end of stream reached");
 	}
@@ -396,14 +395,46 @@ inline void Write(const Bytes32& v, WriteView& w) { WriteExactly((const Byte*)v.
 inline void Write(const Bytes64& v, WriteView& w) { WriteExactly((const Byte*)v.bytes, Bytes64::length, w); }
 inline void Write(ByteView v, WriteView&& w) { Write(v, w); }
 
-inline bool Read(uint8_t& out, ReadView& r) { out = Read1(r); return true; }
-inline bool Read(int8_t& out, ReadView& r) { out = (int8_t)Read1(r); return true; }
-inline bool Read(uint16_t& out, ReadView& r) { out = (uint16_t)Read2(r); return true; }
-inline bool Read(int16_t& out, ReadView& r) { out = Read2(r); return true; }
-inline bool Read(uint32_t& out, ReadView& r) { out = (uint32_t)Read4(r); return true; }
-inline bool Read(int32_t& out, ReadView& r) { out = Read4(r); return true; }
-inline bool Read(uint64_t& out, ReadView& r) { out = (uint64_t)Read8(r); return true; }
-inline bool Read(int64_t& out, ReadView& r) { out = Read8(r); return true; }
+inline bool Read(uint8_t& out, ReadView& r)
+{
+	out = Read1(r);
+	return true;
+}
+inline bool Read(int8_t& out, ReadView& r)
+{
+	out = (int8_t)Read1(r);
+	return true;
+}
+inline bool Read(uint16_t& out, ReadView& r)
+{
+	out = (uint16_t)Read2(r);
+	return true;
+}
+inline bool Read(int16_t& out, ReadView& r)
+{
+	out = Read2(r);
+	return true;
+}
+inline bool Read(uint32_t& out, ReadView& r)
+{
+	out = (uint32_t)Read4(r);
+	return true;
+}
+inline bool Read(int32_t& out, ReadView& r)
+{
+	out = Read4(r);
+	return true;
+}
+inline bool Read(uint64_t& out, ReadView& r)
+{
+	out = (uint64_t)Read8(r);
+	return true;
+}
+inline bool Read(int64_t& out, ReadView& r)
+{
+	out = Read8(r);
+	return true;
+}
 inline bool Read(Bytes16& out, ReadView& r) { return r.ReadBytes(out.bytes, Bytes16::length); }
 inline bool Read(Bytes32& out, ReadView& r) { return r.ReadBytes(out.bytes, Bytes32::length); }
 inline bool Read(Bytes64& out, ReadView& r) { return r.ReadBytes(out.bytes, Bytes64::length); }
@@ -422,12 +453,22 @@ inline bool Read(ByteArray& out, ReadView& r)
 
 inline void WriteInt256(const int256& v, WriteView& w) { Write(v, w); }
 inline void WriteIntX(const intx& v, WriteView& w) { Write(v, w); }
-inline int256 ReadInt256(ReadView& r) { int256 v; Throw::If(!Read(v, r), "invalid int256 packing"); return v; }
-inline intx ReadIntX(ReadView& r) { intx v; Throw::If(!Read(v, r), "invalid intx packing"); return v; }
+inline int256 ReadInt256(ReadView& r)
+{
+	int256 v;
+	Throw::If(!Read(v, r), "invalid int256 packing");
+	return v;
+}
+inline intx ReadIntX(ReadView& r)
+{
+	intx v;
+	Throw::If(!Read(v, r), "invalid intx packing");
+	return v;
+}
 inline void WriteArrayInt256(const std::vector<int256>& items, WriteView& w)
 {
 	Write4((int32_t)items.size(), w);
-	for (const auto& i : items)
+	for( const auto& i : items )
 	{
 		Write(i, w);
 	}
@@ -438,7 +479,7 @@ inline std::vector<int256> ReadArrayInt256(ReadView& r)
 	Throw::If(len < 0, "invalid array length");
 	std::vector<int256> out;
 	out.reserve((size_t)len);
-	for (int32_t i = 0; i < len; ++i)
+	for( int32_t i = 0; i < len; ++i )
 	{
 		out.push_back(ReadInt256(r));
 	}

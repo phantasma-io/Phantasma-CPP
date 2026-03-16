@@ -33,15 +33,14 @@ namespace testutil {
 using namespace phantasma;
 using namespace phantasma::carbon;
 
-struct TestContext
-{
+struct TestContext {
 	int total = 0;
 	int failed = 0;
 };
 
 void Report(TestContext& ctx, bool ok, const std::string& name, const std::string& details = {});
 
-template <typename Fn>
+template<typename Fn>
 inline void ExpectNoThrow(TestContext& ctx, const std::string& name, Fn&& fn)
 {
 	try
@@ -49,17 +48,17 @@ inline void ExpectNoThrow(TestContext& ctx, const std::string& name, Fn&& fn)
 		fn();
 		Report(ctx, true, name);
 	}
-	catch (const std::exception& ex)
+	catch( const std::exception& ex )
 	{
 		Report(ctx, false, name, ex.what());
 	}
-	catch (...)
+	catch( ... )
 	{
 		Report(ctx, false, name, "unexpected exception");
 	}
 }
 
-template <typename Fn>
+template<typename Fn>
 inline void ExpectThrowContains(TestContext& ctx, const std::string& name, const std::string& needle, Fn&& fn)
 {
 #ifdef PHANTASMA_EXCEPTION_ENABLE
@@ -68,12 +67,12 @@ inline void ExpectThrowContains(TestContext& ctx, const std::string& name, const
 		fn();
 		Report(ctx, false, name, "no exception");
 	}
-	catch (const std::exception& ex)
+	catch( const std::exception& ex )
 	{
 		const std::string msg = ex.what();
 		Report(ctx, msg.find(needle) != std::string::npos, name, msg);
 	}
-	catch (...)
+	catch( ... )
 	{
 		Report(ctx, false, name, "unexpected exception");
 	}
@@ -84,8 +83,7 @@ inline void ExpectThrowContains(TestContext& ctx, const std::string& name, const
 #endif
 }
 
-struct Row
-{
+struct Row {
 	std::string kind;
 	std::string value;
 	std::string hex;

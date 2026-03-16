@@ -26,8 +26,7 @@ enum class TxRejection
 	Payload = 7,
 };
 
-struct ChainConfig
-{
+struct ChainConfig {
 	uint8_t version = 0;
 	uint8_t reserved1 = 0;
 	uint8_t reserved2 = 0;
@@ -37,8 +36,7 @@ struct ChainConfig
 	uint32_t blockRateTarget = 0;
 };
 
-struct GasConfig
-{
+struct GasConfig {
 	uint8_t version = 0;
 	uint8_t maxNameLength = 0;
 	uint8_t maxTokenSymbolLength = 0;
@@ -60,74 +58,63 @@ struct GasConfig
 	uint8_t gasBurnRatioShift = 0;
 };
 
-struct MsgCallArgs
-{
+struct MsgCallArgs {
 	int32_t registerOffset = 0;
 	ByteView args{};
 };
-struct MsgCallArgSections
-{
+struct MsgCallArgSections {
 	int32_t numArgSections_negative = 0;
 	MsgCallArgs* argSections = nullptr;
 };
 
-struct TxMsgCall
-{
+struct TxMsgCall {
 	uint32_t moduleId = 0;
 	uint32_t methodId = 0;
 	ByteView args{};
 	MsgCallArgSections sections{};
 };
 
-struct TxMsgCall_Multi
-{
+struct TxMsgCall_Multi {
 	uint32_t numCalls = 0;
 	TxMsgCall* calls = nullptr;
 };
 
-struct TxMsgSpecialResolution
-{
+struct TxMsgSpecialResolution {
 	uint64_t resolutionId = 0;
 	TxMsgCall_Multi calls{};
 };
 
-struct TxMsgTransferFungible
-{
+struct TxMsgTransferFungible {
 	Bytes32 to;
 	uint64_t tokenId = 0;
 	uint64_t amount = 0;
 };
-struct TxMsgTransferFungible_GasPayer
-{
+struct TxMsgTransferFungible_GasPayer {
 	Bytes32 to;
 	Bytes32 from;
 	uint64_t tokenId = 0;
 	uint64_t amount = 0;
 };
 
-struct TxMsgTransferNonFungible_Single
-{
+struct TxMsgTransferNonFungible_Single {
 	Bytes32 to;
 	uint64_t tokenId = 0;
 	uint64_t instanceId = 0;
 };
-struct TxMsgTransferNonFungible_Single_GasPayer
-{
+struct TxMsgTransferNonFungible_Single_GasPayer {
 	Bytes32 to;
 	Bytes32 from;
 	uint64_t tokenId = 0;
 	uint64_t instanceId = 0;
 };
 
-struct TxMsgTransferNonFungible_Multi
-{
+struct TxMsgTransferNonFungible_Multi {
 	Bytes32 to;
 	uint64_t tokenId = 0;
 	uint32_t numInstanceIds = 0;
 	const uint64_t* instanceIds = nullptr;
 };
-struct TxMsgTransferNonFungible_Multi_GasPayer
-{
+struct TxMsgTransferNonFungible_Multi_GasPayer {
 	Bytes32 to;
 	Bytes32 from;
 	uint64_t tokenId = 0;
@@ -135,45 +122,38 @@ struct TxMsgTransferNonFungible_Multi_GasPayer
 	const uint64_t* instanceIds = nullptr;
 };
 
-struct TxMsgMintFungible
-{
+struct TxMsgMintFungible {
 	uint64_t tokenId = 0;
 	intx_pod amount{};
 	Bytes32 to;
 };
-struct TxMsgBurnFungible
-{
+struct TxMsgBurnFungible {
 	uint64_t tokenId = 0;
 	intx_pod amount{};
 };
-struct TxMsgBurnFungible_GasPayer
-{
+struct TxMsgBurnFungible_GasPayer {
 	uint64_t tokenId = 0;
 	intx_pod amount{};
 	Bytes32 from;
 };
-struct TxMsgMintNonFungible
-{
+struct TxMsgMintNonFungible {
 	uint64_t tokenId = 0;
 	Bytes32 to;
 	uint32_t seriesId = 0;
 	ByteView rom{};
 	ByteView ram{};
 };
-struct TxMsgBurnNonFungible
-{
+struct TxMsgBurnNonFungible {
 	uint64_t tokenId = 0;
 	uint64_t instanceId = 0;
 };
-struct TxMsgBurnNonFungible_GasPayer
-{
+struct TxMsgBurnNonFungible_GasPayer {
 	uint64_t tokenId = 0;
 	Bytes32 from;
 	uint64_t instanceId = 0;
 };
 
-struct TxMsgTrade
-{
+struct TxMsgTrade {
 	uint32_t numTransferF = 0;
 	TxMsgTransferFungible_GasPayer* transferF = nullptr;
 	uint32_t numTransferN = 0;
@@ -188,15 +168,13 @@ struct TxMsgTrade
 	TxMsgBurnNonFungible_GasPayer* burnN = nullptr;
 };
 
-struct TxMsgPhantasma
-{
+struct TxMsgPhantasma {
 	SmallString nexus;
 	SmallString chain;
 	ByteView script{};
 };
 
-struct TxMsgPhantasma_Raw
-{
+struct TxMsgPhantasma_Raw {
 	ByteView transaction{};
 };
 
@@ -230,8 +208,7 @@ enum class TxState : uint8_t
 	Pending = 3,
 };
 
-struct TxMsg
-{
+struct TxMsg {
 	constexpr static uint64_t NoMaxGas = (uint64_t)-1;
 	constexpr static uint64_t NoMaxData = (uint64_t)-1;
 
@@ -241,7 +218,8 @@ struct TxMsg
 	uint64_t maxData = 0;
 	Bytes32 gasFrom{};
 	SmallString payload{};
-	union {
+	union
+	{
 		TxMsgCall call;
 		TxMsgCall_Multi callMulti;
 		TxMsgTransferFungible transferFt;
@@ -262,13 +240,7 @@ struct TxMsg
 	};
 
 	TxMsg()
-		: type(TxTypes::Call)
-		, expiry(0)
-		, maxGas(0)
-		, maxData(0)
-		, gasFrom()
-		, payload()
-		, call{}
+	    : type(TxTypes::Call), expiry(0), maxGas(0), maxData(0), gasFrom(), payload(), call{}
 	{
 	}
 };
@@ -282,7 +254,7 @@ inline void Write(const Witness& in, WriteView& w)
 inline void Write(const Witnesses& in, WriteView& w)
 {
 	Write4((int32_t)in.numWitnesses, w);
-	for (uint32_t i = 0; i != in.numWitnesses; ++i)
+	for( uint32_t i = 0; i != in.numWitnesses; ++i )
 	{
 		Write(in.witnesses[i], w);
 	}
@@ -327,7 +299,7 @@ inline bool Read(MsgCallArgs& out, ReadView& reader, Allocator& alloc)
 {
 	const Byte* mark = (const Byte*)reader.Mark();
 	const int32_t value = Read4(reader);
-	if (value >= 0)
+	if( value >= 0 )
 	{
 		reader.Rewind(mark);
 		out.registerOffset = 0;
@@ -341,21 +313,21 @@ inline bool Read(MsgCallArgs& out, ReadView& reader, Allocator& alloc)
 inline bool Read(MsgCallArgSections& out, ReadView& reader, Allocator& alloc)
 {
 	const int32_t count = Read4(reader);
-	if (count >= 0)
+	if( count >= 0 )
 	{
 		return false;
 	}
 	out.numArgSections_negative = count;
 	const uint32_t length = (uint32_t)(-count);
-	if (length == 0)
+	if( length == 0 )
 	{
 		out.argSections = nullptr;
 		return true;
 	}
 	out.argSections = alloc.Alloc<MsgCallArgs>(length);
-	for (uint32_t i = 0; i != length; ++i)
+	for( uint32_t i = 0; i != length; ++i )
 	{
-		if (!Read(out.argSections[i], reader, alloc))
+		if( !Read(out.argSections[i], reader, alloc) )
 		{
 			return false;
 		}
@@ -375,7 +347,7 @@ inline bool Read(TxMsgCall& out, ReadView& reader, Allocator& alloc)
 	const Byte* mark = (const Byte*)reader.Mark();
 	const int32_t len = Read4(reader);
 	reader.Rewind(mark);
-	if (len >= 0)
+	if( len >= 0 )
 	{
 		return ReadArray(out.args, reader, alloc);
 	}
@@ -384,7 +356,8 @@ inline bool Read(TxMsgCall& out, ReadView& reader, Allocator& alloc)
 
 inline bool Read(TxMsgCall_Multi& out, ReadView& reader, Allocator& alloc)
 {
-	return ReadArray(out.numCalls, out.calls, reader, alloc, [&](TxMsgCall& call, ReadView& r) { return Read(call, r, alloc); });
+	return ReadArray(out.numCalls, out.calls, reader, alloc, [&](TxMsgCall& call, ReadView& r)
+	    { return Read(call, r, alloc); });
 }
 
 inline bool Read(TxMsgSpecialResolution& out, ReadView& reader, Allocator& alloc)
@@ -396,21 +369,21 @@ inline void Write(const TxMsgCall& in, WriteView& w)
 {
 	Write4((int32_t)in.moduleId, w);
 	Write4((int32_t)in.methodId, w);
-	if (in.sections.numArgSections_negative < 0)
+	if( in.sections.numArgSections_negative < 0 )
 	{
 		Write4(in.sections.numArgSections_negative, w);
 		const uint32_t count = (uint32_t)(-in.sections.numArgSections_negative);
-		for (uint32_t i = 0; i != count; ++i)
+		for( uint32_t i = 0; i != count; ++i )
 		{
 			const MsgCallArgs& section = in.sections.argSections[i];
-			if (section.registerOffset < 0)
+			if( section.registerOffset < 0 )
 			{
 				Write4(section.registerOffset, w);
 			}
 			else
 			{
 				Write4((int32_t)section.args.length, w);
-				if (section.args.length)
+				if( section.args.length )
 				{
 					WriteBytes(section.args.bytes, section.args.length, w);
 				}
@@ -419,7 +392,7 @@ inline void Write(const TxMsgCall& in, WriteView& w)
 		return;
 	}
 	Write4((int32_t)in.args.length, w);
-	if (in.args.length)
+	if( in.args.length )
 	{
 		WriteBytes(in.args.bytes, in.args.length, w);
 	}
@@ -428,7 +401,7 @@ inline void Write(const TxMsgCall& in, WriteView& w)
 inline void Write(const TxMsgCall_Multi& in, WriteView& w)
 {
 	Write4((int32_t)in.numCalls, w);
-	for (uint32_t i = 0; i != in.numCalls; ++i)
+	for( uint32_t i = 0; i != in.numCalls; ++i )
 	{
 		Write(in.calls[i], w);
 	}
@@ -475,7 +448,7 @@ inline void Write(const TxMsgTransferNonFungible_Multi& in, WriteView& w)
 	Write(in.to, w);
 	Write8u(in.tokenId, w);
 	Write4((int32_t)in.numInstanceIds, w);
-	for (uint32_t i = 0; i != in.numInstanceIds; ++i)
+	for( uint32_t i = 0; i != in.numInstanceIds; ++i )
 	{
 		Write8u(in.instanceIds[i], w);
 	}
@@ -487,7 +460,7 @@ inline void Write(const TxMsgTransferNonFungible_Multi_GasPayer& in, WriteView& 
 	Write(in.from, w);
 	Write8u(in.tokenId, w);
 	Write4((int32_t)in.numInstanceIds, w);
-	for (uint32_t i = 0; i != in.numInstanceIds; ++i)
+	for( uint32_t i = 0; i != in.numInstanceIds; ++i )
 	{
 		Write8u(in.instanceIds[i], w);
 	}
@@ -538,17 +511,23 @@ inline void Write(const TxMsgBurnNonFungible_GasPayer& in, WriteView& w)
 inline void Write(const TxMsgTrade& in, WriteView& w)
 {
 	Write4((int32_t)in.numTransferF, w);
-	for (uint32_t i = 0; i != in.numTransferF; ++i) Write(in.transferF[i], w);
+	for( uint32_t i = 0; i != in.numTransferF; ++i )
+		Write(in.transferF[i], w);
 	Write4((int32_t)in.numTransferN, w);
-	for (uint32_t i = 0; i != in.numTransferN; ++i) Write(in.transferN[i], w);
+	for( uint32_t i = 0; i != in.numTransferN; ++i )
+		Write(in.transferN[i], w);
 	Write4((int32_t)in.numMintF, w);
-	for (uint32_t i = 0; i != in.numMintF; ++i) Write(in.mintF[i], w);
+	for( uint32_t i = 0; i != in.numMintF; ++i )
+		Write(in.mintF[i], w);
 	Write4((int32_t)in.numBurnF, w);
-	for (uint32_t i = 0; i != in.numBurnF; ++i) Write(in.burnF[i], w);
+	for( uint32_t i = 0; i != in.numBurnF; ++i )
+		Write(in.burnF[i], w);
 	Write4((int32_t)in.numMintN, w);
-	for (uint32_t i = 0; i != in.numMintN; ++i) Write(in.mintN[i], w);
+	for( uint32_t i = 0; i != in.numMintN; ++i )
+		Write(in.mintN[i], w);
 	Write4((int32_t)in.numBurnN, w);
-	for (uint32_t i = 0; i != in.numBurnN; ++i) Write(in.burnN[i], w);
+	for( uint32_t i = 0; i != in.numBurnN; ++i )
+		Write(in.burnN[i], w);
 }
 
 inline void Write(const TxMsgPhantasma& in, WriteView& w)
@@ -572,31 +551,66 @@ inline void Write(const TxMsg& msg, WriteView& w)
 	Write(msg.gasFrom, w);
 	Write(msg.payload, w);
 
-	switch (msg.type)
+	switch( msg.type )
 	{
-	case TxTypes::Call: Write(msg.call, w); break;
-	case TxTypes::Call_Multi: Write(msg.callMulti, w); break;
-	case TxTypes::Trade: Write(msg.trade, w); break;
-	case TxTypes::TransferFungible: Write(msg.transferFt, w); break;
-	case TxTypes::TransferFungible_GasPayer: Write(msg.transferFtGasPayer, w); break;
-	case TxTypes::TransferNonFungible_Single: Write(msg.transferNftSingle, w); break;
-	case TxTypes::TransferNonFungible_Single_GasPayer: Write(msg.transferNftSingleGasPayer, w); break;
-	case TxTypes::TransferNonFungible_Multi: Write(msg.transferNftMulti, w); break;
-	case TxTypes::TransferNonFungible_Multi_GasPayer: Write(msg.transferNftMultiGasPayer, w); break;
-	case TxTypes::MintFungible: Write(msg.mintFungible, w); break;
-	case TxTypes::BurnFungible: Write(msg.burnFungible, w); break;
-	case TxTypes::BurnFungible_GasPayer: Write(msg.burnFungibleGasPayer, w); break;
-	case TxTypes::MintNonFungible: Write(msg.mintNonFungible, w); break;
-	case TxTypes::BurnNonFungible: Write(msg.burnNonFungible, w); break;
-	case TxTypes::BurnNonFungible_GasPayer: Write(msg.burnNonFungibleGasPayer, w); break;
-	case TxTypes::Phantasma: Write(msg.phantasma, w); break;
-	case TxTypes::Phantasma_Raw: Write(msg.phantasmaRaw, w); break;
-	default: Throw::Assert(false, "Unsupported transaction type"); break;
+	case TxTypes::Call:
+		Write(msg.call, w);
+		break;
+	case TxTypes::Call_Multi:
+		Write(msg.callMulti, w);
+		break;
+	case TxTypes::Trade:
+		Write(msg.trade, w);
+		break;
+	case TxTypes::TransferFungible:
+		Write(msg.transferFt, w);
+		break;
+	case TxTypes::TransferFungible_GasPayer:
+		Write(msg.transferFtGasPayer, w);
+		break;
+	case TxTypes::TransferNonFungible_Single:
+		Write(msg.transferNftSingle, w);
+		break;
+	case TxTypes::TransferNonFungible_Single_GasPayer:
+		Write(msg.transferNftSingleGasPayer, w);
+		break;
+	case TxTypes::TransferNonFungible_Multi:
+		Write(msg.transferNftMulti, w);
+		break;
+	case TxTypes::TransferNonFungible_Multi_GasPayer:
+		Write(msg.transferNftMultiGasPayer, w);
+		break;
+	case TxTypes::MintFungible:
+		Write(msg.mintFungible, w);
+		break;
+	case TxTypes::BurnFungible:
+		Write(msg.burnFungible, w);
+		break;
+	case TxTypes::BurnFungible_GasPayer:
+		Write(msg.burnFungibleGasPayer, w);
+		break;
+	case TxTypes::MintNonFungible:
+		Write(msg.mintNonFungible, w);
+		break;
+	case TxTypes::BurnNonFungible:
+		Write(msg.burnNonFungible, w);
+		break;
+	case TxTypes::BurnNonFungible_GasPayer:
+		Write(msg.burnNonFungibleGasPayer, w);
+		break;
+	case TxTypes::Phantasma:
+		Write(msg.phantasma, w);
+		break;
+	case TxTypes::Phantasma_Raw:
+		Write(msg.phantasmaRaw, w);
+		break;
+	default:
+		Throw::Assert(false, "Unsupported transaction type");
+		break;
 	}
 }
 
-struct SignedTxMsg
-{
+struct SignedTxMsg {
 	TxMsg msg;
 	Witnesses witnesses{};
 };
@@ -607,7 +621,7 @@ inline void Write(const SignedTxMsg& signedMsg, WriteView& w)
 	const TxTypes type = signedMsg.msg.type;
 	const Witnesses& witnessList = signedMsg.witnesses;
 
-	switch (type)
+	switch( type )
 	{
 	case TxTypes::TransferFungible:
 	case TxTypes::TransferNonFungible_Single:
@@ -624,22 +638,33 @@ inline void Write(const SignedTxMsg& signedMsg, WriteView& w)
 	case TxTypes::TransferNonFungible_Single_GasPayer:
 	case TxTypes::TransferNonFungible_Multi_GasPayer:
 	case TxTypes::BurnFungible_GasPayer:
-	case TxTypes::BurnNonFungible_GasPayer:
-	{
+	case TxTypes::BurnNonFungible_GasPayer: {
 		Bytes32 from;
-		switch (type)
+		switch( type )
 		{
-		case TxTypes::TransferFungible_GasPayer: from = signedMsg.msg.transferFtGasPayer.from; break;
-		case TxTypes::TransferNonFungible_Single_GasPayer: from = signedMsg.msg.transferNftSingleGasPayer.from; break;
-		case TxTypes::TransferNonFungible_Multi_GasPayer: from = signedMsg.msg.transferNftMultiGasPayer.from; break;
-		case TxTypes::BurnFungible_GasPayer: from = signedMsg.msg.burnFungibleGasPayer.from; break;
-		case TxTypes::BurnNonFungible_GasPayer: from = signedMsg.msg.burnNonFungibleGasPayer.from; break;
-		default: break;
+		case TxTypes::TransferFungible_GasPayer:
+			from = signedMsg.msg.transferFtGasPayer.from;
+			break;
+		case TxTypes::TransferNonFungible_Single_GasPayer:
+			from = signedMsg.msg.transferNftSingleGasPayer.from;
+			break;
+		case TxTypes::TransferNonFungible_Multi_GasPayer:
+			from = signedMsg.msg.transferNftMultiGasPayer.from;
+			break;
+		case TxTypes::BurnFungible_GasPayer:
+			from = signedMsg.msg.burnFungibleGasPayer.from;
+			break;
+		case TxTypes::BurnNonFungible_GasPayer:
+			from = signedMsg.msg.burnNonFungibleGasPayer.from;
+			break;
+		default:
+			break;
 		}
 		Throw::Assert(witnessList.numWitnesses == 2 &&
-			witnessList.witnesses &&
-			witnessList.witnesses[0].address == signedMsg.msg.gasFrom &&
-			witnessList.witnesses[1].address == from, "invalid witness");
+		                  witnessList.witnesses &&
+		                  witnessList.witnesses[0].address == signedMsg.msg.gasFrom &&
+		                  witnessList.witnesses[1].address == from,
+		    "invalid witness");
 		Write(witnessList.witnesses[0].signature, w);
 		Write(witnessList.witnesses[1].signature, w);
 		return;
@@ -648,10 +673,9 @@ inline void Write(const SignedTxMsg& signedMsg, WriteView& w)
 	case TxTypes::Call:
 	case TxTypes::Call_Multi:
 	case TxTypes::Trade:
-	case TxTypes::Phantasma:
-	{
+	case TxTypes::Phantasma: {
 		Write4((int32_t)witnessList.numWitnesses, w);
-		for (uint32_t i = 0; i != witnessList.numWitnesses; ++i)
+		for( uint32_t i = 0; i != witnessList.numWitnesses; ++i )
 		{
 			Write(witnessList.witnesses[i], w);
 		}
@@ -677,8 +701,7 @@ inline ByteArray SerializeTx(const TxMsg& msg)
 	return buffer;
 }
 
-struct TxMsgSigner
-{
+struct TxMsgSigner {
 	static ByteArray SignAndSerialize(const TxMsg& msg, const PhantasmaKeys& keys)
 	{
 		const ByteArray serializedMsg = SerializeTx(msg);

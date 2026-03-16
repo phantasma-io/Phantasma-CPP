@@ -12,16 +12,16 @@ namespace phantasma {
 // Use this when storing passwords, WIF's or other sensitive information in memory.
 class SecureString
 {
-public:
-	SecureString() 
+  public:
+	SecureString()
 	{
 	}
 	SecureString(const SecureString& o)
-		: data(o.data)
+	    : data(o.data)
 	{
 	}
 	typedef SecureVector<Char>::size_type size_type;
-	explicit SecureString(const Char* source, size_type length=0)
+	explicit SecureString(const Char* source, size_type length = 0)
 	{
 		if( !source )
 			return;
@@ -31,7 +31,7 @@ public:
 		{
 			UInt32 size = (UInt32)length + 1;
 			data.resize(size);
-			PHANTASMA_COPY(source, source+size, &data.front());
+			PHANTASMA_COPY(source, source + size, &data.front());
 			data.back() = '\0';
 		}
 	}
@@ -40,12 +40,12 @@ public:
 		const Char* source = o.c_str();
 		UInt32 size = (UInt32)(o.length() + 1);
 		data.resize(size);
-		PHANTASMA_COPY(source, source+size, &data.front());
+		PHANTASMA_COPY(source, source + size, &data.front());
 	}
 
 	bool empty() const { return data.empty() || data.front() == '\0'; }
 
-	Char  operator[](int i) const { return data[i]; }
+	Char operator[](int i) const { return data[i]; }
 
 	const Char* c_str() const
 	{
@@ -56,11 +56,15 @@ public:
 
 	UInt32 length() const { return data.empty() ? 0 : (UInt32)data.size() - 1; }
 
-	void resize(unsigned len) { data.resize(len+1); data[len] = '\0'; }
+	void resize(unsigned len)
+	{
+		data.resize(len + 1);
+		data[len] = '\0';
+	}
 	Char* begin() { return data.empty() ? 0 : &data.front(); }
 
-private:
+  private:
 	SecureVector<Char> data;
 };
 
-}
+} // namespace phantasma

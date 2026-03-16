@@ -9,16 +9,16 @@
 namespace phantasma {
 namespace Ed25519 {
 
-inline void PublicKeyFromSeed( Byte* output, int outputSize, const Byte* seed, int seedLength )
+inline void PublicKeyFromSeed(Byte* output, int outputSize, const Byte* seed, int seedLength)
 {
-	if(!output || !seed || outputSize != 32 || seedLength != 32 )
+	if( !output || !seed || outputSize != 32 || seedLength != 32 )
 	{
 		PHANTASMA_EXCEPTION("Invalid arguments");
 		return;
 	}
 	PHANTASMA_Ed25519_PublicKeyFromSeed(output, 32, seed, 32);
 }
-inline ByteArray PublicKeyFromSeed( const Byte* seed, int seedLength )
+inline ByteArray PublicKeyFromSeed(const Byte* seed, int seedLength)
 {
 	ByteArray publicKey;
 	publicKey.resize(32);
@@ -26,9 +26,9 @@ inline ByteArray PublicKeyFromSeed( const Byte* seed, int seedLength )
 	return publicKey;
 }
 
-inline void ExpandedPrivateKeyFromSeed( Byte* output, int outputSize, const Byte* seed, int seedLength )
+inline void ExpandedPrivateKeyFromSeed(Byte* output, int outputSize, const Byte* seed, int seedLength)
 {
-	if(!output || !seed || outputSize != 64 || seedLength != 32 )
+	if( !output || !seed || outputSize != 64 || seedLength != 32 )
 	{
 		PHANTASMA_EXCEPTION("Invalid arguments");
 		return;
@@ -36,7 +36,7 @@ inline void ExpandedPrivateKeyFromSeed( Byte* output, int outputSize, const Byte
 	PHANTASMA_Ed25519_PrivateKeyFromSeed(output, 64, seed, 32);
 }
 
-inline ByteArray Sign( const Byte* message, int messageLength, const Byte* expandedPrivateKey, int expandedPrivateKeyLength )
+inline ByteArray Sign(const Byte* message, int messageLength, const Byte* expandedPrivateKey, int expandedPrivateKeyLength)
 {
 	if( !message || !expandedPrivateKey )
 		return ByteArray{};
@@ -47,11 +47,12 @@ inline ByteArray Sign( const Byte* message, int messageLength, const Byte* expan
 	return signed_message;
 }
 
-inline bool Verify( const Byte* signature, int signatureLength, const Byte* message, int messageLength, const Byte* publicKey, int publicKeyLength )
+inline bool Verify(const Byte* signature, int signatureLength, const Byte* message, int messageLength, const Byte* publicKey, int publicKeyLength)
 {
 	if( !signature || !message || !publicKey )
 		return false;
 	return PHANTASMA_Ed25519_ValidateDetached(signature, signatureLength, message, messageLength, publicKey, publicKeyLength);
 }
 
-}}
+} // namespace Ed25519
+} // namespace phantasma

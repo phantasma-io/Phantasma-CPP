@@ -12,11 +12,10 @@ class Serializable // concept
 };
 
 template<class T>
-struct Serialization
-{
+struct Serialization {
 	static T Unserialize(const ByteArray& bytes)
 	{
-		if (bytes.size() != 0)
+		if( bytes.size() != 0 )
 		{
 			BinaryReader reader(bytes);
 			return T::Unserialize(reader);
@@ -26,11 +25,10 @@ struct Serialization
 };
 
 template<>
-struct Serialization<String>
-{
+struct Serialization<String> {
 	static String Unserialize(const ByteArray& bytes)
 	{
-		if (bytes.size() != 0)
+		if( bytes.size() != 0 )
 		{
 			BinaryReader reader(bytes);
 			String s;
@@ -41,4 +39,4 @@ struct Serialization<String>
 	}
 };
 
-}
+} // namespace phantasma

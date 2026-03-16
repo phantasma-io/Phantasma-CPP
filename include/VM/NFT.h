@@ -9,4 +9,4 @@ inline BigInteger NftIdFromNftRom(const ByteArray& rom)
 	return BigInteger(Hash::FromBytes(rom).ToByteArray(), Hash::Length);
 }
 
-}
+} // namespace phantasma

@@ -45,8 +45,7 @@ enum class TokenContract_Methods : uint32_t
 	CreateMintedTokenSeries = 21,
 };
 
-struct TokenHelper
-{
+struct TokenHelper {
 	static Bytes32 GetNftAddress(uint64_t carbonTokenId, uint64_t instanceId)
 	{
 		uint8_t prefix[16] = {};
@@ -61,29 +60,26 @@ struct TokenHelper
 	}
 };
 
-	struct TxEnvelope
-	{
-		phantasma::carbon::Blockchain::TxMsg msg{};
-		std::vector<ByteArray> buffers;
+struct TxEnvelope {
+	phantasma::carbon::Blockchain::TxMsg msg{};
+	std::vector<ByteArray> buffers;
 
-		const phantasma::carbon::Blockchain::TxMsg& View() const { return msg; }
-	};
+	const phantasma::carbon::Blockchain::TxMsg& View() const { return msg; }
+};
 
-	inline int64_t GetDefaultExpiry()
-	{
-		// Chain tx queues drop messages with expiry <= now, so default to now+60s like TS/C# helpers.
-		using namespace std::chrono;
-		return duration_cast<milliseconds>(system_clock::now().time_since_epoch()).count() + 60'000;
-	}
-
-struct FeeOptions
+inline int64_t GetDefaultExpiry()
 {
+	// Chain tx queues drop messages with expiry <= now, so default to now+60s like TS/C# helpers.
+	using namespace std::chrono;
+	return duration_cast<milliseconds>(system_clock::now().time_since_epoch()).count() + 60'000;
+}
+
+struct FeeOptions {
 	uint64_t gasFeeBase;
 	uint64_t feeMultiplier;
 
 	explicit FeeOptions(uint64_t base = 10000, uint64_t multiplier = 1000)
-		: gasFeeBase(base)
-		, feeMultiplier(multiplier)
+	    : gasFeeBase(base), feeMultiplier(multiplier)
 	{
 	}
 
@@ -95,15 +91,12 @@ struct FeeOptions
 	}
 };
 
-struct CreateTokenFeeOptions : public FeeOptions
-{
+struct CreateTokenFeeOptions : public FeeOptions {
 	uint64_t gasFeeCreateTokenBase;
 	uint64_t gasFeeCreateTokenSymbol;
 
 	CreateTokenFeeOptions(uint64_t base = 10000, uint64_t createTokenBase = 10000000000ULL, uint64_t createTokenSymbol = 10000000000ULL, uint64_t multiplier = 10000)
-		: FeeOptions(base, multiplier)
-		, gasFeeCreateTokenBase(createTokenBase)
-		, gasFeeCreateTokenSymbol(createTokenSymbol)
+	    : FeeOptions(base, multiplier), gasFeeCreateTokenBase(createTokenBase), gasFeeCreateTokenSymbol(createTokenSymbol)
 	{
 	}
 
@@ -113,10 +106,10 @@ struct CreateTokenFeeOptions : public FeeOptions
 	{
 		const size_t len = symbol.length;
 		uint64_t symbolPart = gasFeeCreateTokenSymbol;
-		if (len > 0)
+		if( len > 0 )
 		{
 			const size_t shift = len > 0 ? len - 1 : 0;
-			if (shift < sizeof(uint64_t) * 8)
+			if( shift < sizeof(uint64_t) * 8 )
 			{
 				symbolPart >>= shift;
 			}
@@ -125,13 +118,11 @@ struct CreateTokenFeeOptions : public FeeOptions
 	}
 };
 
-struct CreateSeriesFeeOptions : public FeeOptions
-{
+struct CreateSeriesFeeOptions : public FeeOptions {
 	uint64_t gasFeeCreateSeriesBase;
 
 	CreateSeriesFeeOptions(uint64_t base = 10000, uint64_t createSeriesBase = 2500000000ULL, uint64_t multiplier = 10000)
-		: FeeOptions(base, multiplier)
-		, gasFeeCreateSeriesBase(createSeriesBase)
+	    : FeeOptions(base, multiplier), gasFeeCreateSeriesBase(createSeriesBase)
 	{
 	}
 
@@ -141,10 +132,9 @@ struct CreateSeriesFeeOptions : public FeeOptions
 	}
 };
 
-struct MintNftFeeOptions : public FeeOptions
-{
+struct MintNftFeeOptions : public FeeOptions {
 	explicit MintNftFeeOptions(uint64_t base = 10000, uint64_t multiplier = 1000)
-		: FeeOptions(base, multiplier)
+	    : FeeOptions(base, multiplier)
 	{
 	}
 
@@ -154,8 +144,7 @@ struct MintNftFeeOptions : public FeeOptions
 	}
 };
 
-struct CreateTokenTxHelper
-{
+struct CreateTokenTxHelper {
 	static TxEnvelope BuildTx(const TokenInfo& tokenInfo, const Bytes32& creatorPublicKey, const CreateTokenFeeOptions* feeOptions = nullptr, uint64_t maxData = 0, int64_t expiry = 0)
 	{
 		const CreateTokenFeeOptions fees = feeOptions ? *feeOptions : CreateTokenFeeOptions();
@@ -165,7 +154,7 @@ struct CreateTokenTxHelper
 		TxEnvelope env;
 		env.buffers.push_back(CarbonSerialize(tokenInfo));
 
-			env.msg.type = phantasma::carbon::Blockchain::TxTypes::Call;
+		env.msg.type = phantasma::carbon::Blockchain::TxTypes::Call;
 		env.msg.expiry = effectiveExpiry;
 		env.msg.maxGas = maxGas;
 		env.msg.maxData = maxData;
@@ -188,8 +177,7 @@ struct CreateTokenTxHelper
 	}
 };
 
-struct CreateTokenSeriesTxHelper
-{
+struct CreateTokenSeriesTxHelper {
 	static TxEnvelope BuildTx(uint64_t tokenId, const SeriesInfo& seriesInfo, const Bytes32& creatorPublicKey, const CreateSeriesFeeOptions* feeOptions = nullptr, uint64_t maxData = 0, int64_t expiry = 0)
 	{
 		const CreateSeriesFeeOptions fees = feeOptions ? *feeOptions : CreateSeriesFeeOptions();
@@ -227,18 +215,17 @@ struct CreateTokenSeriesTxHelper
 	}
 };
 
-struct MintNonFungibleTxHelper
-{
+struct MintNonFungibleTxHelper {
 	static TxEnvelope BuildTx(
-		uint64_t tokenId,
-		uint32_t seriesId,
-		const Bytes32& senderPublicKey,
-		const Bytes32& receiverPublicKey,
-		const ByteArray& rom,
-		const ByteArray& ram,
-		const MintNftFeeOptions* feeOptions = nullptr,
-		uint64_t maxData = 0,
-		int64_t expiry = 0)
+	    uint64_t tokenId,
+	    uint32_t seriesId,
+	    const Bytes32& senderPublicKey,
+	    const Bytes32& receiverPublicKey,
+	    const ByteArray& rom,
+	    const ByteArray& ram,
+	    const MintNftFeeOptions* feeOptions = nullptr,
+	    uint64_t maxData = 0,
+	    int64_t expiry = 0)
 	{
 		const MintNftFeeOptions fees = feeOptions ? *feeOptions : MintNftFeeOptions();
 		const uint64_t maxGas = fees.CalculateMaxGas();
@@ -268,7 +255,7 @@ struct MintNonFungibleTxHelper
 		std::vector<Bytes32> result;
 		const uint32_t count = (uint32_t)Read4u(r);
 		result.reserve(count);
-		for (uint32_t i = 0; i != count; ++i)
+		for( uint32_t i = 0; i != count; ++i )
 		{
 			const uint64_t instanceId = Read8u(r);
 			result.push_back(TokenHelper::GetNftAddress(carbonTokenId, instanceId));
@@ -277,9 +264,9 @@ struct MintNonFungibleTxHelper
 	}
 };
 
-	inline ByteArray SignAndSerialize(const TxEnvelope& env, const PhantasmaKeys& keys)
-	{
-		return phantasma::carbon::Blockchain::TxMsgSigner::SignAndSerialize(env.msg, keys);
-	}
+inline ByteArray SignAndSerialize(const TxEnvelope& env, const PhantasmaKeys& keys)
+{
+	return phantasma::carbon::Blockchain::TxMsgSigner::SignAndSerialize(env.msg, keys);
+}
 
 } // namespace phantasma::carbon

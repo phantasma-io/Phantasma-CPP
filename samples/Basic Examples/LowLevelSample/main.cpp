@@ -1,6 +1,6 @@
 //------------------------------------------------------------------------------
-// This sample does NOT actually communicate with the network/chain. It only 
-//  serves to demonstrate how to use the low-level JSON API, allowing you to 
+// This sample does NOT actually communicate with the network/chain. It only
+//  serves to demonstrate how to use the low-level JSON API, allowing you to
 //  perform HTTP requests yourself.
 //------------------------------------------------------------------------------
 
@@ -11,7 +11,7 @@
 using namespace phantasma;
 using namespace phantasma::rpc;
 
-const char* DoHttpPost( const char* uri, const std::string& request )
+const char* DoHttpPost(const char* uri, const std::string& request)
 {
 	//This is where you'd perform the HTTP POST request...
 	//Hard-coded response:
@@ -27,7 +27,7 @@ int main()
 
 	JSONBuilder json;
 	PhantasmaJsonAPI::MakeGetAccountRequest(json, wif);
-	
+
 	JSONValue response = DoHttpPost(PhantasmaJsonAPI::Uri(), json.s.str());
 
 	Account account;
@@ -35,7 +35,7 @@ int main()
 
 	std::cout << "Balance description for address " << wif << std::endl;
 
-	for (int i = 0; i < account.balances.size(); i++) 
+	for( int i = 0; i < account.balances.size(); i++ )
 	{
 		std::cout << account.balances[i].amount << " " << account.balances[i].symbol << " tokens available on " << account.balances[i].chain << " chain" << std::endl;
 	}

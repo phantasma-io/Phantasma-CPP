@@ -1,64 +1,63 @@
 #pragma once
 #ifdef PHANTASMA_API_INCLUDED
 #error "Include HTTP API adaptors immediately before including PhantasmaAPI.h"
-#endif 
+#endif
 #define PHANTASMA_CURL
 //------------------------------------------------------------------------------
-// This header supplies the Phantasma API with HTTP features provided by the 
+// This header supplies the Phantasma API with HTTP features provided by the
 //  CURL library (https://curl.haxx.se/)
-// 
+//
 // Include this file AFTER PhantasmaAPI_rapidjson.h to interop libCurl and RapidJSON.
 //------------------------------------------------------------------------------
 #include "curl/curl.h"
 #include "curl/easy.h"
 
 #ifndef PHANTASMA_STRING
-# include <string>
-# ifdef _UNICODE
-#  define PHANTASMA_STRING std::wstring
-# else
-#  define PHANTASMA_STRING std::string
-# endif
+#include <string>
+#ifdef _UNICODE
+#define PHANTASMA_STRING std::wstring
+#else
+#define PHANTASMA_STRING std::string
+#endif
 #endif
 
 #ifndef PHANTASMA_STRINGBUILDER
-# include <sstream>
-# ifdef _UNICODE
-#  define PHANTASMA_STRINGBUILDER std::wstringstream
-# else
-#  define PHANTASMA_STRINGBUILDER std::stringstream
-# endif
+#include <sstream>
+#ifdef _UNICODE
+#define PHANTASMA_STRINGBUILDER std::wstringstream
+#else
+#define PHANTASMA_STRINGBUILDER std::stringstream
+#endif
 #endif
 
 #ifndef PHANTASMA_CHAR
-# ifdef _UNICODE
-#  define PHANTASMA_CHAR wchar_t
-# else
-#  define PHANTASMA_CHAR char
-# endif
+#ifdef _UNICODE
+#define PHANTASMA_CHAR wchar_t
+#else
+#define PHANTASMA_CHAR char
+#endif
 #endif
 
-namespace phantasma { 
-namespace rpc { 
+namespace phantasma {
+namespace rpc {
 struct PhantasmaError;
 }
 
 class ReallocBuffer // buffer class for CURL to write responses into
 {
-public:
+  public:
 	ReallocBuffer(size_t initialCapacity = 1024)
-		: memory((char*)malloc(initialCapacity))
-		, size(0), capactiy(initialCapacity) {}
+	    : memory((char*)malloc(initialCapacity)), size(0), capactiy(initialCapacity) {}
 	~ReallocBuffer() { free(memory); }
-	void   clear() { size = 0; }
-	char*  begin() { return memory; }
-	char*  end() { return memory + size; }
+	void clear() { size = 0; }
+	char* begin() { return memory; }
+	char* end() { return memory + size; }
 	size_t bytes() const { return size; }
 	size_t capacity() const { return capactiy; }
 	char* append(const void* data, size_t dataSize)
 	{
 		size_t newCapacity = size + dataSize;
-		if (newCapacity > capactiy)
+		if( newCapacity > capactiy )
 			memory = (char*)realloc(memory, capactiy = newCapacity);
 		char* dst = end();
 		if( data )
@@ -66,15 +65,16 @@ public:
 		size += dataSize;
 		return dst;
 	}
-	static size_t CurlWrite(void *contents, size_t size, size_t nmemb, void *userp)
+	static size_t CurlWrite(void* contents, size_t size, size_t nmemb, void* userp)
 	{
 		size_t realsize = size * nmemb;
 		ReallocBuffer* mem = (ReallocBuffer*)userp;
 		mem->append(contents, realsize);
 		return realsize;
 	}
-private:
-	char*  memory;
+
+  private:
+	char* memory;
 	size_t size;
 	size_t capactiy;
 };
@@ -82,7 +82,8 @@ private:
 class CurlClient // Very simple wrapper around CURL
 {
 	void* m_curl = 0;
-public:
+
+  public:
 	const PHANTASMA_STRING host;
 	ReallocBuffer result;
 #ifdef PHANTASMA_RAPIDJSON
@@ -90,7 +91,7 @@ public:
 #endif
 
 	CurlClient(const PHANTASMA_STRING& host = "http://localhost:7077")
-		: host(host)
+	    : host(host)
 	{
 		m_curl = curl_easy_init();
 		curl_easy_setopt(m_curl, CURLOPT_WRITEFUNCTION, ReallocBuffer::CurlWrite);
@@ -127,7 +128,7 @@ public:
 namespace rpc {
 struct PhantasmaError;
 void OnHttpError(PhantasmaError&, const char*);
-}
+} // namespace rpc
 
 template<class CurlClient>
 static rapidjson::Document& HttpPost(CurlClient& client, const json::Char* uri, const RapidJsonBufferWriter& data, rpc::PhantasmaError* err)
@@ -135,7 +136,7 @@ static rapidjson::Document& HttpPost(CurlClient& client, const json::Char* uri, 
 	const char* request = data.buf.GetString();
 	CURLcode code = client.Post(request, strlen(request), uri);
 	client.result.append("\0", 1);
-	if (err && code != CURLE_OK)
+	if( err && code != CURLE_OK )
 	{
 		rpc::OnHttpError(*err, curl_easy_strerror(code));
 	}
@@ -148,12 +149,12 @@ static PHANTASMA_STRING HttpPost(CurlClient& client, const PHANTASMA_CHAR* uri, 
 	const PHANTASMA_STRING& request = data.str();
 	CURLcode code = client.Post(request.c_str(), request.length(), uri);
 	client.result.append("\0", 1);
-	if(err && code != CURLE_OK)
+	if( err && code != CURLE_OK )
 		rpc::OnHttpError(*err, curl_easy_strerror(code));
 	return { client.result.begin() };
 }
 #endif
 
-#define PHANTASMA_HTTPCLIENT       CurlClient
+#define PHANTASMA_HTTPCLIENT CurlClient
 
-}
+} // namespace phantasma

@@ -1,7 +1,7 @@
-﻿#pragma once
+#pragma once
 #ifndef PHANTASMA_API_INCLUDED
 #error "Configure and include PhantasmaAPI.h first"
-#endif 
+#endif
 
 #include <ctime>
 #include <chrono>
@@ -14,27 +14,27 @@ namespace phantasma {
 
 class Timespan
 {
-public:
+  public:
 	const Int32 Value;
 
-	explicit Timespan( Int32 value = 0 )
-		: Value( value )
+	explicit Timespan(Int32 value = 0)
+	    : Value(value)
 	{
 	}
 
-	static Timespan FromSeconds( int seconds )
+	static Timespan FromSeconds(int seconds)
 	{
 		return Timespan{ (Int32)seconds };
 	}
-	static Timespan FromMinutes( int minutes )
+	static Timespan FromMinutes(int minutes)
 	{
 		return Timespan{ (Int32)(minutes * 60) };
 	}
-	static Timespan FromHours( int hours )
+	static Timespan FromHours(int hours)
 	{
 		return Timespan{ (Int32)(hours * 60 * 60) };
 	}
-	static Timespan FromDays( int days )
+	static Timespan FromDays(int days)
 	{
 		return Timespan{ (Int32)(days * 60 * 60 * 24) };
 	}
@@ -42,16 +42,16 @@ public:
 
 class Timestamp
 {
-public:
+  public:
 	typedef UInt32 ValueType; // TODO - https://en.wikipedia.org/wiki/Year_2038_problem
 	ValueType Value;
 
 	Timestamp()
-		: Value( 0 )
+	    : Value(0)
 	{
 	}
-	explicit Timestamp( ValueType value )
-		: Value( value )
+	explicit Timestamp(ValueType value)
+	    : Value(value)
 	{
 	}
 
@@ -68,7 +68,7 @@ public:
 #endif
 		constexpr int BufferLength = 512;
 		Char buffer[BufferLength];
-		if(0 == StrFTime( buffer, BufferLength, PHANTASMA_LITERAL("%c"), dateTime ))
+		if( 0 == StrFTime(buffer, BufferLength, PHANTASMA_LITERAL("%c"), dateTime) )
 		{
 			PHANTASMA_EXCEPTION("Could not format date/time");
 			buffer[0] = '\0';
@@ -89,7 +89,7 @@ public:
 #endif
 		constexpr int BufferLength = 512;
 		Char buffer[BufferLength];
-		if(0 == StrFTime( buffer, BufferLength, PHANTASMA_LITERAL("%FT%TZ"), dateTime ))
+		if( 0 == StrFTime(buffer, BufferLength, PHANTASMA_LITERAL("%FT%TZ"), dateTime) )
 		{
 			PHANTASMA_EXCEPTION("Could not format date/time");
 			buffer[0] = '\0';
@@ -136,8 +136,8 @@ public:
 
 	static Timestamp FromDateTimeUTC(int year, int month, int day, int hour, int minute, int second)
 	{
-		if( month < 1 || month > 12 || day < 1 || day > 31 || hour < 0 || hour > 23 || 
-			minute < 0 || minute > 59 || second < 0 || second > 60 )
+		if( month < 1 || month > 12 || day < 1 || day > 31 || hour < 0 || hour > 23 ||
+		    minute < 0 || minute > 59 || second < 0 || second > 60 )
 		{
 			PHANTASMA_EXCEPTION("Invalid date/time");
 		}
@@ -162,13 +162,13 @@ public:
 		return Timestamp((ValueType)time);
 	}
 
-	static Timestamp FromISO8601(const Char* input, int inputLength=-1)
+	static Timestamp FromISO8601(const Char* input, int inputLength = -1)
 	{
-		if(input && inputLength < 0)
+		if( input && inputLength < 0 )
 		{
 			inputLength = (int)PHANTASMA_STRLEN(input);
 		}
-		if(!input ||  inputLength < 19)
+		if( !input || inputLength < 19 )
 		{
 			PHANTASMA_EXCEPTION("Invalid ISO8601 input string");
 			return Timestamp{};
@@ -176,11 +176,11 @@ public:
 
 		std::tm t = {};
 		t.tm_year = (int)PHANTASMA_STRTOINT(&input[0]) - 1900;
-		t.tm_mon  = (int)PHANTASMA_STRTOINT(&input[5]) - 1;
+		t.tm_mon = (int)PHANTASMA_STRTOINT(&input[5]) - 1;
 		t.tm_mday = (int)PHANTASMA_STRTOINT(&input[8]);
 		t.tm_hour = (int)PHANTASMA_STRTOINT(&input[11]);
-		t.tm_min  = (int)PHANTASMA_STRTOINT(&input[14]);
-		t.tm_sec  = (int)PHANTASMA_STRTOINT(&input[17]);
+		t.tm_min = (int)PHANTASMA_STRTOINT(&input[14]);
+		t.tm_sec = (int)PHANTASMA_STRTOINT(&input[17]);
 		t.tm_isdst = 0;
 		const int millis = inputLength > 20 ? (int)PHANTASMA_STRTOINT(&input[20]) : 0;
 
@@ -193,14 +193,14 @@ public:
 		return Timestamp((ValueType)time + (millis >= 500 ? 1 : 0));
 	}
 
-	int CompareTo( Timestamp other ) const
+	int CompareTo(Timestamp other) const
 	{
-		if(other.Value == Value)
+		if( other.Value == Value )
 		{
 			return 0;
 		}
 
-		if(Value < other.Value)
+		if( Value < other.Value )
 		{
 			return -1;
 		}
@@ -213,31 +213,31 @@ public:
 		return sizeof(ValueType);
 	}
 
-	bool operator ==( Timestamp B ) const { return Value == B.Value; }
+	bool operator==(Timestamp B) const { return Value == B.Value; }
 
-	bool operator !=( Timestamp B ) const { return !(Value == B.Value); }
+	bool operator!=(Timestamp B) const { return !(Value == B.Value); }
 
-	bool operator <( Timestamp B ) const { return Value < B.Value; }
+	bool operator<(Timestamp B) const { return Value < B.Value; }
 
-	bool operator >( Timestamp B ) const { return Value > B.Value; }
+	bool operator>(Timestamp B) const { return Value > B.Value; }
 
-	bool operator <=( Timestamp B ) const { return Value <= B.Value; }
+	bool operator<=(Timestamp B) const { return Value <= B.Value; }
 
-	bool operator >=( Timestamp B ) const { return Value >= B.Value; }
+	bool operator>=(Timestamp B) const { return Value >= B.Value; }
 
-	Timespan operator -( Timestamp B ) const { return Timespan{(Int32)(Value - B.Value)}; }
+	Timespan operator-(Timestamp B) const { return Timespan{ (Int32)(Value - B.Value) }; }
 
-	Timestamp operator +( Timespan B ) const { return Timestamp{Value + B.Value}; }
+	Timestamp operator+(Timespan B) const { return Timestamp{ Value + B.Value }; }
 
-private:
-	static std::size_t StrFTime( char* str, std::size_t count, const char* format, const std::tm* time )
+  private:
+	static std::size_t StrFTime(char* str, std::size_t count, const char* format, const std::tm* time)
 	{
-		return strftime( str, count, format, time );
+		return strftime(str, count, format, time);
 	}
-	static std::size_t StrFTime( wchar_t* str, std::size_t count, const wchar_t* format, const std::tm* time )
+	static std::size_t StrFTime(wchar_t* str, std::size_t count, const wchar_t* format, const std::tm* time)
 	{
-		return wcsftime( str, count, format, time );
-	}       
+		return wcsftime(str, count, format, time);
+	}
 };
 
-}
+} // namespace phantasma

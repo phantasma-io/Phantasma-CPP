@@ -1,25 +1,24 @@
-﻿#pragma once
+#pragma once
 #ifndef PHANTASMA_API_INCLUDED
 #error "Configure and include PhantasmaAPI.h first"
-#endif 
+#endif
 
 namespace phantasma {
 
-namespace Entropy
+namespace Entropy {
+inline void GetRandomBytes(Byte* output, int length)
 {
-	inline void GetRandomBytes( Byte* output, int length )
+	if( !output || length <= 0 )
 	{
-		if(!output || length <= 0)
-		{
-			PHANTASMA_EXCEPTION("Invalid usage");
-			return;
-		}
-#ifdef PHANTASMA_RANDOMBYTES
-		PHANTASMA_RANDOMBYTES(output, length);
-#else
-# error "You must supply a PHANTASMA_RANDOMBYTES implementation"
-#endif
+		PHANTASMA_EXCEPTION("Invalid usage");
+		return;
 	}
+#ifdef PHANTASMA_RANDOMBYTES
+	PHANTASMA_RANDOMBYTES(output, length);
+#else
+#error "You must supply a PHANTASMA_RANDOMBYTES implementation"
+#endif
 }
+} // namespace Entropy
 
-}
+} // namespace phantasma

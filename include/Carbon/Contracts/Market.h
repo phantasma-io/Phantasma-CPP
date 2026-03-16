@@ -12,8 +12,7 @@ enum class ListingType : uint8_t
 	FixedPrice
 };
 
-struct TokenListing
-{
+struct TokenListing {
 	ListingType type = ListingType::FixedPrice;
 	Bytes32 seller{};
 	uint64_t quoteTokenId = 0;
@@ -25,12 +24,11 @@ struct TokenListing
 inline bool Read(TokenListing& out, ReadView& r)
 {
 	out.type = static_cast<ListingType>(Read1(r));
-	return
-		Read(out.seller, r) &&
-		Read(out.quoteTokenId, r) &&
-		Read(out.price, r) &&
-		Read(out.startDate, r) &&
-		Read(out.endDate, r);
+	return Read(out.seller, r) &&
+	       Read(out.quoteTokenId, r) &&
+	       Read(out.price, r) &&
+	       Read(out.startDate, r) &&
+	       Read(out.endDate, r);
 }
 
 inline void Write(const TokenListing& in, WriteView& w)

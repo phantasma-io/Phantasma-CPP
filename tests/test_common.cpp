@@ -7,11 +7,11 @@ using namespace phantasma::carbon;
 void Report(TestContext& ctx, bool ok, const std::string& name, const std::string& details)
 {
 	++ctx.total;
-	if (!ok)
+	if( !ok )
 	{
 		++ctx.failed;
 		std::cerr << "FAIL: " << name;
-		if (!details.empty())
+		if( !details.empty() )
 		{
 			std::cerr << " (" << details << ")";
 		}
@@ -22,7 +22,8 @@ void Report(TestContext& ctx, bool ok, const std::string& name, const std::strin
 std::string ToUpper(const std::string& s)
 {
 	std::string out = s;
-	std::transform(out.begin(), out.end(), out.begin(), [](unsigned char c) { return (char)toupper(c); });
+	std::transform(out.begin(), out.end(), out.begin(), [](unsigned char c)
+	    { return (char)toupper(c); });
 	return out;
 }
 
@@ -39,7 +40,7 @@ std::string BytesToHex(const ByteArray& bytes)
 
 ByteArray BytesFromView(const ByteView& view)
 {
-	if (!view.length)
+	if( !view.length )
 	{
 		return {};
 	}
@@ -51,10 +52,10 @@ ByteArray ParseDecBytes(const std::string& dec)
 	std::stringstream ss(dec);
 	std::string token;
 	ByteArray out;
-	while (ss >> token)
+	while( ss >> token )
 	{
 		const int value = std::stoi(token, nullptr, 10);
-		if (value < 0 || value > 255)
+		if( value < 0 || value > 255 )
 		{
 			throw std::runtime_error("invalid decimal byte in fixture");
 		}
@@ -67,7 +68,7 @@ int64_t ParseNum(const std::string& s)
 {
 	int base = 10;
 	size_t idx = 0;
-	if (s.size() > 2 && s[0] == '0' && (s[1] == 'x' || s[1] == 'X'))
+	if( s.size() > 2 && s[0] == '0' && (s[1] == 'x' || s[1] == 'X') )
 	{
 		base = 16;
 		idx = 2;
@@ -79,7 +80,7 @@ uint64_t ParseUNum(const std::string& s)
 {
 	int base = 10;
 	size_t idx = 0;
-	if (s.size() > 2 && s[0] == '0' && (s[1] == 'x' || s[1] == 'X'))
+	if( s.size() > 2 && s[0] == '0' && (s[1] == 'x' || s[1] == 'X') )
 	{
 		base = 16;
 		idx = 2;
@@ -91,7 +92,7 @@ intx ParseIntx(const std::string& s)
 {
 	bool err = false;
 	intx v = intx::FromString(s.c_str(), (uint32_t)s.size(), 10, &err);
-	if (err)
+	if( err )
 	{
 		throw std::runtime_error("bad intx");
 	}
@@ -106,14 +107,14 @@ int256 ToInt256(const BigInteger& bi)
 
 std::vector<std::string> SplitCsv(const std::string& s)
 {
-	if (s.empty())
+	if( s.empty() )
 	{
 		return {};
 	}
 	std::vector<std::string> out;
 	std::stringstream ss(s);
 	std::string item;
-	while (std::getline(ss, item, ','))
+	while( std::getline(ss, item, ',') )
 	{
 		out.push_back(item);
 	}
@@ -123,27 +124,27 @@ std::vector<std::string> SplitCsv(const std::string& s)
 std::vector<ByteArray> ParseArrBytes2D(const std::string& s)
 {
 	// format: [[01,02],[03,04]]
-	if (s.size() < 4 || s.front() != '[' || s[1] != '[' || s[s.size() - 2] != ']' || s[s.size() - 1] != ']')
+	if( s.size() < 4 || s.front() != '[' || s[1] != '[' || s[s.size() - 2] != ']' || s[s.size() - 1] != ']' )
 	{
 		return {};
 	}
 	const std::string inner = s.substr(2, s.size() - 4);
 	std::vector<ByteArray> out;
 	size_t start = 0;
-	while (start < inner.size())
+	while( start < inner.size() )
 	{
 		size_t end = inner.find("],[", start);
 		const std::string seg = inner.substr(start, end == std::string::npos ? std::string::npos : end - start);
 		std::string flat;
-		for (char c : seg)
+		for( char c : seg )
 		{
-			if (c != ',')
+			if( c != ',' )
 			{
 				flat.push_back(c);
 			}
 		}
 		out.push_back(HexToBytes(flat));
-		if (end == std::string::npos)
+		if( end == std::string::npos )
 		{
 			break;
 		}
@@ -155,35 +156,35 @@ std::vector<ByteArray> ParseArrBytes2D(const std::string& s)
 std::vector<Row> LoadRows(const std::string& path)
 {
 	std::ifstream file(path);
-	if (!file.is_open())
+	if( !file.is_open() )
 	{
 		file.open("tests/" + path);
 	}
 	std::string line;
 	std::vector<Row> rows;
-	while (std::getline(file, line))
+	while( std::getline(file, line) )
 	{
-		if (line.empty())
+		if( line.empty() )
 		{
 			continue;
 		}
 		// strip UTF-8 BOM if present
-		if (!line.empty() && (unsigned char)line[0] == 0xEF)
+		if( !line.empty() && (unsigned char)line[0] == 0xEF )
 		{
 			line = line.substr(3);
 		}
 		std::vector<std::string> cols;
 		std::stringstream ss(line);
 		std::string col;
-		while (std::getline(ss, col, '\t'))
+		while( std::getline(ss, col, '\t') )
 		{
 			cols.push_back(col);
 		}
-		if (cols.size() == 5 && (cols[0] == "BI" || cols[0] == "INTX"))
+		if( cols.size() == 5 && (cols[0] == "BI" || cols[0] == "INTX") )
 		{
 			rows.push_back(Row{ cols[0], cols[1], cols[2], cols[3], cols[4] });
 		}
-		else if (cols.size() == 3)
+		else if( cols.size() == 3 )
 		{
 			rows.push_back(Row{ cols[0], cols[1], cols[2], {}, {} });
 		}
@@ -200,7 +201,7 @@ const std::string& SampleIcon()
 Bytes32 ToBytes32(const ByteArray& bytes)
 {
 	Bytes32 out{};
-	if (!bytes.empty())
+	if( !bytes.empty() )
 	{
 		out = View(bytes.data(), bytes.data() + bytes.size());
 	}
@@ -212,7 +213,7 @@ VmNamedVariableSchema MakeSchema(const char* name, VmType type, const VmStructSc
 	VmNamedVariableSchema schema{};
 	schema.name = SmallString(name);
 	schema.schema.type = type;
-	if (structSchema)
+	if( structSchema )
 	{
 		schema.schema.structure = *structSchema;
 	}
@@ -235,10 +236,10 @@ ByteArray BuildConsensusSingleVoteScript()
 	ScriptBuilder sb;
 	// Keep TS argument order (gasLimit, gasPrice) to match the shared vector.
 	return sb
-		.AllowGas(keys.GetAddress(), Address(), gasLimit, gasPrice)
-		.CallContract("consensus", "SingleVote", keys.GetAddress().Text(), subject, 0)
-		.SpendGas(keys.GetAddress())
-		.EndScript();
+	    .AllowGas(keys.GetAddress(), Address(), gasLimit, gasPrice)
+	    .CallContract("consensus", "SingleVote", keys.GetAddress().Text(), subject, 0)
+	    .SpendGas(keys.GetAddress())
+	    .EndScript();
 }
 
 } // namespace testutil

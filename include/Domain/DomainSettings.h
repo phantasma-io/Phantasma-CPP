@@ -7,8 +7,7 @@
 
 namespace phantasma {
 
-struct DomainSettings
-{
+struct DomainSettings {
 	static constexpr int LatestKnownProtocol = 19;
 	static constexpr int Phantasma20Protocol = 7;
 	static constexpr int Phantasma30Protocol = 8;
