@@ -42,10 +42,10 @@ class Ed25519Signature
 
 	const Byte* Bytes() const { return bytes; }
 
-	bool Verify(const Byte* message, int messageLength, const Address* addresses, int numAddresses) const
+	int VerifyIndex(const Byte* message, int messageLength, const Address* addresses, int numAddresses) const
 	{
 		if( messageLength <= 0 )
-			return false;
+			return -1;
 
 		for( int i = 0; i < numAddresses; ++i )
 		{
@@ -57,11 +57,16 @@ class Ed25519Signature
 			int pubKeyLength = address.GetSize() - 2;
 			if( Ed25519::Verify(bytes, Length, message, messageLength, pubKey, pubKeyLength) )
 			{
-				return true;
+				return i;
 			}
 		}
 
-		return false;
+		return -1;
+	}
+
+	bool Verify(const Byte* message, int messageLength, const Address* addresses, int numAddresses) const
+	{
+		return VerifyIndex(message, messageLength, addresses, numAddresses) >= 0;
 	}
 
 	bool operator==(const Ed25519Signature& o) const

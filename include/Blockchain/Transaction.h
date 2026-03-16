@@ -136,6 +136,25 @@ class Transaction : public Serializable
 	{
 		return IsSignedBy(&address, 1);
 	}
+	int SignatureIndex(const Address& address)
+	{
+		if( !HasSignatures() )
+		{
+			return -1;
+		}
+
+		auto msg = ToByteArray(false);
+
+		for( int i = 0, end = (int)m_signatures.size(); i != end; ++i )
+		{
+			if( m_signatures[i].Verify(&msg.front(), (int)msg.size(), address) )
+			{
+				return i;
+			}
+		}
+
+		return -1;
+	}
 
 	bool IsSignedBy(const Address* addresses, int numAddresses)
 	{

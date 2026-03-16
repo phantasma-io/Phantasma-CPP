@@ -48,6 +48,14 @@ class Signature : public Serializable
 	{
 		return _Verify(message, messageLength, addresses, numAddresses);
 	}
+	int VerifyIndex(const Byte* message, int messageLength, const Address* addresses, int numAddresses) const
+	{
+		return _VerifyIndex(message, messageLength, addresses, numAddresses);
+	}
+	const Ed25519Signature& GetEd25519Signature() const
+	{
+		return m_signature.ed25519;
+	}
 
   private:
 	struct RingSignature {
@@ -55,6 +63,7 @@ class Signature : public Serializable
 		constexpr static int Length = 42;
 		bool operator==(const RingSignature& o) const { return false; }
 		bool Verify(...) const { return 0; }
+		int VerifyIndex(...) const { return -1; }
 		template<class T>
 		void SerializeData(T&) const {}
 	}; //todo
@@ -101,14 +110,19 @@ class Signature : public Serializable
 
 	bool _Verify(const Byte* message, int messageLength, const Address* addresses, int numAddresses) const
 	{
+		return _VerifyIndex(message, messageLength, addresses, numAddresses) >= 0;
+	}
+
+	int _VerifyIndex(const Byte* message, int messageLength, const Address* addresses, int numAddresses) const
+	{
 		switch( m_kind )
 		{
 		case SignatureKind::Ed25519:
-			return m_signature.ed25519.Verify(message, messageLength, addresses, numAddresses);
+			return m_signature.ed25519.VerifyIndex(message, messageLength, addresses, numAddresses);
 		case SignatureKind::Ring:
-			return m_signature.ring.Verify(message, messageLength, addresses, numAddresses);
+			return m_signature.ring.VerifyIndex(message, messageLength, addresses, numAddresses);
 		}
-		return false;
+		return -1;
 	}
 
   public:

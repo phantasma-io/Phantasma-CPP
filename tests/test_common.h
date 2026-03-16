@@ -25,6 +25,7 @@
 #include "../include/Utils/Timestamp.h"
 #include "../include/VM/ScriptBuilder.h"
 #include "../include/Blockchain/Transaction.h"
+#include "../include/Domain/Event.h"
 #include "../include/VM/VMObject.h"
 #include "../include/Utils/BinaryWriter.h"
 #include "../include/Utils/BinaryReader.h"

@@ -29,6 +29,10 @@ void RunScriptBuilderTransactionTests(TestContext& ctx)
 	const std::string signedHex = ToUpper(BytesToHex(signedTx));
 	const std::string expectedSigned = ToUpper(expectedSignedTxHex);
 	Report(ctx, signedHex == expectedSigned, "Transaction signed vector", signedHex + " vs " + expectedSigned);
+	Report(ctx, tx.SignatureIndex(keys.GetAddress()) == 0, "Transaction signature index");
+
+	const PhantasmaKeys otherKeys = PhantasmaKeys::Generate();
+	Report(ctx, tx.SignatureIndex(otherKeys.GetAddress()) == -1, "Transaction signature index mismatch");
 
 	const ByteArray knownBytes = HexToBytes(knownTxHex);
 	BinaryReader reader(knownBytes);
@@ -41,6 +45,28 @@ void RunScriptBuilderTransactionTests(TestContext& ctx)
 	    knownTx.Expiration().Value == 1234567890u &&
 	    knownTx.Signatures().size() == 1;
 	Report(ctx, knownOk, "Transaction unserialize");
+
+	TokenEventData tokenEvent("KCAL", BigInteger(42), "main");
+	BinaryWriter tokenWriter;
+	tokenWriter.WriteSerializable(tokenEvent);
+	const TokenEventData tokenEventRoundTrip = Serialization<TokenEventData>::Unserialize(tokenWriter.ToArray());
+	const bool tokenEventOk =
+	    tokenEventRoundTrip.symbol == PHANTASMA_LITERAL("KCAL") &&
+	    tokenEventRoundTrip.value == BigInteger(42) &&
+	    tokenEventRoundTrip.chainName == PHANTASMA_LITERAL("main");
+	Report(ctx, tokenEventOk, "TokenEventData serialize roundtrip");
+
+	InfusionEventData infusionEvent("HOST", BigInteger(123), "KCAL", BigInteger(7), "main");
+	BinaryWriter infusionWriter;
+	infusionWriter.WriteSerializable(infusionEvent);
+	const InfusionEventData infusionRoundTrip = Serialization<InfusionEventData>::Unserialize(infusionWriter.ToArray());
+	const bool infusionOk =
+	    infusionRoundTrip.baseSymbol == PHANTASMA_LITERAL("HOST") &&
+	    infusionRoundTrip.tokenID == BigInteger(123) &&
+	    infusionRoundTrip.infusedSymbol == PHANTASMA_LITERAL("KCAL") &&
+	    infusionRoundTrip.infusedValue == BigInteger(7) &&
+	    infusionRoundTrip.chainName == PHANTASMA_LITERAL("main");
+	Report(ctx, infusionOk, "InfusionEventData serialize roundtrip");
 }
 
 } // namespace testcases

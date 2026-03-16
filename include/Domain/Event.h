@@ -4,6 +4,7 @@
 #include "../Cryptography/Hash.h"
 #include "../Numerics/BigInteger.h"
 #include "../Numerics/Base16.h"
+#include "../Utils/Serializable.h"
 #include <type_traits>
 
 namespace phantasma {
@@ -240,7 +241,7 @@ inline EventKind StringToEventKind(const String& k)
 	return EventKind::Custom;
 }
 
-class TokenEventData
+class TokenEventData : public Serializable
 {
   public:
 	const String symbol;
@@ -263,6 +264,58 @@ class TokenEventData
 		reader.ReadBigInteger(value);
 		reader.ReadVarString(chainName);
 		return { symbol, value, chainName };
+	}
+
+	template<class BinaryWriter>
+	void SerializeData(BinaryWriter& writer) const
+	{
+		writer.WriteVarString(symbol);
+		writer.WriteBigInteger(value);
+		writer.WriteVarString(chainName);
+	}
+};
+
+class InfusionEventData : public Serializable
+{
+  public:
+	String baseSymbol;
+	BigInteger tokenID;
+	String infusedSymbol;
+	BigInteger infusedValue;
+	String chainName;
+
+	InfusionEventData() = default;
+	InfusionEventData(const String& baseSymbol, const BigInteger& tokenID, const String& infusedSymbol, const BigInteger& infusedValue, const String& chainName)
+	    : baseSymbol(baseSymbol), tokenID(tokenID), infusedSymbol(infusedSymbol), infusedValue(infusedValue), chainName(chainName)
+	{
+	}
+
+	template<class BinaryReader>
+	static InfusionEventData Unserialize(BinaryReader& reader)
+	{
+		InfusionEventData result;
+		result.UnserializeData(reader);
+		return result;
+	}
+
+	template<class BinaryReader>
+	void UnserializeData(BinaryReader& reader)
+	{
+		reader.ReadVarString(baseSymbol);
+		reader.ReadBigInteger(tokenID);
+		reader.ReadVarString(infusedSymbol);
+		reader.ReadBigInteger(infusedValue);
+		reader.ReadVarString(chainName);
+	}
+
+	template<class BinaryWriter>
+	void SerializeData(BinaryWriter& writer) const
+	{
+		writer.WriteVarString(baseSymbol);
+		writer.WriteBigInteger(tokenID);
+		writer.WriteVarString(infusedSymbol);
+		writer.WriteBigInteger(infusedValue);
+		writer.WriteVarString(chainName);
 	}
 };
 
