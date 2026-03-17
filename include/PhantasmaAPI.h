@@ -1710,7 +1710,7 @@ PHANTASMA_FUNCTION Account PhantasmaJsonAPI::DeserializeAccount(const JSONValue&
 		DeserializeStake(json::LookupValue(value, PHANTASMA_LITERAL("stakes"), jsonErr), jsonErr),
 		json::LookupString(value, PHANTASMA_LITERAL("stake"), jsonErr),
 		json::LookupString(value, PHANTASMA_LITERAL("unclaimed"), jsonErr),
-		json::HasField(value, PHANTASMA_LITERAL("relay"), jsonErr) ? json::LookupString(value, PHANTASMA_LITERAL("relay"), jsonErr) : json::String(PHANTASMA_LITERAL("")),
+		json::HasField(value, PHANTASMA_LITERAL("relay"), jsonErr) ? json::LookupString(value, PHANTASMA_LITERAL("relay"), jsonErr) : String(PHANTASMA_LITERAL("")),
 		json::LookupString(value, PHANTASMA_LITERAL("validator"), jsonErr),
 		DeserializeStorage(json::LookupValue(value, PHANTASMA_LITERAL("storage"), jsonErr), jsonErr),
 		balancesVector,
@@ -1781,7 +1781,7 @@ PHANTASMA_FUNCTION Chain PhantasmaJsonAPI::DeserializeChain(const JSONValue& val
 	return Chain{
 		json::LookupString(value, PHANTASMA_LITERAL("name"), jsonErr),
 		json::LookupString(value, PHANTASMA_LITERAL("address"), jsonErr),
-		json::HasField(value, PHANTASMA_LITERAL("parent"), jsonErr) ? json::LookupString(value, PHANTASMA_LITERAL("parent"), jsonErr) : json::String(PHANTASMA_LITERAL("")),
+		json::HasField(value, PHANTASMA_LITERAL("parent"), jsonErr) ? json::LookupString(value, PHANTASMA_LITERAL("parent"), jsonErr) : String(PHANTASMA_LITERAL("")),
 		json::LookupUInt32(value, PHANTASMA_LITERAL("height"), jsonErr),
 		json::LookupString(value, PHANTASMA_LITERAL("organization"), jsonErr),
 		contractsVector,
@@ -3360,7 +3360,7 @@ PHANTASMA_FUNCTION bool PhantasmaJsonAPI::ParseGetTokenSeriesResponse(const JSON
 	bool jsonErr = false;
 	String cursor = json::HasField(jsonResponse, PHANTASMA_LITERAL("cursor"), jsonErr)
 	                    ? json::LookupString(jsonResponse, PHANTASMA_LITERAL("cursor"), jsonErr)
-	                    : json::String(PHANTASMA_LITERAL(""));
+		                    : String(PHANTASMA_LITERAL(""));
 	JSONValue resultValue = json::LookupValue(jsonResponse, PHANTASMA_LITERAL("result"), jsonErr);
 	if( !json::IsArray(resultValue, jsonErr) )
 	{
@@ -3405,7 +3405,7 @@ PHANTASMA_FUNCTION bool PhantasmaJsonAPI::ParseGetTokenNFTsResponse(const JSONVa
 	bool jsonErr = false;
 	String cursor = json::HasField(jsonResponse, PHANTASMA_LITERAL("cursor"), jsonErr)
 	                    ? json::LookupString(jsonResponse, PHANTASMA_LITERAL("cursor"), jsonErr)
-	                    : json::String(PHANTASMA_LITERAL(""));
+		                    : String(PHANTASMA_LITERAL(""));
 	JSONValue resultValue = json::LookupValue(jsonResponse, PHANTASMA_LITERAL("result"), jsonErr);
 	if( !json::IsArray(resultValue, jsonErr) )
 	{
@@ -3565,7 +3565,7 @@ PHANTASMA_FUNCTION bool PhantasmaJsonAPI::ParseGetAccountFungibleTokensResponse(
 	bool jsonErr = false;
 	String cursor = json::HasField(jsonResponse, PHANTASMA_LITERAL("cursor"), jsonErr)
 	                    ? json::LookupString(jsonResponse, PHANTASMA_LITERAL("cursor"), jsonErr)
-	                    : json::String(PHANTASMA_LITERAL(""));
+		                    : String(PHANTASMA_LITERAL(""));
 	JSONValue resultValue = json::LookupValue(jsonResponse, PHANTASMA_LITERAL("result"), jsonErr);
 	if( !json::IsArray(resultValue, jsonErr) )
 	{
@@ -3610,7 +3610,7 @@ PHANTASMA_FUNCTION bool PhantasmaJsonAPI::ParseGetAccountNFTsResponse(const JSON
 	bool jsonErr = false;
 	String cursor = json::HasField(jsonResponse, PHANTASMA_LITERAL("cursor"), jsonErr)
 	                    ? json::LookupString(jsonResponse, PHANTASMA_LITERAL("cursor"), jsonErr)
-	                    : json::String(PHANTASMA_LITERAL(""));
+		                    : String(PHANTASMA_LITERAL(""));
 	JSONValue resultValue = json::LookupValue(jsonResponse, PHANTASMA_LITERAL("result"), jsonErr);
 	if( !json::IsArray(resultValue, jsonErr) )
 	{
@@ -3655,7 +3655,7 @@ PHANTASMA_FUNCTION bool PhantasmaJsonAPI::ParseGetAccountOwnedTokensResponse(con
 	bool jsonErr = false;
 	String cursor = json::HasField(jsonResponse, PHANTASMA_LITERAL("cursor"), jsonErr)
 	                    ? json::LookupString(jsonResponse, PHANTASMA_LITERAL("cursor"), jsonErr)
-	                    : json::String(PHANTASMA_LITERAL(""));
+		                    : String(PHANTASMA_LITERAL(""));
 	JSONValue resultValue = json::LookupValue(jsonResponse, PHANTASMA_LITERAL("result"), jsonErr);
 	if( !json::IsArray(resultValue, jsonErr) )
 	{
@@ -3700,7 +3700,7 @@ PHANTASMA_FUNCTION bool PhantasmaJsonAPI::ParseGetAccountOwnedTokenSeriesRespons
 	bool jsonErr = false;
 	String cursor = json::HasField(jsonResponse, PHANTASMA_LITERAL("cursor"), jsonErr)
 	                    ? json::LookupString(jsonResponse, PHANTASMA_LITERAL("cursor"), jsonErr)
-	                    : json::String(PHANTASMA_LITERAL(""));
+		                    : String(PHANTASMA_LITERAL(""));
 	JSONValue resultValue = json::LookupValue(jsonResponse, PHANTASMA_LITERAL("result"), jsonErr);
 	if( !json::IsArray(resultValue, jsonErr) )
 	{
@@ -4765,69 +4765,101 @@ PHANTASMA_FUNCTION bool AsBool(const JSONValue& v, bool& out_error)
 		out_error = true;
 	case 'f':
 		return false;
-	case 't':
-		return true;
+		case 't':
+			return true;
 	}
+}
+PHANTASMA_FUNCTION JSONValue ExtractNumeric(const JSONValue& v, bool& out_error)
+{
+	if( v.length() < 1 )
+	{
+		PHANTASMA_EXCEPTION("Invalid number");
+		out_error = true;
+		return JSONValue();
+	}
+	// Some RPC deployments serialize numeric fields as quoted strings; accept both forms here so the
+	// single-header parser matches the adapter integrations.
+	if( v[0] == '"' )
+	{
+		size_t end = v.find('"', 1);
+		if( end == JSONValue::npos || end == 1 )
+		{
+			PHANTASMA_EXCEPTION("Invalid number");
+			out_error = true;
+			return JSONValue();
+		}
+		return v.substr(1, end - 1);
+	}
+	return v;
 }
 PHANTASMA_FUNCTION Int32 AsInt32(const JSONValue& v, bool& out_error)
 {
+	JSONValue source = ExtractNumeric(v, out_error);
+	if( out_error )
+		return 0;
 	const Char* numeric = PHANTASMA_LITERAL("-0123456789");
-	size_t begin = v.find_first_of(numeric, 0);
+	size_t begin = source.find_first_of(numeric, 0);
 	if( begin != 0 )
 	{
 		PHANTASMA_EXCEPTION("Invalid number");
 		out_error = true;
 		return 0;
 	}
-	size_t pos = v.find_first_not_of(numeric, 0);
+	size_t pos = source.find_first_not_of(numeric, 0);
 	if( pos == 0 )
 	{
 		PHANTASMA_EXCEPTION("Invalid number");
 		out_error = true;
 		return 0;
 	}
-	JSONValue n = pos == JSONValue::npos ? v : v.substr(0, pos);
+	JSONValue n = pos == JSONValue::npos ? source : source.substr(0, pos);
 	return (Int32)PHANTASMA_STRTOINT(n.data());
 }
 PHANTASMA_FUNCTION UInt32 AsUInt32(const JSONValue& v, bool& out_error) { return (UInt32)AsInt32(v, out_error); }
 PHANTASMA_FUNCTION Int64 AsInt64(const JSONValue& v, bool& out_error)
 {
+	JSONValue source = ExtractNumeric(v, out_error);
+	if( out_error )
+		return 0;
 	const Char* numeric = PHANTASMA_LITERAL("-0123456789");
-	size_t begin = v.find_first_of(numeric, 0);
+	size_t begin = source.find_first_of(numeric, 0);
 	if( begin != 0 )
 	{
 		PHANTASMA_EXCEPTION("Invalid number");
 		out_error = true;
 		return 0;
 	}
-	size_t pos = v.find_first_not_of(numeric, 0);
+	size_t pos = source.find_first_not_of(numeric, 0);
 	if( pos == 0 )
 	{
 		PHANTASMA_EXCEPTION("Invalid number");
 		out_error = true;
 		return 0;
 	}
-	JSONValue n = pos == JSONValue::npos ? v : v.substr(0, pos);
+	JSONValue n = pos == JSONValue::npos ? source : source.substr(0, pos);
 	return (Int64)PHANTASMA_STRTOINT(n.data());
 }
 PHANTASMA_FUNCTION UInt64 AsUInt64(const JSONValue& v, bool& out_error)
 {
+	JSONValue source = ExtractNumeric(v, out_error);
+	if( out_error )
+		return 0;
 	const Char* numeric = PHANTASMA_LITERAL("-0123456789");
-	size_t begin = v.find_first_of(numeric, 0);
+	size_t begin = source.find_first_of(numeric, 0);
 	if( begin != 0 )
 	{
 		PHANTASMA_EXCEPTION("Invalid number");
 		out_error = true;
 		return 0;
 	}
-	size_t pos = v.find_first_not_of(numeric, 0);
+	size_t pos = source.find_first_not_of(numeric, 0);
 	if( pos == 0 )
 	{
 		PHANTASMA_EXCEPTION("Invalid number");
 		out_error = true;
 		return 0;
 	}
-	JSONValue n = pos == JSONValue::npos ? v : v.substr(0, pos);
+	JSONValue n = pos == JSONValue::npos ? source : source.substr(0, pos);
 	return (UInt64)std::strtoull(n.data(), nullptr, 10);
 }
 PHANTASMA_FUNCTION String AsString(const JSONValue& v, bool& out_error)

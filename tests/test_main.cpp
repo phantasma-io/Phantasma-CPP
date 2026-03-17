@@ -4,6 +4,7 @@ int main()
 {
 	testutil::TestContext ctx;
 	testcases::RunCarbonVectorTests(ctx);
+	testcases::RunApiJsonNumericFlexTests(ctx);
 	testcases::RunMetadataHelperTests(ctx);
 	testcases::RunTokenMetadataIconTests(ctx);
 	testcases::RunTokenBuilderValidationTests(ctx);
