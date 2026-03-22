@@ -43,6 +43,12 @@ enum class TokenContract_Methods : uint32_t
 	GetTokenIdBySymbol = 19,
 	GetBalances = 20,
 	CreateMintedTokenSeries = 21,
+	ApplyInflation = 22,
+	UpdateTokenMetadata = 23,
+	GetNextTokenInflation = 24,
+	SetTokensConfig = 25,
+	UpdateSeriesMetadata = 26,
+	MintPhantasmaNonFungible = 27,
 };
 
 struct TokenHelper {
@@ -261,6 +267,81 @@ struct MintNonFungibleTxHelper {
 			result.push_back(TokenHelper::GetNftAddress(carbonTokenId, instanceId));
 		}
 		return result;
+	}
+};
+
+struct MintPhantasmaNonFungibleTxHelper {
+	static TxEnvelope BuildTx(
+	    uint64_t tokenId,
+	    const Bytes32& senderPublicKey,
+	    const Bytes32& receiverPublicKey,
+	    uint32_t numTokens,
+	    const PhantasmaNftMintInfo* tokens,
+	    const MintNftFeeOptions* feeOptions = nullptr,
+	    uint64_t maxData = 0,
+	    int64_t expiry = 0)
+	{
+		const MintNftFeeOptions fees = feeOptions ? *feeOptions : MintNftFeeOptions();
+		const uint64_t maxGas = fees.CalculateMaxGas();
+		const int64_t effectiveExpiry = (expiry == 0) ? GetDefaultExpiry() : expiry;
+		if( numTokens != 0 && tokens == nullptr )
+		{
+			PHANTASMA_EXCEPTION("tokens is required when numTokens > 0");
+		}
+
+		TxEnvelope env;
+
+		ByteArray argsBuffer;
+		WriteView argsWriter(argsBuffer);
+		Write8u(tokenId, argsWriter);
+		Write(receiverPublicKey, argsWriter);
+		Write4((int32_t)numTokens, argsWriter);
+		for( uint32_t i = 0; i != numTokens; ++i )
+		{
+			Write(tokens[i], argsWriter);
+		}
+		env.buffers.push_back(argsBuffer);
+
+		env.msg.type = phantasma::carbon::Blockchain::TxTypes::Call;
+		env.msg.expiry = effectiveExpiry;
+		env.msg.maxGas = maxGas;
+		env.msg.maxData = maxData;
+		env.msg.gasFrom = senderPublicKey;
+		env.msg.payload = SmallString();
+		env.msg.call = phantasma::carbon::Blockchain::TxMsgCall{
+			(uint32_t)ModuleId::Token,
+			(uint32_t)TokenContract_Methods::MintPhantasmaNonFungible,
+			ByteView{ env.buffers.back().data(), env.buffers.back().size() },
+			{}
+		};
+		return env;
+	}
+
+	static TxEnvelope BuildTx(
+	    uint64_t tokenId,
+	    const Bytes32& senderPublicKey,
+	    const Bytes32& receiverPublicKey,
+	    const std::vector<PhantasmaNftMintInfo>& tokens,
+	    const MintNftFeeOptions* feeOptions = nullptr,
+	    uint64_t maxData = 0,
+	    int64_t expiry = 0)
+	{
+		return BuildTx(tokenId, senderPublicKey, receiverPublicKey, (uint32_t)tokens.size(), tokens.empty() ? nullptr : &tokens.front(), feeOptions, maxData, expiry);
+	}
+
+	static std::vector<PhantasmaNftMintResult> ParseResult(const std::string& resultHex)
+	{
+		ByteArray bytes = Base16::Decode(resultHex.c_str(), (int)resultHex.size());
+		ReadView r(bytes.empty() ? nullptr : &bytes.front(), bytes.size());
+		std::vector<PhantasmaNftMintResult> results;
+		const uint32_t count = (uint32_t)Read4u(r);
+		results.resize(count);
+		for( uint32_t i = 0; i != count; ++i )
+		{
+			Read(results[i].phantasmaNftId, r);
+			results[i].carbonInstanceId = Read8u(r);
+		}
+		return results;
 	}
 };
 

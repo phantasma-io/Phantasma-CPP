@@ -52,6 +52,7 @@ struct Config
 	std::string tokenType;
 	std::optional<uint64_t> carbonTokenId;
 	std::optional<uint32_t> carbonSeriesId;
+	std::optional<intx> phantasmaSeriesId;
 	std::optional<intx> tokenMaxSupply;
 	std::optional<uint32_t> fungibleDecimals;
 	std::string tokenSchemasRaw;
@@ -374,6 +375,11 @@ static std::string IdToStringUnsigned(const uint256& id)
 	return intx(id).ToStringUnsigned();
 }
 
+static std::string IdToStringUnsigned(const Bytes32& id)
+{
+	return intx(uint256::FromBytes(ByteView{ id.bytes, Bytes32::length })).ToStringUnsigned();
+}
+
 static std::string BytesToHex(const ByteArray& b)
 {
 	if (b.empty())
@@ -381,6 +387,12 @@ static std::string BytesToHex(const ByteArray& b)
 		return {};
 	}
 	const String s = Base16::Encode(&b.front(), (int)b.size(), false);
+	return std::string(s.begin(), s.end());
+}
+
+static std::string BytesToHex(const Bytes32& b)
+{
+	const String s = Base16::Encode(b.bytes, (int)Bytes32::length, false);
 	return std::string(s.begin(), s.end());
 }
 
@@ -436,6 +448,8 @@ static Config LoadConfig(const Args& args)
 	if (!carbonId.empty()) cfg.carbonTokenId = ParseUint64(carbonId, "carbon_token_id");
 	std::string seriesId = Pick(args, toml, "carbon-token-series-id", "carbon_token_series_id");
 	if (!seriesId.empty()) cfg.carbonSeriesId = ParseUint32(seriesId, "carbon_token_series_id");
+	std::string phantasmaSeriesId = Pick(args, toml, "phantasma-series-id", "phantasma_series_id");
+	if (!phantasmaSeriesId.empty()) cfg.phantasmaSeriesId = ParseIntx(phantasmaSeriesId, "phantasma_series_id");
 	cfg.tokenSchemasRaw = Pick(args, toml, "token-schemas", "token_schemas");
 	cfg.tokenMetadataRaw = Pick(args, toml, "token-metadata", "token_metadata");
 	cfg.seriesMetadataRaw = Pick(args, toml, "series-metadata", "series_metadata");
@@ -651,7 +665,8 @@ static void RunCreateSeries(const Config& cfg)
 	if (WaitForTx(api, hash.c_str(), result))
 	{
 		const uint32_t carbonSeriesId = CreateTokenSeriesTxHelper::ParseResult(result);
-		std::cout << "Deployed carbon series ID: " << carbonSeriesId << std::endl;
+		std::cout << "Deployed series with phantasma ID " << IdToStringUnsigned(seriesId)
+			<< " and carbon series ID " << carbonSeriesId << std::endl;
 	}
 }
 
@@ -661,7 +676,7 @@ static void RunMintNft(const Config& cfg)
 	Ensure(!cfg.nexus.empty(), "nexus is required");
 	Ensure(!cfg.wif.empty(), "wif is required");
 	Ensure(cfg.carbonTokenId.has_value(), "carbon_token_id is required");
-	Ensure(cfg.carbonSeriesId.has_value(), "carbon_token_series_id is required");
+	Ensure(cfg.phantasmaSeriesId.has_value(), "phantasma_series_id is required");
 	Ensure(cfg.gasFeeBase.has_value(), "gas_fee_base is required");
 	Ensure(cfg.gasFeeMultiplier.has_value(), "gas_fee_multiplier is required");
 	Ensure(cfg.mintTokenMaxData.has_value(), "mint_token_max_data is required");
@@ -674,20 +689,23 @@ static void RunMintNft(const Config& cfg)
 	const Bytes32 owner(keys.GetPublicKey());
 
 	const std::vector<MetadataField> nftMetadata = ParseMetadataFields(cfg.nftMetadataRaw, "nft_metadata");
-	const uint256 nftId = IdHelper::GetRandomPhantasmaId();
+	const ByteArray rom = PhantasmaNftRomBuilder::BuildAndSerialize(schemasOwned.view.rom, nftMetadata);
+	const PhantasmaNftMintInfo token{
+		(const intx_pod&)cfg.phantasmaSeriesId.value(),
+		ByteView{ rom.data(), rom.size() },
+		ByteView{}
+	};
 
-	std::cout << "Minting NFT with phantasma ID " << IdToStringUnsigned(nftId) << std::endl;
-
-	const ByteArray rom = NftRomBuilder::BuildAndSerialize(schemasOwned.view.rom, nftId, nftMetadata);
+	std::cout << "Minting NFT through deterministic chain-generated id flow using phantasma series ID "
+		<< cfg.phantasmaSeriesId->ToStringUnsigned() << std::endl;
 
 	const MintNftFeeOptions feeOptions(cfg.gasFeeBase.value(), cfg.gasFeeMultiplier.value());
-	const TxEnvelope tx = MintNonFungibleTxHelper::BuildTx(
+	const TxEnvelope tx = MintPhantasmaNonFungibleTxHelper::BuildTx(
 		cfg.carbonTokenId.value(),
-		cfg.carbonSeriesId.value(),
 		owner,
 		owner,
-		rom,
-		ByteArray{},
+		1,
+		&token,
 		&feeOptions,
 		cfg.mintTokenMaxData.value());
 
@@ -709,12 +727,16 @@ static void RunMintNft(const Config& cfg)
 	std::string result;
 	if (WaitForTx(api, hash.c_str(), result))
 	{
-		const auto addresses = MintNonFungibleTxHelper::ParseResult(cfg.carbonTokenId.value(), result);
-		if (!addresses.empty())
+		const auto mintResults = MintPhantasmaNonFungibleTxHelper::ParseResult(result);
+		if (!mintResults.empty())
 		{
-			const String addr = Base16::Encode(addresses[0].bytes, (int)Bytes32::length, false);
-			std::cout << "Deployed NFT with phantasma ID " << IdToStringUnsigned(nftId)
-				<< " and carbon NFT address " << std::string(addr.begin(), addr.end()) << std::endl;
+			const Bytes32 carbonNftAddress = TokenHelper::GetNftAddress(
+				cfg.carbonTokenId.value(),
+				mintResults[0].carbonInstanceId);
+			std::cout << "Minted NFT with phantasma ID "
+				<< IdToStringUnsigned(mintResults[0].phantasmaNftId)
+				<< " (0x" << BytesToHex(mintResults[0].phantasmaNftId) << ")"
+				<< " and carbon NFT address " << BytesToHex(carbonNftAddress) << std::endl;
 		}
 	}
 }

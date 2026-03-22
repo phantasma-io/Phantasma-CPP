@@ -93,6 +93,19 @@ struct NftMintInfo {
 	ByteView ram{};
 };
 
+// Deterministic Phantasma mint identifies the series by the Phantasma metadata `_i`.
+struct PhantasmaNftMintInfo {
+	intx_pod phantasmaSeriesId{};
+	ByteView rom{}; // public schema-driven NFT payload; chain-owned `_i` / nested `rom` are not caller input here
+	ByteView ram{};
+};
+
+// Deterministic Phantasma mint returns the derived Phantasma `_i` together with the Carbon instance id.
+struct PhantasmaNftMintResult {
+	Bytes32 phantasmaNftId{};
+	uint64_t carbonInstanceId = 0;
+};
+
 struct NftInfo {
 	uint32_t seriesId = 0;
 	uint32_t mintNumber = 0;
@@ -191,6 +204,19 @@ inline void Write(const NftMintInfo& in, WriteView& w)
 	Write4((int32_t)in.seriesId, w);
 	WriteArray(ByteArray(in.rom.bytes, in.rom.bytes + in.rom.length), w);
 	WriteArray(ByteArray(in.ram.bytes, in.ram.bytes + in.ram.length), w);
+}
+
+inline void Write(const PhantasmaNftMintInfo& in, WriteView& w)
+{
+	Write(in.phantasmaSeriesId, w);
+	WriteArray(ByteArray(in.rom.bytes, in.rom.bytes + in.rom.length), w);
+	WriteArray(ByteArray(in.ram.bytes, in.ram.bytes + in.ram.length), w);
+}
+
+inline void Write(const PhantasmaNftMintResult& in, WriteView& w)
+{
+	Write(in.phantasmaNftId, w);
+	Write8u(in.carbonInstanceId, w);
 }
 
 inline void Write(const NftInstance& in, WriteView& w)
@@ -601,6 +627,77 @@ struct NftRomBuilder {
 		};
 
 		return BuildAndSerialize(tsOwned.view.rom, phantasmaNftId, metadata);
+	}
+};
+
+struct PhantasmaNftRomBuilder {
+	static bool IsReservedFieldName(const std::string& name)
+	{
+		return EqualsIgnoreCase(name, StandardMeta::id.c_str()) || EqualsIgnoreCase(name, "rom");
+	}
+
+	static ByteArray BuildAndSerialize(
+	    const VmStructSchema& nftRomSchema,
+	    const std::vector<MetadataField>& metadata)
+	{
+		Allocator alloc;
+		for( const auto& field : metadata )
+		{
+			if( IsReservedFieldName(field.name) )
+			{
+				PHANTASMA_EXCEPTION(std::string("Metadata field '") + field.name + "' is reserved for chain-owned deterministic mint fields");
+			}
+		}
+
+		std::vector<VmNamedVariableSchema> publicSchemaFields;
+		publicSchemaFields.reserve(nftRomSchema.numFields);
+		std::vector<VmNamedDynamicVariable> fields;
+
+		for( uint32_t i = 0; i != nftRomSchema.numFields; ++i )
+		{
+			const VmNamedVariableSchema& schemaField = nftRomSchema.fields[i];
+			if( IsReservedFieldName(schemaField.name.c_str()) )
+			{
+				continue;
+			}
+
+			publicSchemaFields.push_back(schemaField);
+			MetadataHelper::PushMetadataField(schemaField, fields, metadata, alloc);
+		}
+
+		VmStructSchema publicSchema;
+		publicSchema.numFields = (uint32_t)publicSchemaFields.size();
+		publicSchema.fields = publicSchemaFields.empty() ? nullptr : publicSchemaFields.data();
+		publicSchema.flags = nftRomSchema.flags;
+
+		VmDynamicStruct romStruct = VmDynamicStruct::Sort((uint32_t)fields.size(), fields.data());
+		ByteArray buffer;
+		WriteView w(buffer);
+		Write(romStruct, publicSchema, w);
+		return buffer;
+	}
+
+	static ByteArray BuildAndSerialize(
+	    const std::string& name,
+	    const std::string& description,
+	    const std::string& imageURL,
+	    const std::string& infoURL,
+	    uint32_t royalties,
+	    const TokenSchemas* tokenSchemas)
+	{
+		const TokenSchemasOwned tsOwned = tokenSchemas
+		                                      ? TokenSchemasOwned{ *tokenSchemas, {}, {}, {} }
+		                                      : TokenSchemasBuilder::PrepareStandardTokenSchemas();
+
+		std::vector<MetadataField> metadata = {
+			MetadataField{ "name", MetadataValue::FromString(name) },
+			MetadataField{ "description", MetadataValue::FromString(description) },
+			MetadataField{ "imageURL", MetadataValue::FromString(imageURL) },
+			MetadataField{ "infoURL", MetadataValue::FromString(infoURL) },
+			MetadataField{ "royalties", MetadataValue::FromInt64((int64_t)royalties) },
+		};
+
+		return BuildAndSerialize(tsOwned.view.rom, metadata);
 	}
 };
 

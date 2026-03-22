@@ -65,6 +65,64 @@ void RunCarbonTxExtraTests(TestContext& ctx)
 		const std::string got = ToUpper(BytesToHex(CarbonSerialize(msg)));
 		Report(ctx, got == expected, "TxMsg MintFungible vector", got + " vs " + expected);
 	}
+
+	ExpectThrowContains(ctx, "MintPhantasmaNonFungibleTxHelper rejects null tokens pointer", "tokens is required", [&]()
+	    { (void)MintPhantasmaNonFungibleTxHelper::BuildTx(
+		      42,
+		      senderPub,
+		      receiverPub,
+		      1,
+		      nullptr,
+		      nullptr,
+		      0,
+		      expiry); });
+
+	ExpectNoThrow(ctx, "MintPhantasmaNonFungibleTxHelper allows zero-count null tokens pointer", [&]()
+	    {
+		const TxEnvelope env = MintPhantasmaNonFungibleTxHelper::BuildTx(
+		    42,
+		    senderPub,
+		    receiverPub,
+		    0,
+		    nullptr,
+		    nullptr,
+		    0,
+		    expiry);
+		if( env.msg.type != Blockchain::TxTypes::Call || env.msg.call.methodId != (uint32_t)TokenContract_Methods::MintPhantasmaNonFungible )
+		{
+			throw std::runtime_error("unexpected safe-mint tx envelope");
+		} });
+
+	ExpectNoThrow(ctx, "MintPhantasmaNonFungibleTxHelper ParseResult preserves exact 32-byte Phantasma ids", [&]()
+	    {
+		PhantasmaNftMintResult low{};
+		low.phantasmaNftId.bytes[0] = 0x7B;
+		low.carbonInstanceId = 7;
+
+		PhantasmaNftMintResult high{};
+		high.phantasmaNftId.bytes[0] = 0x2A;
+		high.phantasmaNftId.bytes[31] = 0x80;
+		high.carbonInstanceId = 8;
+
+		ByteArray payload;
+		WriteView w(payload);
+		Write((uint32_t)2, w);
+		Write(low, w);
+		Write(high, w);
+
+		const std::vector<PhantasmaNftMintResult> parsed = MintPhantasmaNonFungibleTxHelper::ParseResult(ToUpper(BytesToHex(payload)));
+		if( parsed.size() != 2 )
+		{
+			throw std::runtime_error("unexpected safe-mint result count");
+		}
+		if( !(parsed[0].phantasmaNftId == low.phantasmaNftId) || parsed[0].carbonInstanceId != 7 )
+		{
+			throw std::runtime_error("unexpected first safe-mint result");
+		}
+		if( !(parsed[1].phantasmaNftId == high.phantasmaNftId) || parsed[1].carbonInstanceId != 8 )
+		{
+			throw std::runtime_error("unexpected second safe-mint result");
+		} });
 }
 
 } // namespace testcases
