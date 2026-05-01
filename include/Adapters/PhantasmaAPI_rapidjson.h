@@ -79,6 +79,11 @@ inline String AsString(const rapidjson::Value& v, bool& out_error)
 	return (String)(v.IsString() ? v.GetString() : "");
 }
 inline const rapidjson::Value& AsArray(const rapidjson::Value& v, bool& out_error) { return v.IsArray() ? v : (out_error = true, null); }
+inline bool IsString(const rapidjson::Value& v, bool& out_error)
+{
+	(void)out_error;
+	return v.IsString();
+}
 inline bool IsArray(const rapidjson::Value& v, bool& out_error)
 {
 	(void)out_error;

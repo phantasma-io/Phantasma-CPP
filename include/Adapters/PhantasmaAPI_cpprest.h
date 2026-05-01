@@ -53,6 +53,7 @@ inline int64_t AsInt64(const web::json::value& v, bool& out_error) { return v.is
 inline uint64_t AsUInt64(const web::json::value& v, bool& out_error) { return v.is_string() ? std::stoull(v.as_string()) : v.as_number().to_uint64(); }
 inline String AsString(const web::json::value& v, bool& out_error) { return v.as_string(); }
 inline web::json::array AsArray(const web::json::value& v, bool& out_error) { return v.as_array(); }
+inline bool IsString(const web::json::value& v, bool& out_error) { return v.is_string(); }
 inline bool IsArray(const web::json::value& v, bool& out_error) { return v.is_array(); }
 inline bool IsObject(const web::json::value& v, bool& out_error) { return v.is_object(); }
 inline int ArraySize(const web::json::array& a, bool& out_error) { return (int)a.size(); }

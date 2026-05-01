@@ -303,6 +303,7 @@
 //        UInt32    AsUInt32(     const JSONValue&,                    bool& out_error);
 //        String    AsString(     const JSONValue&,                    bool& out_error);
 //        JSONArray AsArray(      const JSONValue&,                    bool& out_error);
+//        bool      IsString(     const JSONValue&,                    bool& out_error);
 //        bool      IsArray(      const JSONValue&,                    bool& out_error);
 //        bool      IsObject(     const JSONValue&,                    bool& out_error);
 //
@@ -701,6 +702,7 @@ Int64 AsInt64(const JSONValue&, bool& out_error);
 UInt64 AsUInt64(const JSONValue&, bool& out_error);
 String AsString(const JSONValue&, bool& out_error);
 JSONArray AsArray(const JSONValue&, bool& out_error);
+bool IsString(const JSONValue&, bool& out_error);
 bool IsArray(const JSONValue&, bool& out_error);
 bool IsObject(const JSONValue&, bool& out_error);
 
@@ -967,6 +969,8 @@ struct Transaction {
 	String blockHash; //
 	String script; //
 	String payload; //
+	Byte carbonTxType; //
+	String carbonTxData; //
 	PHANTASMA_VECTOR<Event> events; //
 	PHANTASMA_VECTOR<EventExtended> extendedEvents; //
 	String result; //
@@ -1033,11 +1037,14 @@ struct TokenProperty {
 };
 
 struct TokenSeries {
-	UInt32 seriesID; //
+	String seriesId; //
 	String currentSupply; //
 	String maxSupply; //
 	String burnedSupply; //
 	TokenSeriesMode mode; //
+	String ownerAddress; //
+	String maxMint; //
+	String mintCount; //
 	String carbonTokenId; //
 	String carbonSeriesId; //
 	String script; //
@@ -1084,6 +1091,9 @@ struct Token {
 struct TokenData {
 	String ID; //
 	String series; //
+	String carbonTokenId; //
+	String carbonSeriesId; //
+	String carbonNftAddress; //
 	String mint; //
 	String chainName; //
 	String ownerAddress; //
@@ -1536,6 +1546,15 @@ PHANTASMA_FUNCTION bool PhantasmaJsonAPI::Deserializebool(const JSONValue& value
 
 PHANTASMA_FUNCTION TokenSeriesMode PhantasmaJsonAPI::DeserializeTokenSeriesMode(const JSONValue& value, bool& jsonErr)
 {
+	if( json::IsString(value, jsonErr) )
+	{
+		const String modeText = json::AsString(value, jsonErr);
+		if( modeText == PHANTASMA_LITERAL("Duplicated") || modeText == PHANTASMA_LITERAL("1") )
+		{
+			return TokenSeriesMode::Duplicated;
+		}
+		return TokenSeriesMode::Unique;
+	}
 	return (TokenSeriesMode)json::AsInt32(value, jsonErr);
 }
 
@@ -2125,6 +2144,16 @@ PHANTASMA_FUNCTION Transaction PhantasmaJsonAPI::DeserializeTransaction(const JS
 	{
 		debugComment = json::LookupString(value, PHANTASMA_LITERAL("debugComment"), jsonErr);
 	}
+	Byte carbonTxType = 0;
+	if( json::HasField(value, PHANTASMA_LITERAL("carbonTxType"), jsonErr) )
+	{
+		carbonTxType = (Byte)json::LookupUInt32(value, PHANTASMA_LITERAL("carbonTxType"), jsonErr);
+	}
+	String carbonTxData;
+	if( json::HasField(value, PHANTASMA_LITERAL("carbonTxData"), jsonErr) )
+	{
+		carbonTxData = json::LookupString(value, PHANTASMA_LITERAL("carbonTxData"), jsonErr);
+	}
 	return Transaction{
 		json::LookupString(value, PHANTASMA_LITERAL("hash"), jsonErr),
 		json::LookupString(value, PHANTASMA_LITERAL("chainAddress"), jsonErr),
@@ -2133,6 +2162,8 @@ PHANTASMA_FUNCTION Transaction PhantasmaJsonAPI::DeserializeTransaction(const JS
 		json::LookupString(value, PHANTASMA_LITERAL("blockHash"), jsonErr),
 		json::LookupString(value, PHANTASMA_LITERAL("script"), jsonErr),
 		json::LookupString(value, PHANTASMA_LITERAL("payload"), jsonErr),
+		carbonTxType,
+		carbonTxData,
 		eventsVector,
 		extendedEventsVector,
 		json::LookupString(value, PHANTASMA_LITERAL("result"), jsonErr),
@@ -2318,6 +2349,41 @@ PHANTASMA_FUNCTION Token PhantasmaJsonAPI::DeserializeToken(const JSONValue& val
 
 PHANTASMA_FUNCTION TokenSeries PhantasmaJsonAPI::DeserializeTokenSeries(const JSONValue& value, bool& jsonErr)
 {
+	String seriesId;
+	if( json::HasField(value, PHANTASMA_LITERAL("seriesId"), jsonErr) )
+	{
+		seriesId = json::LookupString(value, PHANTASMA_LITERAL("seriesId"), jsonErr);
+	}
+	String burnedSupply;
+	if( json::HasField(value, PHANTASMA_LITERAL("burnedSupply"), jsonErr) )
+	{
+		burnedSupply = json::LookupString(value, PHANTASMA_LITERAL("burnedSupply"), jsonErr);
+	}
+	TokenSeriesMode mode = TokenSeriesMode::Unique;
+	if( json::HasField(value, PHANTASMA_LITERAL("mode"), jsonErr) )
+	{
+		mode = DeserializeTokenSeriesMode(json::LookupValue(value, PHANTASMA_LITERAL("mode"), jsonErr), jsonErr);
+	}
+	String ownerAddress;
+	if( json::HasField(value, PHANTASMA_LITERAL("ownerAddress"), jsonErr) )
+	{
+		ownerAddress = json::LookupString(value, PHANTASMA_LITERAL("ownerAddress"), jsonErr);
+	}
+	String maxMint;
+	if( json::HasField(value, PHANTASMA_LITERAL("maxMint"), jsonErr) )
+	{
+		maxMint = json::LookupString(value, PHANTASMA_LITERAL("maxMint"), jsonErr);
+	}
+	String mintCount;
+	if( json::HasField(value, PHANTASMA_LITERAL("mintCount"), jsonErr) )
+	{
+		mintCount = json::LookupString(value, PHANTASMA_LITERAL("mintCount"), jsonErr);
+	}
+	String script;
+	if( json::HasField(value, PHANTASMA_LITERAL("script"), jsonErr) )
+	{
+		script = json::LookupString(value, PHANTASMA_LITERAL("script"), jsonErr);
+	}
 	PHANTASMA_VECTOR<ABIMethod> methodsVector;
 	if( json::HasArrayField(value, PHANTASMA_LITERAL("methods"), jsonErr) )
 	{
@@ -2341,14 +2407,17 @@ PHANTASMA_FUNCTION TokenSeries PhantasmaJsonAPI::DeserializeTokenSeries(const JS
 		}
 	}
 	return TokenSeries{
-		json::LookupUInt32(value, PHANTASMA_LITERAL("seriesID"), jsonErr),
+		seriesId,
 		json::LookupString(value, PHANTASMA_LITERAL("currentSupply"), jsonErr),
 		json::LookupString(value, PHANTASMA_LITERAL("maxSupply"), jsonErr),
-		json::LookupString(value, PHANTASMA_LITERAL("burnedSupply"), jsonErr),
-		DeserializeTokenSeriesMode(json::LookupValue(value, PHANTASMA_LITERAL("mode"), jsonErr), jsonErr),
+		burnedSupply,
+		mode,
+		ownerAddress,
+		maxMint,
+		mintCount,
 		json::LookupString(value, PHANTASMA_LITERAL("carbonTokenId"), jsonErr),
 		json::LookupString(value, PHANTASMA_LITERAL("carbonSeriesId"), jsonErr),
-		json::LookupString(value, PHANTASMA_LITERAL("script"), jsonErr),
+		script,
 		methodsVector,
 		metadataVector
 	};
@@ -2420,9 +2489,27 @@ PHANTASMA_FUNCTION TokenData PhantasmaJsonAPI::DeserializeTokenData(const JSONVa
 			propertiesVector.push_back(DeserializeTokenProperty(json::IndexArray(propertiesJsonArray, i, jsonErr), jsonErr));
 		}
 	}
+	String carbonTokenId;
+	if( json::HasField(value, PHANTASMA_LITERAL("carbonTokenId"), jsonErr) )
+	{
+		carbonTokenId = json::LookupString(value, PHANTASMA_LITERAL("carbonTokenId"), jsonErr);
+	}
+	String carbonSeriesId;
+	if( json::HasField(value, PHANTASMA_LITERAL("carbonSeriesId"), jsonErr) )
+	{
+		carbonSeriesId = json::LookupString(value, PHANTASMA_LITERAL("carbonSeriesId"), jsonErr);
+	}
+	String carbonNftAddress;
+	if( json::HasField(value, PHANTASMA_LITERAL("carbonNftAddress"), jsonErr) )
+	{
+		carbonNftAddress = json::LookupString(value, PHANTASMA_LITERAL("carbonNftAddress"), jsonErr);
+	}
 	return TokenData{
 		json::LookupString(value, PHANTASMA_LITERAL("id"), jsonErr),
 		json::LookupString(value, PHANTASMA_LITERAL("series"), jsonErr),
+		carbonTokenId,
+		carbonSeriesId,
+		carbonNftAddress,
 		json::LookupString(value, PHANTASMA_LITERAL("mint"), jsonErr),
 		json::LookupString(value, PHANTASMA_LITERAL("chainName"), jsonErr),
 		json::LookupString(value, PHANTASMA_LITERAL("ownerAddress"), jsonErr),
@@ -4875,7 +4962,11 @@ PHANTASMA_FUNCTION UInt64 LookupUInt64(const JSONValue& v, const Char* field, bo
 PHANTASMA_FUNCTION String LookupString(const JSONValue& v, const Char* field, bool& out_error) { return AsString(LookupValue(v, field, out_error), out_error); }
 PHANTASMA_FUNCTION JSONArray LookupArray(const JSONValue& v, const Char* field, bool& out_error) { return AsArray(LookupValue(v, field, out_error), out_error); }
 PHANTASMA_FUNCTION bool HasField(const JSONValue& v, const Char* field, bool& out_error) { return JSONValue() != LookupValue(v, field, out_error); }
-PHANTASMA_FUNCTION bool HasArrayField(const JSONValue& v, const Char* field, bool& out_error) { return IsArray(LookupValue(v, field, out_error), out_error); }
+PHANTASMA_FUNCTION bool HasArrayField(const JSONValue& v, const Char* field, bool& out_error)
+{
+	const JSONValue value = LookupValue(v, field, out_error);
+	return value != JSONValue() && IsArray(value, out_error);
+}
 PHANTASMA_FUNCTION JSONValue LookupValue(const JSONValue& v, const Char* field, bool& out_error)
 {
 	if( v.length() < 1 || v[0] != '{' )
@@ -5070,6 +5161,15 @@ PHANTASMA_FUNCTION JSONArray AsArray(const JSONValue& v, bool& out_error)
 		out_error = true;
 	}
 	return v;
+}
+PHANTASMA_FUNCTION bool IsString(const JSONValue& v, bool& out_error)
+{
+	if( v.length() < 1 )
+	{
+		out_error = true;
+		return false;
+	}
+	return v[0] == '"';
 }
 PHANTASMA_FUNCTION bool IsArray(const JSONValue& v, bool& out_error)
 {

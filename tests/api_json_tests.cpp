@@ -82,6 +82,43 @@ void RunApiJsonNumericFlexTests(TestContext& ctx)
 		        config.fuelPerContractDeploy == "8",
 		    "API GetPhantasmaVmConfig parser reads VM config");
 	}
+	{
+		// Verify current Carbon NFT identity fields are preserved from TokenData responses.
+		rpc::PhantasmaError err{};
+		rpc::TokenData token{};
+		const JSONDocument doc = R"({"result":{"id":"1001","series":"55","carbonTokenId":"4","carbonSeriesId":"7","carbonNftAddress":"ABCDEF","mint":"42","chainName":"main","ownerAddress":"P-owner","creatorAddress":"P-creator","ram":"","rom":"CAFE","status":"Active","infusion":[],"properties":[{"key":"Name","value":"Crown #42"}]}})";
+		const bool ok = rpc::PhantasmaJsonAPI::ParseGetTokenDataResponse(json::Parse(doc), token, &err);
+		Report(ctx,
+		    ok && err.code == 0 && token.ID == "1001" && token.series == "55" && token.carbonTokenId == "4" &&
+		        token.carbonSeriesId == "7" && token.carbonNftAddress == "ABCDEF" && token.properties.size() == 1 &&
+		        token.properties[0].Key == "Name",
+		    "API GetTokenData parser preserves Carbon NFT identity");
+	}
+	{
+		// Verify the current TokenSeries response shape parses without legacy-only fields.
+		rpc::PhantasmaError err{};
+		rpc::TokenSeries series{};
+		const JSONDocument doc = R"({"result":{"seriesId":"55","carbonTokenId":"4","carbonSeriesId":"7","ownerAddress":"P-owner","maxMint":"100","mintCount":"42","currentSupply":"41","maxSupply":"100","metadata":[{"key":"Name","value":"Series 55"}]}})";
+		const bool ok = rpc::PhantasmaJsonAPI::ParseGetTokenSeriesByIdResponse(json::Parse(doc), series, &err);
+		Report(ctx,
+		    ok && err.code == 0 && series.seriesId == "55" && series.carbonTokenId == "4" &&
+		        series.carbonSeriesId == "7" && series.ownerAddress == "P-owner" && series.maxMint == "100" &&
+		        series.mintCount == "42" && series.currentSupply == "41" && series.maxSupply == "100" &&
+		        series.mode == rpc::TokenSeriesMode::Unique && series.metadata.size() == 1 &&
+		        series.metadata[0].Value == "Series 55",
+		    "API GetTokenSeriesById parser accepts current Carbon series shape");
+	}
+	{
+		// Verify Carbon transaction metadata is not dropped from Transaction responses.
+		rpc::PhantasmaError err{};
+		rpc::Transaction tx{};
+		const JSONDocument doc = R"({"result":{"hash":"HASH","chainAddress":"CHAIN","timestamp":123,"blockHeight":456,"blockHash":"BLOCK","script":"","payload":"CAFE","carbonTxType":1,"carbonTxData":"BEEF","events":[],"result":"","fee":"0","signatures":[],"expiration":789,"state":"Halt","sender":"P-sender","gasPayer":"P-gas","gasTarget":"P-target","gasPrice":"1","gasLimit":"1000"}})";
+		const bool ok = rpc::PhantasmaJsonAPI::ParseGetTransactionResponse(json::Parse(doc), tx, &err);
+		Report(ctx,
+		    ok && err.code == 0 && tx.hash == "HASH" && tx.payload == "CAFE" && tx.carbonTxType == 1 &&
+		        tx.carbonTxData == "BEEF" && tx.gasPayer == "P-gas" && tx.expiration == 789,
+		    "API GetTransaction parser preserves Carbon transaction metadata");
+	}
 }
 
 } // namespace testcases

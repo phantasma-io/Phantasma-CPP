@@ -303,7 +303,7 @@ class Program
 							WriteLine("Series:");
 							for( const auto& series : tokenInfo->series )
 							{
-								WriteLine("\tID: ", series.seriesID, " carbonTokenId: ", series.carbonTokenId.c_str(), " carbonSeriesId: ", series.carbonSeriesId.c_str());
+								WriteLine("\tID: ", series.seriesId.c_str(), " carbonTokenId: ", series.carbonTokenId.c_str(), " carbonSeriesId: ", series.carbonSeriesId.c_str());
 								if( !series.burnedSupply.empty() )
 								{
 									WriteLine("\tBurned: ", series.burnedSupply.c_str());
