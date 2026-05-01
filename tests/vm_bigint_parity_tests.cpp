@@ -364,8 +364,7 @@ void RunDecimalFixtures(TestContext& ctx)
 			ReportExpectedException(ctx, label, expectedCategory, [&]()
 			    {
 				    const BigInteger value = ParseBigInt(inputText);
-				    (void)value.ToString();
-			    });
+				    (void)value.ToString(); });
 		}
 	}
 }
@@ -445,7 +444,6 @@ BigInteger ExecuteFixtureUnaryOp(const std::string& op, const BigInteger& value)
 	PHANTASMA_EXCEPTION("unsupported unary op");
 	return {};
 }
-
 
 void RunOpFixtures(TestContext& ctx)
 {
@@ -796,7 +794,6 @@ void RunVmObjectCastStructFixtures(TestContext& ctx)
 		}
 	}
 }
-
 
 } // namespace
 

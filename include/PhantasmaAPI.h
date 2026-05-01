@@ -18,7 +18,7 @@
 //     bool PhantasmaJsonAPI::ParseLookUpNameResponse(JSONValue, String);
 //     void PhantasmaJsonAPI::MakeGetBlockHeightRequest(JSONBuilder, chainInput);
 //     bool PhantasmaJsonAPI::ParseGetBlockHeightResponse(JSONValue, Int32);
-//     void PhantasmaJsonAPI::MakeGetBlockTransactionCountByHashRequest(JSONBuilder, blockHash);
+//     void PhantasmaJsonAPI::MakeGetBlockTransactionCountByHashRequest(JSONBuilder, chainAddressOrName, blockHash);
 //     bool PhantasmaJsonAPI::ParseGetBlockTransactionCountByHashResponse(JSONValue, Int32);
 //     void PhantasmaJsonAPI::MakeGetBlockByHashRequest(JSONBuilder, blockHash);
 //     bool PhantasmaJsonAPI::ParseGetBlockByHashResponse(JSONValue, Block);
@@ -26,7 +26,7 @@
 //     bool PhantasmaJsonAPI::ParseGetBlockByHeightResponse(JSONValue, Block);
 //     void PhantasmaJsonAPI::MakeGetLatestBlockRequest(JSONBuilder, chainInput);
 //     bool PhantasmaJsonAPI::ParseGetLatestBlockResponse(JSONValue, Block);
-//     void PhantasmaJsonAPI::MakeGetTransactionByBlockHashAndIndexRequest(JSONBuilder, blockHash, index);
+//     void PhantasmaJsonAPI::MakeGetTransactionByBlockHashAndIndexRequest(JSONBuilder, chainAddressOrName, blockHash, index);
 //     bool PhantasmaJsonAPI::ParseGetTransactionByBlockHashAndIndexResponse(JSONValue, Transaction);
 //     void PhantasmaJsonAPI::MakeGetAddressTransactionsRequest(JSONBuilder, account, page, pageSize);
 //     bool PhantasmaJsonAPI::ParseGetAddressTransactionsResponse(JSONValue, AccountTransactions);
@@ -60,6 +60,8 @@
 //     bool PhantasmaJsonAPI::ParseGetTokenResponse(JSONValue, Token);
 //     void PhantasmaJsonAPI::MakeGetTokenSeriesRequest(JSONBuilder, symbol, carbonTokenId, pageSize, cursor);
 //     bool PhantasmaJsonAPI::ParseGetTokenSeriesResponse(JSONValue, CursorPaginatedResult<TokenSeries>);
+//     void PhantasmaJsonAPI::MakeGetTokenSeriesByIdRequest(JSONBuilder, symbol, carbonTokenId, seriesId, carbonSeriesId);
+//     bool PhantasmaJsonAPI::ParseGetTokenSeriesByIdResponse(JSONValue, TokenSeries);
 //     void PhantasmaJsonAPI::MakeGetTokenNFTsRequest(JSONBuilder, carbonTokenId, carbonSeriesId, pageSize, cursor, extended);
 //     bool PhantasmaJsonAPI::ParseGetTokenNFTsResponse(JSONValue, CursorPaginatedResult<TokenData>);
 //     void PhantasmaJsonAPI::MakeGetTokenDataRequest(JSONBuilder, symbol, IDtext);
@@ -96,6 +98,10 @@
 //     bool PhantasmaJsonAPI::ParseGetContractsResponse(JSONValue, vector<Contract>);
 //     void PhantasmaJsonAPI::MakeGetContractByAddressRequest(JSONBuilder, chainAddressOrName, contractAddress);
 //     bool PhantasmaJsonAPI::ParseGetContractByAddressResponse(JSONValue, Contract);
+//     void PhantasmaJsonAPI::MakeGetVersionRequest(JSONBuilder);
+//     bool PhantasmaJsonAPI::ParseGetVersionResponse(JSONValue, BuildInfoResult);
+//     void PhantasmaJsonAPI::MakeGetPhantasmaVmConfigRequest(JSONBuilder, chainAddressOrName);
+//     bool PhantasmaJsonAPI::ParseGetPhantasmaVmConfigResponse(JSONValue, PhantasmaVmConfig);
 //
 //------------------------------------------------------------------------------
 // High-level API
@@ -109,11 +115,11 @@
 //     vector<Account> = phantasmaAPI.GetAccounts(accountText, extended, checkAddressReservedByte, error);
 //     String = phantasmaAPI.LookUpName(name, error);
 //     Int32 = phantasmaAPI.GetBlockHeight(chainInput, error);
-//     Int32 = phantasmaAPI.GetBlockTransactionCountByHash(blockHash, error);
+//     Int32 = phantasmaAPI.GetBlockTransactionCountByHash(chainAddressOrName, blockHash, error);
 //     Block = phantasmaAPI.GetBlockByHash(blockHash, error);
 //     Block = phantasmaAPI.GetBlockByHeight(chainInput, height, error);
 //     Block = phantasmaAPI.GetLatestBlock(chainInput, error);
-//     Transaction = phantasmaAPI.GetTransactionByBlockHashAndIndex(blockHash, index, error);
+//     Transaction = phantasmaAPI.GetTransactionByBlockHashAndIndex(chainAddressOrName, blockHash, index, error);
 //     AccountTransactions = phantasmaAPI.GetAddressTransactions(account, page, pageSize, error);
 //     Int32 = phantasmaAPI.GetAddressTransactionCount(account, chainInput, error);
 //     String = phantasmaAPI.SendRawTransaction(txData, error);
@@ -132,6 +138,7 @@
 //     Token = phantasmaAPI.GetToken(symbol, extended, error);
 //     Token = phantasmaAPI.GetToken(symbol, extended, carbonTokenId, error);
 //     CursorPaginatedResult<TokenSeries> = phantasmaAPI.GetTokenSeries(symbol, carbonTokenId, pageSize, cursor, error);
+//     TokenSeries = phantasmaAPI.GetTokenSeriesById(symbol, carbonTokenId, seriesId, carbonSeriesId, error);
 //     CursorPaginatedResult<TokenData> = phantasmaAPI.GetTokenNFTs(carbonTokenId, carbonSeriesId, pageSize, cursor, extended, error);
 //     TokenData = phantasmaAPI.GetTokenData(symbol, IDtext, error);
 //     TokenData = phantasmaAPI.GetNFT(symbol, IDtext, extended, error);
@@ -150,6 +157,8 @@
 //     Contract = phantasmaAPI.GetContract(chainAddressOrName, contractName, error);
 //     vector<Contract> = phantasmaAPI.GetContracts(chainAddressOrName, extended, error);
 //     Contract = phantasmaAPI.GetContractByAddress(chainAddressOrName, contractAddress, error);
+//     BuildInfoResult = phantasmaAPI.GetVersion(error);
+//     PhantasmaVmConfig = phantasmaAPI.GetPhantasmaVmConfig(chainAddressOrName, error);
 //
 //------------------------------------------------------------------------------
 // API configuration
@@ -420,6 +429,13 @@
 
 #if !defined(PHANTASMA_S32) || !defined(PHANTASMA_U32)
 #include <cstdint>
+#endif
+
+#ifndef PHANTASMA_STRLEN
+#include <cstring>
+#if defined(_UNICODE)
+#include <cwchar>
+#endif
 #endif
 
 #if !defined(PHANTASMA_MAX) || !defined(PHANTASMA_COPY) || !defined(PHANTASMA_EQUAL) || !defined(PHANTASMA_SWAP)
@@ -1029,6 +1045,25 @@ struct TokenSeries {
 	PHANTASMA_VECTOR<TokenProperty> metadata; //
 };
 
+struct BuildInfoResult {
+	String version; //
+	String commit; //
+	String buildTimeUtc; //
+};
+
+struct PhantasmaVmConfig {
+	bool isStored; //
+	Int32 featureLevel; //
+	String gasConstructor; //
+	String gasNexus; //
+	String gasOrganization; //
+	String gasAccount; //
+	String gasLeaderboard; //
+	String gasStandard; //
+	String gasOracle; //
+	String fuelPerContractDeploy; //
+};
+
 struct Token {
 	String symbol; //
 	String name; //
@@ -1191,7 +1226,7 @@ class PhantasmaJsonAPI
 	static void MakeGetBlockHeightRequest(JSONBuilder&, const Char* chainInput);
 	static bool ParseGetBlockHeightResponse(const JSONValue&, Int32& out, PhantasmaError* err = 0);
 	// Returns the number of transactions of given block hash or error if given hash is invalid or is not found.
-	static void MakeGetBlockTransactionCountByHashRequest(JSONBuilder&, const Char* blockHash);
+	static void MakeGetBlockTransactionCountByHashRequest(JSONBuilder&, const Char* chainAddressOrName, const Char* blockHash);
 	static bool ParseGetBlockTransactionCountByHashResponse(const JSONValue&, Int32& out, PhantasmaError* err = 0);
 	// Returns information about a block by hash.
 	static void MakeGetBlockByHashRequest(JSONBuilder&, const Char* blockHash);
@@ -1203,7 +1238,7 @@ class PhantasmaJsonAPI
 	static void MakeGetLatestBlockRequest(JSONBuilder&, const Char* chainInput);
 	static bool ParseGetLatestBlockResponse(const JSONValue&, Block& out, PhantasmaError* err = 0);
 	// Returns the information about a transaction requested by a block hash and transaction index.
-	static void MakeGetTransactionByBlockHashAndIndexRequest(JSONBuilder&, const Char* blockHash, Int32 index);
+	static void MakeGetTransactionByBlockHashAndIndexRequest(JSONBuilder&, const Char* chainAddressOrName, const Char* blockHash, Int32 index);
 	static bool ParseGetTransactionByBlockHashAndIndexResponse(const JSONValue&, Transaction& out, PhantasmaError* err = 0);
 	// Returns last X transactions of given address. (paginated call)
 	static void MakeGetAddressTransactionsRequest(JSONBuilder&, const Char* account, UInt32 page, UInt32 pageSize);
@@ -1253,6 +1288,9 @@ class PhantasmaJsonAPI
 	// Returns list of series for a specific token (cursor pagination).
 	static void MakeGetTokenSeriesRequest(JSONBuilder&, const Char* symbol, UInt64 carbonTokenId, UInt32 pageSize, const Char* cursor);
 	static bool ParseGetTokenSeriesResponse(const JSONValue&, CursorPaginatedResult<TokenSeries>& out, PhantasmaError* err = 0);
+	// Returns one token series by Phantasma or Carbon identifiers.
+	static void MakeGetTokenSeriesByIdRequest(JSONBuilder&, const Char* symbol, UInt64 carbonTokenId, const Char* seriesId, UInt32 carbonSeriesId);
+	static bool ParseGetTokenSeriesByIdResponse(const JSONValue&, TokenSeries& out, PhantasmaError* err = 0);
 	// Returns an array of NFTs for a token (cursor pagination).
 	static void MakeGetTokenNFTsRequest(JSONBuilder&, UInt64 carbonTokenId, UInt32 carbonSeriesId, UInt32 pageSize, const Char* cursor, bool extended);
 	static bool ParseGetTokenNFTsResponse(const JSONValue&, CursorPaginatedResult<TokenData>& out, PhantasmaError* err = 0);
@@ -1307,6 +1345,12 @@ class PhantasmaJsonAPI
 	// Returns the ABI interface of specific contract by address.
 	static void MakeGetContractByAddressRequest(JSONBuilder&, const Char* chainAddressOrName, const Char* contractAddress);
 	static bool ParseGetContractByAddressResponse(const JSONValue&, Contract& out, PhantasmaError* err = 0);
+	// Returns build metadata for the node.
+	static void MakeGetVersionRequest(JSONBuilder&);
+	static bool ParseGetVersionResponse(const JSONValue&, BuildInfoResult& out, PhantasmaError* err = 0);
+	// Returns the current Phantasma VM config applied by the chain.
+	static void MakeGetPhantasmaVmConfigRequest(JSONBuilder&, const Char* chainAddressOrName);
+	static bool ParseGetPhantasmaVmConfigResponse(const JSONValue&, PhantasmaVmConfig& out, PhantasmaError* err = 0);
 
 	//private:
 	static JSONValue CheckResponse(JSONValue response, PhantasmaError& out_error);
@@ -1345,6 +1389,8 @@ class PhantasmaJsonAPI
 	static Block DeserializeBlock(const JSONValue& json, bool& jsonError);
 	static Token DeserializeToken(const JSONValue& json, bool& jsonError);
 	static TokenSeries DeserializeTokenSeries(const JSONValue& json, bool& jsonError);
+	static BuildInfoResult DeserializeBuildInfoResult(const JSONValue& json, bool& jsonError);
+	static PhantasmaVmConfig DeserializePhantasmaVmConfig(const JSONValue& json, bool& jsonError);
 	static TokenProperty DeserializeTokenProperty(const JSONValue& json, bool& jsonError);
 	static TokenData DeserializeTokenData(const JSONValue& json, bool& jsonError);
 	static TokenSchemas DeserializeTokenSchemas(const JSONValue& json, bool& jsonError);
@@ -1386,7 +1432,7 @@ class PhantasmaAPI
 	// Returns the height of a chain.
 	Int32 GetBlockHeight(const Char* chainInput, PhantasmaError* out_error = nullptr);
 	// Returns the number of transactions of given block hash or error if given hash is invalid or is not found.
-	Int32 GetBlockTransactionCountByHash(const Char* blockHash, PhantasmaError* out_error = nullptr);
+	Int32 GetBlockTransactionCountByHash(const Char* chainAddressOrName, const Char* blockHash, PhantasmaError* out_error = nullptr);
 	// Returns information about a block by hash.
 	Block GetBlockByHash(const Char* blockHash, PhantasmaError* out_error = nullptr);
 	// Returns information about a block by height and chain.
@@ -1394,7 +1440,7 @@ class PhantasmaAPI
 	// Returns information about the latest block in a chain.
 	Block GetLatestBlock(const Char* chainInput, PhantasmaError* out_error = nullptr);
 	// Returns the information about a transaction requested by a block hash and transaction index.
-	Transaction GetTransactionByBlockHashAndIndex(const Char* blockHash, Int32 index, PhantasmaError* out_error = nullptr);
+	Transaction GetTransactionByBlockHashAndIndex(const Char* chainAddressOrName, const Char* blockHash, Int32 index, PhantasmaError* out_error = nullptr);
 	// Returns last X transactions of given address. (paginated call)
 	AccountTransactions GetAddressTransactions(const Char* account, UInt32 page, UInt32 pageSize, PhantasmaError* out_error = nullptr);
 	// Get number of transactions in a specific address and chain
@@ -1431,6 +1477,8 @@ class PhantasmaAPI
 	Token GetToken(const Char* symbol, bool extended, UInt64 carbonTokenId, PhantasmaError* out_error = nullptr);
 	// Returns list of series for a specific token (cursor pagination).
 	CursorPaginatedResult<TokenSeries> GetTokenSeries(const Char* symbol, UInt64 carbonTokenId, UInt32 pageSize, const Char* cursor, PhantasmaError* out_error = nullptr);
+	// Returns one token series by Phantasma or Carbon identifiers.
+	TokenSeries GetTokenSeriesById(const Char* symbol, UInt64 carbonTokenId, const Char* seriesId, UInt32 carbonSeriesId, PhantasmaError* out_error = nullptr);
 	// Returns an array of NFTs for a token (cursor pagination).
 	CursorPaginatedResult<TokenData> GetTokenNFTs(UInt64 carbonTokenId, UInt32 carbonSeriesId, UInt32 pageSize, const Char* cursor, bool extended, PhantasmaError* out_error = nullptr);
 	// Returns data of a non-fungible token, in hexadecimal format.
@@ -1467,6 +1515,10 @@ class PhantasmaAPI
 	PHANTASMA_VECTOR<Contract> GetContracts(const Char* chainAddressOrName, bool extended, PhantasmaError* out_error = nullptr);
 	// Returns the ABI interface of specific contract by address.
 	Contract GetContractByAddress(const Char* chainAddressOrName, const Char* contractAddress, PhantasmaError* out_error = nullptr);
+	// Returns build metadata for the node.
+	BuildInfoResult GetVersion(PhantasmaError* out_error = nullptr);
+	// Returns the current Phantasma VM config applied by the chain.
+	PhantasmaVmConfig GetPhantasmaVmConfig(const Char* chainAddressOrName, PhantasmaError* out_error = nullptr);
 
   private:
 	HttpClient& m_httpClient;
@@ -2302,6 +2354,31 @@ PHANTASMA_FUNCTION TokenSeries PhantasmaJsonAPI::DeserializeTokenSeries(const JS
 	};
 }
 
+PHANTASMA_FUNCTION BuildInfoResult PhantasmaJsonAPI::DeserializeBuildInfoResult(const JSONValue& value, bool& jsonErr)
+{
+	return BuildInfoResult{
+		json::LookupString(value, PHANTASMA_LITERAL("version"), jsonErr),
+		json::LookupString(value, PHANTASMA_LITERAL("commit"), jsonErr),
+		json::LookupString(value, PHANTASMA_LITERAL("buildTimeUtc"), jsonErr)
+	};
+}
+
+PHANTASMA_FUNCTION PhantasmaVmConfig PhantasmaJsonAPI::DeserializePhantasmaVmConfig(const JSONValue& value, bool& jsonErr)
+{
+	return PhantasmaVmConfig{
+		json::LookupBool(value, PHANTASMA_LITERAL("isStored"), jsonErr),
+		json::LookupInt32(value, PHANTASMA_LITERAL("featureLevel"), jsonErr),
+		json::LookupString(value, PHANTASMA_LITERAL("gasConstructor"), jsonErr),
+		json::LookupString(value, PHANTASMA_LITERAL("gasNexus"), jsonErr),
+		json::LookupString(value, PHANTASMA_LITERAL("gasOrganization"), jsonErr),
+		json::LookupString(value, PHANTASMA_LITERAL("gasAccount"), jsonErr),
+		json::LookupString(value, PHANTASMA_LITERAL("gasLeaderboard"), jsonErr),
+		json::LookupString(value, PHANTASMA_LITERAL("gasStandard"), jsonErr),
+		json::LookupString(value, PHANTASMA_LITERAL("gasOracle"), jsonErr),
+		json::LookupString(value, PHANTASMA_LITERAL("fuelPerContractDeploy"), jsonErr)
+	};
+}
+
 PHANTASMA_FUNCTION TokenSchemas PhantasmaJsonAPI::DeserializeTokenSchemas(const JSONValue& value, bool& jsonErr)
 {
 	return TokenSchemas{
@@ -2779,14 +2856,13 @@ PHANTASMA_FUNCTION bool PhantasmaJsonAPI::ParseGetBlockHeightResponse(const JSON
 	return out_error.code == 0;
 }
 
-// Returns the number of transactions of given block hash or error if given hash is invalid or is not found.
-PHANTASMA_FUNCTION void PhantasmaJsonAPI::MakeGetBlockTransactionCountByHashRequest(JSONBuilder& request, const Char* blockHash)
+PHANTASMA_FUNCTION void PhantasmaJsonAPI::MakeGetBlockTransactionCountByHashRequest(JSONBuilder& request, const Char* chainAddressOrName, const Char* blockHash)
 {
 	json::BeginObject(request);
 	json::AddString(request, PHANTASMA_LITERAL("jsonrpc"), PHANTASMA_LITERAL("2.0"));
 	json::AddString(request, PHANTASMA_LITERAL("method"), PHANTASMA_LITERAL("getBlockTransactionCountByHash"));
 	json::AddString(request, PHANTASMA_LITERAL("id"), PHANTASMA_LITERAL("1"));
-	json::AddArray(request, PHANTASMA_LITERAL("params"), blockHash);
+	json::AddArray(request, PHANTASMA_LITERAL("params"), chainAddressOrName, blockHash);
 	json::EndObject(request);
 }
 
@@ -2879,14 +2955,13 @@ PHANTASMA_FUNCTION bool PhantasmaJsonAPI::ParseGetLatestBlockResponse(const JSON
 	return out_error.code == 0;
 }
 
-// Returns the information about a transaction requested by a block hash and transaction index.
-PHANTASMA_FUNCTION void PhantasmaJsonAPI::MakeGetTransactionByBlockHashAndIndexRequest(JSONBuilder& request, const Char* blockHash, Int32 index)
+PHANTASMA_FUNCTION void PhantasmaJsonAPI::MakeGetTransactionByBlockHashAndIndexRequest(JSONBuilder& request, const Char* chainAddressOrName, const Char* blockHash, Int32 index)
 {
 	json::BeginObject(request);
 	json::AddString(request, PHANTASMA_LITERAL("jsonrpc"), PHANTASMA_LITERAL("2.0"));
 	json::AddString(request, PHANTASMA_LITERAL("method"), PHANTASMA_LITERAL("getTransactionByBlockHashAndIndex"));
 	json::AddString(request, PHANTASMA_LITERAL("id"), PHANTASMA_LITERAL("1"));
-	json::AddArray(request, PHANTASMA_LITERAL("params"), blockHash, index);
+	json::AddArray(request, PHANTASMA_LITERAL("params"), chainAddressOrName, blockHash, index);
 	json::EndObject(request);
 }
 
@@ -3360,7 +3435,7 @@ PHANTASMA_FUNCTION bool PhantasmaJsonAPI::ParseGetTokenSeriesResponse(const JSON
 	bool jsonErr = false;
 	String cursor = json::HasField(jsonResponse, PHANTASMA_LITERAL("cursor"), jsonErr)
 	                    ? json::LookupString(jsonResponse, PHANTASMA_LITERAL("cursor"), jsonErr)
-		                    : String(PHANTASMA_LITERAL(""));
+	                    : String(PHANTASMA_LITERAL(""));
 	JSONValue resultValue = json::LookupValue(jsonResponse, PHANTASMA_LITERAL("result"), jsonErr);
 	if( !json::IsArray(resultValue, jsonErr) )
 	{
@@ -3379,6 +3454,31 @@ PHANTASMA_FUNCTION bool PhantasmaJsonAPI::ParseGetTokenSeriesResponse(const JSON
 			break;
 	}
 	output.cursor = cursor;
+	if( !out_error.code && jsonErr )
+		out_error.code = PhantasmaError::InvalidJSON;
+	return out_error.code == 0;
+}
+
+// Returns one token series by Phantasma or Carbon identifiers.
+PHANTASMA_FUNCTION void PhantasmaJsonAPI::MakeGetTokenSeriesByIdRequest(JSONBuilder& request, const Char* symbol, UInt64 carbonTokenId, const Char* seriesId, UInt32 carbonSeriesId)
+{
+	json::BeginObject(request);
+	json::AddString(request, PHANTASMA_LITERAL("jsonrpc"), PHANTASMA_LITERAL("2.0"));
+	json::AddString(request, PHANTASMA_LITERAL("method"), PHANTASMA_LITERAL("getTokenSeriesById"));
+	json::AddString(request, PHANTASMA_LITERAL("id"), PHANTASMA_LITERAL("1"));
+	json::AddArray(request, PHANTASMA_LITERAL("params"), symbol, carbonTokenId, seriesId, carbonSeriesId);
+	json::EndObject(request);
+}
+
+PHANTASMA_FUNCTION bool PhantasmaJsonAPI::ParseGetTokenSeriesByIdResponse(const JSONValue& _jsonResponse, TokenSeries& output, PhantasmaError* pout_err)
+{
+	PhantasmaError err_dummy;
+	PhantasmaError& out_error = pout_err ? *pout_err : err_dummy;
+	JSONValue jsonResponse = PhantasmaJsonAPI::CheckResponse(_jsonResponse, out_error);
+	if( out_error.code )
+		return false;
+	bool jsonErr = false;
+	output = DeserializeTokenSeries(jsonResponse, jsonErr);
 	if( !out_error.code && jsonErr )
 		out_error.code = PhantasmaError::InvalidJSON;
 	return out_error.code == 0;
@@ -3405,7 +3505,7 @@ PHANTASMA_FUNCTION bool PhantasmaJsonAPI::ParseGetTokenNFTsResponse(const JSONVa
 	bool jsonErr = false;
 	String cursor = json::HasField(jsonResponse, PHANTASMA_LITERAL("cursor"), jsonErr)
 	                    ? json::LookupString(jsonResponse, PHANTASMA_LITERAL("cursor"), jsonErr)
-		                    : String(PHANTASMA_LITERAL(""));
+	                    : String(PHANTASMA_LITERAL(""));
 	JSONValue resultValue = json::LookupValue(jsonResponse, PHANTASMA_LITERAL("result"), jsonErr);
 	if( !json::IsArray(resultValue, jsonErr) )
 	{
@@ -3565,7 +3665,7 @@ PHANTASMA_FUNCTION bool PhantasmaJsonAPI::ParseGetAccountFungibleTokensResponse(
 	bool jsonErr = false;
 	String cursor = json::HasField(jsonResponse, PHANTASMA_LITERAL("cursor"), jsonErr)
 	                    ? json::LookupString(jsonResponse, PHANTASMA_LITERAL("cursor"), jsonErr)
-		                    : String(PHANTASMA_LITERAL(""));
+	                    : String(PHANTASMA_LITERAL(""));
 	JSONValue resultValue = json::LookupValue(jsonResponse, PHANTASMA_LITERAL("result"), jsonErr);
 	if( !json::IsArray(resultValue, jsonErr) )
 	{
@@ -3610,7 +3710,7 @@ PHANTASMA_FUNCTION bool PhantasmaJsonAPI::ParseGetAccountNFTsResponse(const JSON
 	bool jsonErr = false;
 	String cursor = json::HasField(jsonResponse, PHANTASMA_LITERAL("cursor"), jsonErr)
 	                    ? json::LookupString(jsonResponse, PHANTASMA_LITERAL("cursor"), jsonErr)
-		                    : String(PHANTASMA_LITERAL(""));
+	                    : String(PHANTASMA_LITERAL(""));
 	JSONValue resultValue = json::LookupValue(jsonResponse, PHANTASMA_LITERAL("result"), jsonErr);
 	if( !json::IsArray(resultValue, jsonErr) )
 	{
@@ -3655,7 +3755,7 @@ PHANTASMA_FUNCTION bool PhantasmaJsonAPI::ParseGetAccountOwnedTokensResponse(con
 	bool jsonErr = false;
 	String cursor = json::HasField(jsonResponse, PHANTASMA_LITERAL("cursor"), jsonErr)
 	                    ? json::LookupString(jsonResponse, PHANTASMA_LITERAL("cursor"), jsonErr)
-		                    : String(PHANTASMA_LITERAL(""));
+	                    : String(PHANTASMA_LITERAL(""));
 	JSONValue resultValue = json::LookupValue(jsonResponse, PHANTASMA_LITERAL("result"), jsonErr);
 	if( !json::IsArray(resultValue, jsonErr) )
 	{
@@ -3700,7 +3800,7 @@ PHANTASMA_FUNCTION bool PhantasmaJsonAPI::ParseGetAccountOwnedTokenSeriesRespons
 	bool jsonErr = false;
 	String cursor = json::HasField(jsonResponse, PHANTASMA_LITERAL("cursor"), jsonErr)
 	                    ? json::LookupString(jsonResponse, PHANTASMA_LITERAL("cursor"), jsonErr)
-		                    : String(PHANTASMA_LITERAL(""));
+	                    : String(PHANTASMA_LITERAL(""));
 	JSONValue resultValue = json::LookupValue(jsonResponse, PHANTASMA_LITERAL("result"), jsonErr);
 	if( !json::IsArray(resultValue, jsonErr) )
 	{
@@ -3977,6 +4077,56 @@ PHANTASMA_FUNCTION bool PhantasmaJsonAPI::ParseGetContractByAddressResponse(cons
 	return out_error.code == 0;
 }
 
+// Returns build metadata for the node.
+PHANTASMA_FUNCTION void PhantasmaJsonAPI::MakeGetVersionRequest(JSONBuilder& request)
+{
+	json::BeginObject(request);
+	json::AddString(request, PHANTASMA_LITERAL("jsonrpc"), PHANTASMA_LITERAL("2.0"));
+	json::AddString(request, PHANTASMA_LITERAL("method"), PHANTASMA_LITERAL("getVersion"));
+	json::AddString(request, PHANTASMA_LITERAL("id"), PHANTASMA_LITERAL("1"));
+	json::AddArray(request, PHANTASMA_LITERAL("params"));
+	json::EndObject(request);
+}
+
+PHANTASMA_FUNCTION bool PhantasmaJsonAPI::ParseGetVersionResponse(const JSONValue& _jsonResponse, BuildInfoResult& output, PhantasmaError* pout_err)
+{
+	PhantasmaError err_dummy;
+	PhantasmaError& out_error = pout_err ? *pout_err : err_dummy;
+	JSONValue jsonResponse = PhantasmaJsonAPI::CheckResponse(_jsonResponse, out_error);
+	if( out_error.code )
+		return false;
+	bool jsonErr = false;
+	output = DeserializeBuildInfoResult(jsonResponse, jsonErr);
+	if( !out_error.code && jsonErr )
+		out_error.code = PhantasmaError::InvalidJSON;
+	return out_error.code == 0;
+}
+
+// Returns the current Phantasma VM config applied by the chain.
+PHANTASMA_FUNCTION void PhantasmaJsonAPI::MakeGetPhantasmaVmConfigRequest(JSONBuilder& request, const Char* chainAddressOrName)
+{
+	json::BeginObject(request);
+	json::AddString(request, PHANTASMA_LITERAL("jsonrpc"), PHANTASMA_LITERAL("2.0"));
+	json::AddString(request, PHANTASMA_LITERAL("method"), PHANTASMA_LITERAL("getPhantasmaVmConfig"));
+	json::AddString(request, PHANTASMA_LITERAL("id"), PHANTASMA_LITERAL("1"));
+	json::AddArray(request, PHANTASMA_LITERAL("params"), chainAddressOrName);
+	json::EndObject(request);
+}
+
+PHANTASMA_FUNCTION bool PhantasmaJsonAPI::ParseGetPhantasmaVmConfigResponse(const JSONValue& _jsonResponse, PhantasmaVmConfig& output, PhantasmaError* pout_err)
+{
+	PhantasmaError err_dummy;
+	PhantasmaError& out_error = pout_err ? *pout_err : err_dummy;
+	JSONValue jsonResponse = PhantasmaJsonAPI::CheckResponse(_jsonResponse, out_error);
+	if( out_error.code )
+		return false;
+	bool jsonErr = false;
+	output = DeserializePhantasmaVmConfig(jsonResponse, jsonErr);
+	if( !out_error.code && jsonErr )
+		out_error.code = PhantasmaError::InvalidJSON;
+	return out_error.code == 0;
+}
+
 #if defined(PHANTASMA_HTTPCLIENT)
 
 PHANTASMA_FUNCTION Account PhantasmaAPI::GetAccount(const Char* account, PhantasmaError* out_error)
@@ -4023,10 +4173,10 @@ PHANTASMA_FUNCTION Int32 PhantasmaAPI::GetBlockHeight(const Char* chainInput, Ph
 	return output;
 }
 
-PHANTASMA_FUNCTION Int32 PhantasmaAPI::GetBlockTransactionCountByHash(const Char* blockHash, PhantasmaError* out_error)
+PHANTASMA_FUNCTION Int32 PhantasmaAPI::GetBlockTransactionCountByHash(const Char* chainAddressOrName, const Char* blockHash, PhantasmaError* out_error)
 {
 	JSONBuilder request;
-	PhantasmaJsonAPI::MakeGetBlockTransactionCountByHashRequest(request, blockHash);
+	PhantasmaJsonAPI::MakeGetBlockTransactionCountByHashRequest(request, chainAddressOrName, blockHash);
 	const JSONDocument& response = HttpPost(m_httpClient, PhantasmaJsonAPI::Uri(), request, out_error);
 	Int32 output;
 	if( !out_error || out_error->code == 0 )
@@ -4067,10 +4217,10 @@ PHANTASMA_FUNCTION Block PhantasmaAPI::GetLatestBlock(const Char* chainInput, Ph
 	return output;
 }
 
-PHANTASMA_FUNCTION Transaction PhantasmaAPI::GetTransactionByBlockHashAndIndex(const Char* blockHash, Int32 index, PhantasmaError* out_error)
+PHANTASMA_FUNCTION Transaction PhantasmaAPI::GetTransactionByBlockHashAndIndex(const Char* chainAddressOrName, const Char* blockHash, Int32 index, PhantasmaError* out_error)
 {
 	JSONBuilder request;
-	PhantasmaJsonAPI::MakeGetTransactionByBlockHashAndIndexRequest(request, blockHash, index);
+	PhantasmaJsonAPI::MakeGetTransactionByBlockHashAndIndexRequest(request, chainAddressOrName, blockHash, index);
 	const JSONDocument& response = HttpPost(m_httpClient, PhantasmaJsonAPI::Uri(), request, out_error);
 	Transaction output;
 	if( !out_error || out_error->code == 0 )
@@ -4293,6 +4443,17 @@ PHANTASMA_FUNCTION CursorPaginatedResult<TokenSeries> PhantasmaAPI::GetTokenSeri
 	return output;
 }
 
+PHANTASMA_FUNCTION TokenSeries PhantasmaAPI::GetTokenSeriesById(const Char* symbol, UInt64 carbonTokenId, const Char* seriesId, UInt32 carbonSeriesId, PhantasmaError* out_error)
+{
+	JSONBuilder request;
+	PhantasmaJsonAPI::MakeGetTokenSeriesByIdRequest(request, symbol, carbonTokenId, seriesId, carbonSeriesId);
+	const JSONDocument& response = HttpPost(m_httpClient, PhantasmaJsonAPI::Uri(), request, out_error);
+	TokenSeries output;
+	if( !out_error || out_error->code == 0 )
+		PhantasmaJsonAPI::ParseGetTokenSeriesByIdResponse(json::Parse(response), output, out_error);
+	return output;
+}
+
 PHANTASMA_FUNCTION CursorPaginatedResult<TokenData> PhantasmaAPI::GetTokenNFTs(UInt64 carbonTokenId, UInt32 carbonSeriesId, UInt32 pageSize, const Char* cursor, bool extended, PhantasmaError* out_error)
 {
 	JSONBuilder request;
@@ -4488,6 +4649,28 @@ PHANTASMA_FUNCTION Contract PhantasmaAPI::GetContractByAddress(const Char* chain
 	Contract output;
 	if( !out_error || out_error->code == 0 )
 		PhantasmaJsonAPI::ParseGetContractByAddressResponse(json::Parse(response), output, out_error);
+	return output;
+}
+
+PHANTASMA_FUNCTION BuildInfoResult PhantasmaAPI::GetVersion(PhantasmaError* out_error)
+{
+	JSONBuilder request;
+	PhantasmaJsonAPI::MakeGetVersionRequest(request);
+	const JSONDocument& response = HttpPost(m_httpClient, PhantasmaJsonAPI::Uri(), request, out_error);
+	BuildInfoResult output;
+	if( !out_error || out_error->code == 0 )
+		PhantasmaJsonAPI::ParseGetVersionResponse(json::Parse(response), output, out_error);
+	return output;
+}
+
+PHANTASMA_FUNCTION PhantasmaVmConfig PhantasmaAPI::GetPhantasmaVmConfig(const Char* chainAddressOrName, PhantasmaError* out_error)
+{
+	JSONBuilder request;
+	PhantasmaJsonAPI::MakeGetPhantasmaVmConfigRequest(request, chainAddressOrName);
+	const JSONDocument& response = HttpPost(m_httpClient, PhantasmaJsonAPI::Uri(), request, out_error);
+	PhantasmaVmConfig output;
+	if( !out_error || out_error->code == 0 )
+		PhantasmaJsonAPI::ParseGetPhantasmaVmConfigResponse(json::Parse(response), output, out_error);
 	return output;
 }
 
@@ -4765,8 +4948,8 @@ PHANTASMA_FUNCTION bool AsBool(const JSONValue& v, bool& out_error)
 		out_error = true;
 	case 'f':
 		return false;
-		case 't':
-			return true;
+	case 't':
+		return true;
 	}
 }
 PHANTASMA_FUNCTION JSONValue ExtractNumeric(const JSONValue& v, bool& out_error)
