@@ -108,13 +108,12 @@ inline bool Phantasma_PasswordToKey(Byte* output, const char* password, int pass
 	static_assert(crypto_secretbox_KEYBYTES <= crypto_pwhash_BYTES_MAX, "");
 	if( !output || !password || passwordLength <= 0 )
 		return false;
-	crypto_pwhash(output, crypto_secretbox_KEYBYTES,
-	    password,
-	    passwordLength,
-	    salt,
-	    crypto_pwhash_OPSLIMIT_MODERATE,
-	    crypto_pwhash_argon2id_MEMLIMIT_MODERATE, crypto_pwhash_ALG_DEFAULT);
-	return true;
+	return 0 == crypto_pwhash(output, crypto_secretbox_KEYBYTES,
+	                password,
+	                passwordLength,
+	                salt,
+	                crypto_pwhash_OPSLIMIT_MODERATE,
+	                crypto_pwhash_argon2id_MEMLIMIT_MODERATE, crypto_pwhash_ALG_DEFAULT);
 }
 
 #define PHANTASMA_RANDOMBYTES(buffer, size) randombytes_buf(buffer, size)

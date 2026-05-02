@@ -37,15 +37,31 @@ inline std::u16string Utf16UnitsFromVmString(const String& input)
 {
 	ByteArray utf8;
 	CopyUTF8Bytes(input, utf8);
+#if defined(__GNUC__) || defined(__clang__)
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
+#endif
 	std::wstring_convert<std::codecvt_utf8_utf16<char16_t>, char16_t> converter;
 	const char* begin = utf8.empty() ? "" : (const char*)utf8.data();
-	return converter.from_bytes(begin, begin + utf8.size());
+	std::u16string result = converter.from_bytes(begin, begin + utf8.size());
+#if defined(__GNUC__) || defined(__clang__)
+#pragma GCC diagnostic pop
+#endif
+	return result;
 }
 
 inline String VmStringFromUtf16Units(const std::u16string& units)
 {
+#if defined(__GNUC__) || defined(__clang__)
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
+#endif
 	std::wstring_convert<std::codecvt_utf8_utf16<char16_t>, char16_t> converter;
-	return FromUTF8(converter.to_bytes(units).c_str());
+	String result = FromUTF8(converter.to_bytes(units).c_str());
+#if defined(__GNUC__) || defined(__clang__)
+#pragma GCC diagnostic pop
+#endif
+	return result;
 }
 
 enum class VMType
