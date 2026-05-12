@@ -1269,24 +1269,31 @@ class PhantasmaJsonAPI
 	static void MakeGetTransactionRequest(JSONBuilder&, const Char* hashText);
 	static bool ParseGetTransactionResponse(const JSONValue&, Transaction& out, PhantasmaError* err = 0);
 	// Returns an array of all chains deployed in Phantasma.
+	// Warning: this Phantasma RPC method is currently stubbed and returns an empty array.
 	static void MakeGetChainsRequest(JSONBuilder&);
 	static bool ParseGetChainsResponse(const JSONValue&, PHANTASMA_VECTOR<Chain>& out, PhantasmaError* err = 0);
 	// Returns info about a specific chain.
+	// Warning: this Phantasma RPC method is currently stubbed and returns a default chain object.
 	static void MakeGetChainRequest(JSONBuilder&, const Char* name, bool extended);
 	static bool ParseGetChainResponse(const JSONValue&, Chain& out, PhantasmaError* err = 0);
 	// Returns info about the nexus.
+	// Warning: this Phantasma RPC method is currently stubbed and returns a default nexus object.
 	static void MakeGetNexusRequest(JSONBuilder&, bool extended);
 	static bool ParseGetNexusResponse(const JSONValue&, Nexus& out, PhantasmaError* err = 0);
 	// Returns info about an organization.
+	// Warning: this Phantasma RPC method is currently stubbed and returns a default organization object.
 	static void MakeGetOrganizationRequest(JSONBuilder&, const Char* ID);
 	static bool ParseGetOrganizationResponse(const JSONValue&, Organization& out, PhantasmaError* err = 0);
 	// Returns info about an organization by name.
+	// Warning: this Phantasma RPC method is currently stubbed and returns a default organization object.
 	static void MakeGetOrganizationByNameRequest(JSONBuilder&, const Char* name, bool extended);
 	static bool ParseGetOrganizationByNameResponse(const JSONValue&, Organization& out, PhantasmaError* err = 0);
 	// Returns all organizations deployed in Phantasma.
+	// Warning: this Phantasma RPC method is currently stubbed and returns an empty array.
 	static void MakeGetOrganizationsRequest(JSONBuilder&, bool extended);
 	static bool ParseGetOrganizationsResponse(const JSONValue&, PHANTASMA_VECTOR<Organization>& out, PhantasmaError* err = 0);
 	// Returns content of a Phantasma leaderboard.
+	// Warning: this Phantasma RPC method is currently stubbed and returns a default leaderboard object.
 	static void MakeGetLeaderboardRequest(JSONBuilder&, const Char* name);
 	static bool ParseGetLeaderboardResponse(const JSONValue&, Leaderboard& out, PhantasmaError* err = 0);
 	// Returns an array of tokens deployed in Phantasma.
@@ -1338,12 +1345,15 @@ class PhantasmaJsonAPI
 	static void MakeGetAuctionRequest(JSONBuilder&, const Char* chainAddressOrName, const Char* symbol, const Char* IDtext);
 	static bool ParseGetAuctionResponse(const JSONValue&, Auction& out, PhantasmaError* err = 0);
 	// Returns info about a specific archive.
+	// Warning: this Phantasma RPC method is currently stubbed and returns a default archive object.
 	static void MakeGetArchiveRequest(JSONBuilder&, const Char* hashText);
 	static bool ParseGetArchiveResponse(const JSONValue&, Archive& out, PhantasmaError* err = 0);
 	// Writes the contents of an incomplete archive.
+	// Warning: this Phantasma RPC method is currently stubbed and returns false without persisting data.
 	static void MakeWriteArchiveRequest(JSONBuilder&, const Char* hashText, Int32 blockIndex, const Char* blockContent);
 	static bool ParseWriteArchiveResponse(const JSONValue&, bool& out, PhantasmaError* err = 0);
 	// Reads given archive block.
+	// Warning: this Phantasma RPC method is currently stubbed and returns an empty string.
 	static void MakeReadArchiveRequest(JSONBuilder&, const Char* hashText, Int32 blockIndex);
 	static bool ParseReadArchiveResponse(const JSONValue&, String& out, PhantasmaError* err = 0);
 	// Returns the ABI interface of specific contract.
@@ -1464,18 +1474,25 @@ class PhantasmaAPI
 	// Returns information about a transaction by hash.
 	Transaction GetTransaction(const Char* hashText, PhantasmaError* out_error = nullptr);
 	// Returns an array of all chains deployed in Phantasma.
+	// Warning: this Phantasma RPC method is currently stubbed and returns an empty array.
 	PHANTASMA_VECTOR<Chain> GetChains(PhantasmaError* out_error = nullptr);
 	// Returns info about a specific chain.
+	// Warning: this Phantasma RPC method is currently stubbed and returns a default chain object.
 	Chain GetChain(const Char* name, bool extended, PhantasmaError* out_error = nullptr);
 	// Returns info about the nexus.
+	// Warning: this Phantasma RPC method is currently stubbed and returns a default nexus object.
 	Nexus GetNexus(bool extended, PhantasmaError* out_error = nullptr);
 	// Returns info about an organization.
+	// Warning: this Phantasma RPC method is currently stubbed and returns a default organization object.
 	Organization GetOrganization(const Char* ID, PhantasmaError* out_error = nullptr);
 	// Returns info about an organization by name.
+	// Warning: this Phantasma RPC method is currently stubbed and returns a default organization object.
 	Organization GetOrganizationByName(const Char* name, bool extended, PhantasmaError* out_error = nullptr);
 	// Returns info about all organizations.
+	// Warning: this Phantasma RPC method is currently stubbed and returns an empty array.
 	PHANTASMA_VECTOR<Organization> GetOrganizations(bool extended, PhantasmaError* out_error = nullptr);
 	// Returns content of a Phantasma leaderboard.
+	// Warning: this Phantasma RPC method is currently stubbed and returns a default leaderboard object.
 	Leaderboard GetLeaderboard(const Char* name, PhantasmaError* out_error = nullptr);
 	// Returns an array of tokens deployed in Phantasma.
 	PHANTASMA_VECTOR<Token> GetTokens(bool extended, PhantasmaError* out_error = nullptr);
@@ -1514,10 +1531,13 @@ class PhantasmaAPI
 	// Returns the auction for a specific token.
 	Auction GetAuction(const Char* chainAddressOrName, const Char* symbol, const Char* IDtext, PhantasmaError* out_error = nullptr);
 	// Returns info about a specific archive.
+	// Warning: this Phantasma RPC method is currently stubbed and returns a default archive object.
 	Archive GetArchive(const Char* hashText, PhantasmaError* out_error = nullptr);
 	// Writes the contents of an incomplete archive.
+	// Warning: this Phantasma RPC method is currently stubbed and returns false without persisting data.
 	bool WriteArchive(const Char* hashText, Int32 blockIndex, const Char* blockContent, PhantasmaError* out_error = nullptr);
 	// Reads given archive block.
+	// Warning: this Phantasma RPC method is currently stubbed and returns an empty string.
 	String ReadArchive(const Char* hashText, Int32 blockIndex, PhantasmaError* out_error = nullptr);
 	// Returns the ABI interface of specific contract.
 	Contract GetContract(const Char* chainAddressOrName, const Char* contractName, PhantasmaError* out_error = nullptr);
