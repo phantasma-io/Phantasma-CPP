@@ -40,6 +40,16 @@ void RunTokenBuilderValidationTests(TestContext& ctx)
 	    { TokenInfoBuilder::Build("NFT", maxSupply, true, 0, creator, metadata, nullptr); });
 	ExpectNoThrow(ctx, "TokenInfoBuilder valid fungible", [&]()
 	    { TokenInfoBuilder::Build("FUNGIBLE", maxSupply, false, 8, creator, metadata, nullptr); });
+	{
+		const TokenInfoOwned unlimited = TokenInfoBuilder::Build("UNLIMITED", ParseIntx("0"), false, 8, creator, metadata, nullptr);
+		const TokenInfoOwned finiteSmall = TokenInfoBuilder::Build("SMALL", ParseIntx("1000000"), false, 8, creator, metadata, nullptr);
+		const TokenInfoOwned finiteBig = TokenInfoBuilder::Build("BIG", ParseIntx("9223372036854775808"), false, 8, creator, metadata, nullptr);
+		const TokenInfoOwned nft = TokenInfoBuilder::Build("NFT", maxSupply, true, 0, creator, metadata, &tokenSchemas);
+		Report(ctx, unlimited.view.flags == TokenFlags_BigFungible, "TokenInfoBuilder unlimited fungible flags");
+		Report(ctx, finiteSmall.view.flags == TokenFlags_None, "TokenInfoBuilder finite small fungible flags");
+		Report(ctx, finiteBig.view.flags == TokenFlags_BigFungible, "TokenInfoBuilder finite big fungible flags");
+		Report(ctx, nft.view.flags == TokenFlags_NonFungible, "TokenInfoBuilder NFT flags");
+	}
 
 	ExpectThrowContains(ctx, "SeriesInfoBuilder metadata required", "series metadata is required", [&]()
 	    {

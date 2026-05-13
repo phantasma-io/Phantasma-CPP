@@ -725,6 +725,7 @@ struct TokenInfoBuilder {
 			PHANTASMA_EXCEPTION("metadata is required");
 		}
 
+		const bool isUnlimited = !maxSupply;
 		const bool isInt64Safe = maxSupply.Int256().Is8ByteSafe();
 
 		TokenInfoOwned owned;
@@ -738,7 +739,7 @@ struct TokenInfoBuilder {
 			}
 			owned.view.flags = TokenFlags_NonFungible;
 		}
-		else if( !isInt64Safe )
+		else if( isUnlimited || !isInt64Safe )
 		{
 			owned.view.flags = TokenFlags_BigFungible;
 		}
