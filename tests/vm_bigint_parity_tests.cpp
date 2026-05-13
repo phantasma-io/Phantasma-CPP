@@ -59,13 +59,57 @@ bool ReadFixtureLine(std::ifstream& file, std::string& line)
 bool SplitColumns(const std::string& line, std::vector<std::string>& cols)
 {
 	cols.clear();
-	std::stringstream ss(line);
-	std::string col;
-	while( std::getline(ss, col, '\t') )
+	size_t start = 0;
+	// Empty expected columns at the end of successful fixture rows are part of
+	// the TSV schema. Preserve them so the column-count guards cannot hide rows.
+	for( ;; )
 	{
-		cols.push_back(col);
+		const size_t tab = line.find('\t', start);
+		if( tab == std::string::npos )
+		{
+			cols.push_back(line.substr(start));
+			return true;
+		}
+		cols.push_back(line.substr(start, tab - start));
+		start = tab + 1;
 	}
-	return !cols.empty();
+}
+
+bool RequireColumns(
+    TestContext& ctx,
+    const std::string& line,
+    const std::string& fixtureName,
+    size_t requiredColumns,
+    size_t paddedColumns,
+    int outcomeColumn,
+    std::vector<std::string>& cols)
+{
+	if( !SplitColumns(line, cols) || cols.size() < requiredColumns )
+	{
+		Report(
+		    ctx,
+		    false,
+		    "Malformed row in " + fixtureName,
+		    "columns=" + std::to_string(cols.size()) + " required=" + std::to_string(requiredColumns) + " row=" + line);
+		return false;
+	}
+
+	if( outcomeColumn >= 0 && (size_t)outcomeColumn < cols.size() && cols[outcomeColumn] == "exception" && cols.size() < paddedColumns )
+	{
+		Report(
+		    ctx,
+		    false,
+		    "Malformed exception row in " + fixtureName,
+		    "columns=" + std::to_string(cols.size()) + " required=" + std::to_string(paddedColumns) + " row=" + line);
+		return false;
+	}
+
+	while( cols.size() < paddedColumns )
+	{
+		cols.emplace_back();
+	}
+
+	return true;
 }
 
 bool ExceptionMatchesCategory(const std::exception& ex, const std::string& category)
@@ -155,6 +199,11 @@ ByteArray ParseHexOrEmpty(const std::string& hex)
 
 std::string LowerHex(const ByteArray& bytes)
 {
+	if( bytes.empty() )
+	{
+		return {};
+	}
+
 	std::string hex = BytesToHex(bytes);
 	std::transform(hex.begin(), hex.end(), hex.begin(), [](unsigned char c)
 	    { return (char)std::tolower(c); });
@@ -303,7 +352,7 @@ void RunBinaryFixtures(TestContext& ctx)
 	while( ReadFixtureLine(file, line) )
 	{
 		std::vector<std::string> cols;
-		if( !SplitColumns(line, cols) || cols.size() < 6 )
+		if( !RequireColumns(ctx, line, "gen2_csharp_vm_bigint_binary.tsv", 6, 6, -1, cols) )
 		{
 			continue;
 		}
@@ -328,6 +377,50 @@ void RunBinaryFixtures(TestContext& ctx)
 	}
 }
 
+void RunSharedFixtureInventory(TestContext& ctx)
+{
+	const char* fixtures[] = {
+		"carbon_vectors.tsv",
+		"carbon_tx_builder_vectors.tsv",
+		"ed25519_vectors.tsv",
+		"gen2_csharp_vm_bigint_binary.tsv",
+		"gen2_csharp_vm_bigint_decimal.tsv",
+		"gen2_csharp_vm_bigint_narrow_int.tsv",
+		"gen2_csharp_vm_bigint_ops.tsv",
+		"gen2_csharp_vm_bigint_unary_ops.tsv",
+		"gen2_csharp_vm_scriptcontext_ops.tsv",
+		"gen2_csharp_vm_scriptcontext_unary.tsv",
+		"gen2_csharp_vmobject_arraytype.tsv",
+		"gen2_csharp_vmobject_asbool.tsv",
+		"gen2_csharp_vmobject_asbytes.tsv",
+		"gen2_csharp_vmobject_asnumber.tsv",
+		"gen2_csharp_vmobject_asstring.tsv",
+		"gen2_csharp_vmobject_cast_struct.tsv",
+		"gen2_csharp_vmobject_serde.tsv",
+		"phantasma_bigint_vectors.tsv",
+		"validator_int256_fixtures.json",
+		"vm_script_builder_vectors.tsv",
+	};
+
+	for( const char* fixture : fixtures )
+	{
+		std::ifstream file;
+		if( !TryOpenFixture(file, fixture) )
+		{
+			Report(ctx, false, std::string("missing shared fixture ") + fixture);
+			continue;
+		}
+
+		std::string line;
+		int rows = 0;
+		while( ReadFixtureLine(file, line) )
+		{
+			++rows;
+		}
+		Report(ctx, rows > 0, std::string("empty shared fixture ") + fixture);
+	}
+}
+
 void RunDecimalFixtures(TestContext& ctx)
 {
 	std::ifstream file;
@@ -342,7 +435,7 @@ void RunDecimalFixtures(TestContext& ctx)
 	while( ReadFixtureLine(file, line) )
 	{
 		std::vector<std::string> cols;
-		if( !SplitColumns(line, cols) || cols.size() < 7 )
+		if( !RequireColumns(ctx, line, "gen2_csharp_vm_bigint_decimal.tsv", 4, 7, 2, cols) )
 		{
 			continue;
 		}
@@ -383,7 +476,7 @@ void RunNarrowIntFixtures(TestContext& ctx)
 	while( ReadFixtureLine(file, line) )
 	{
 		std::vector<std::string> cols;
-		if( !SplitColumns(line, cols) || cols.size() < 7 )
+		if( !RequireColumns(ctx, line, "gen2_csharp_vm_bigint_narrow_int.tsv", 4, 7, 2, cols) )
 		{
 			continue;
 		}
@@ -459,7 +552,7 @@ void RunOpFixtures(TestContext& ctx)
 	while( ReadFixtureLine(file, line) )
 	{
 		std::vector<std::string> cols;
-		if( !SplitColumns(line, cols) || cols.size() < 9 )
+		if( !RequireColumns(ctx, line, "gen2_csharp_vm_bigint_ops.tsv", 6, 9, 4, cols) )
 		{
 			continue;
 		}
@@ -499,7 +592,7 @@ void RunUnaryOpFixtures(TestContext& ctx)
 	while( ReadFixtureLine(file, line) )
 	{
 		std::vector<std::string> cols;
-		if( !SplitColumns(line, cols) || cols.size() < 8 )
+		if( !RequireColumns(ctx, line, "gen2_csharp_vm_bigint_unary_ops.tsv", 5, 8, 3, cols) )
 		{
 			continue;
 		}
@@ -538,7 +631,7 @@ void RunVmObjectAsNumberFixtures(TestContext& ctx)
 	while( ReadFixtureLine(file, line) )
 	{
 		std::vector<std::string> cols;
-		if( !SplitColumns(line, cols) || cols.size() < 9 )
+		if( !RequireColumns(ctx, line, "gen2_csharp_vmobject_asnumber.tsv", 6, 9, 4, cols) )
 		{
 			continue;
 		}
@@ -576,7 +669,7 @@ void RunVmObjectAsBoolFixtures(TestContext& ctx)
 	while( ReadFixtureLine(file, line) )
 	{
 		std::vector<std::string> cols;
-		if( !SplitColumns(line, cols) || cols.size() < 9 )
+		if( !RequireColumns(ctx, line, "gen2_csharp_vmobject_asbool.tsv", 6, 9, 4, cols) )
 		{
 			continue;
 		}
@@ -614,7 +707,7 @@ void RunVmObjectAsBytesFixtures(TestContext& ctx)
 	while( ReadFixtureLine(file, line) )
 	{
 		std::vector<std::string> cols;
-		if( !SplitColumns(line, cols) || cols.size() < 9 )
+		if( !RequireColumns(ctx, line, "gen2_csharp_vmobject_asbytes.tsv", 5, 9, 4, cols) )
 		{
 			continue;
 		}
@@ -652,7 +745,7 @@ void RunVmObjectSerdeFixtures(TestContext& ctx)
 	while( ReadFixtureLine(file, line) )
 	{
 		std::vector<std::string> cols;
-		if( !SplitColumns(line, cols) || cols.size() < 7 )
+		if( !RequireColumns(ctx, line, "gen2_csharp_vmobject_serde.tsv", 7, 7, -1, cols) )
 		{
 			continue;
 		}
@@ -702,7 +795,7 @@ void RunVmObjectArrayTypeFixtures(TestContext& ctx)
 	while( ReadFixtureLine(file, line) )
 	{
 		std::vector<std::string> cols;
-		if( !SplitColumns(line, cols) || cols.size() < 5 )
+		if( !RequireColumns(ctx, line, "gen2_csharp_vmobject_arraytype.tsv", 5, 5, -1, cols) )
 		{
 			continue;
 		}
@@ -730,7 +823,7 @@ void RunVmObjectAsStringFixtures(TestContext& ctx)
 	while( ReadFixtureLine(file, line) )
 	{
 		std::vector<std::string> cols;
-		if( !SplitColumns(line, cols) || cols.size() < 9 )
+		if( !RequireColumns(ctx, line, "gen2_csharp_vmobject_asstring.tsv", 6, 9, 4, cols) )
 		{
 			continue;
 		}
@@ -768,7 +861,7 @@ void RunVmObjectCastStructFixtures(TestContext& ctx)
 	while( ReadFixtureLine(file, line) )
 	{
 		std::vector<std::string> cols;
-		if( !SplitColumns(line, cols) || cols.size() < 10 )
+		if( !RequireColumns(ctx, line, "gen2_csharp_vmobject_cast_struct.tsv", 7, 10, 4, cols) )
 		{
 			continue;
 		}
@@ -802,6 +895,7 @@ void RunGen2CSharpVmBigIntFixtureTests(TestContext& ctx)
 	// These fixtures are generated from authoritative Gen2 C# VM code.
 	// The manifest in tests/fixtures/gen2_csharp_vm_bigint_manifest.md records
 	// the exact source repo, commit, and source files used for generation.
+	RunSharedFixtureInventory(ctx);
 	RunBinaryFixtures(ctx);
 	RunDecimalFixtures(ctx);
 	RunNarrowIntFixtures(ctx);

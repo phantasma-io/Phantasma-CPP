@@ -365,15 +365,20 @@ class TBigInteger
 		while( last >= first && (*last == '\r' || *last == '\n') )
 			--last;
 
-		if( *first == '-' )
+		if( *first == '-' || *first == '+' )
 		{
+			_sign = *first == '-' ? -1 : 1;
 			++first;
-			_sign = -1;
+			if( first > last )
+			{
+				if( out_error )
+					*out_error = true;
+				PHANTASMA_EXCEPTION("Invalid string in constructor.");
+				return;
+			}
 		}
 		else
-		{
 			_sign = 1;
-		}
 
 		int length = (int)(last + 1 - first);
 
