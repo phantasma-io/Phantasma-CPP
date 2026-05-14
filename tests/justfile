@@ -1,22 +1,35 @@
+[private]
+just:
+    just -l
+
+[group('build')]
 build:
     make build
 
+[group('test')]
 run:
     make run
 
+[group('coverage')]
 cov:
     ./scripts/coverage.sh
 
+[group('coverage')]
 cov-a:
     ./scripts/coverage_analyze.py
 
+[group('build')]
 clean:
     make clean
 
+[group('build')]
 b: build
 
+[group('test')]
 r: run
 
+[group('coverage')]
 cv: cov
 
+[group('build')]
 c: clean

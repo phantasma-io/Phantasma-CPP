@@ -5,6 +5,7 @@
 
 #include "../Numerics/Base16.h"
 #include <chrono>
+#include <limits>
 #include "DataBlockchain.h"
 #include "Modules.h"
 
@@ -93,7 +94,46 @@ struct FeeOptions {
 
 	virtual uint64_t CalculateMaxGas() const
 	{
-		return gasFeeBase * feeMultiplier;
+		return CalculateMaxGas(1);
+	}
+
+	virtual uint64_t CalculateMaxGas(uint64_t count) const
+	{
+		return MultiplyGas(gasFeeBase, feeMultiplier, RequirePositiveCount(count, "FeeOptions::CalculateMaxGas"));
+	}
+
+  protected:
+	static uint64_t RequirePositiveCount(uint64_t count, const char* methodName)
+	{
+		if( count == 0 )
+		{
+			PHANTASMA_EXCEPTION(std::string(methodName) + " count must be positive");
+		}
+		return count;
+	}
+
+	static void RequireNoMeaningfulCount(uint64_t count, const char* methodName)
+	{
+		RequirePositiveCount(count, methodName);
+		if( count != 1 )
+		{
+			PHANTASMA_EXCEPTION(std::string(methodName) + " is not count-sensitive; count must be 1 when provided");
+		}
+	}
+
+	static uint64_t MultiplyGas(uint64_t base, uint64_t multiplier, uint64_t count = 1)
+	{
+		const uint64_t max = std::numeric_limits<uint64_t>::max();
+		if( base != 0 && multiplier > max / base )
+		{
+			PHANTASMA_EXCEPTION("fee gas calculation overflow");
+		}
+		const uint64_t baseGas = base * multiplier;
+		if( baseGas != 0 && count > max / baseGas )
+		{
+			PHANTASMA_EXCEPTION("fee gas calculation overflow");
+		}
+		return baseGas * count;
 	}
 };
 
@@ -106,7 +146,16 @@ struct CreateTokenFeeOptions : public FeeOptions {
 	{
 	}
 
-	using FeeOptions::CalculateMaxGas;
+	uint64_t CalculateMaxGas() const override
+	{
+		return CalculateMaxGas(SmallString());
+	}
+
+	uint64_t CalculateMaxGas(uint64_t) const override
+	{
+		PHANTASMA_EXCEPTION("CreateTokenFeeOptions::CalculateMaxGas symbol must be a SmallString");
+		return 0;
+	}
 
 	uint64_t CalculateMaxGas(const SmallString& symbol) const
 	{
@@ -120,7 +169,7 @@ struct CreateTokenFeeOptions : public FeeOptions {
 				symbolPart >>= shift;
 			}
 		}
-		return (gasFeeBase + gasFeeCreateTokenBase + symbolPart) * feeMultiplier;
+		return MultiplyGas(gasFeeBase + gasFeeCreateTokenBase + symbolPart, feeMultiplier);
 	}
 };
 
@@ -132,9 +181,15 @@ struct CreateSeriesFeeOptions : public FeeOptions {
 	{
 	}
 
-	uint64_t CalculateMaxGas() const
+	uint64_t CalculateMaxGas() const override
 	{
-		return (gasFeeBase + gasFeeCreateSeriesBase) * feeMultiplier;
+		return MultiplyGas(gasFeeBase + gasFeeCreateSeriesBase, feeMultiplier);
+	}
+
+	uint64_t CalculateMaxGas(uint64_t count) const override
+	{
+		RequireNoMeaningfulCount(count, "CreateSeriesFeeOptions::CalculateMaxGas");
+		return CalculateMaxGas();
 	}
 };
 
@@ -144,9 +199,14 @@ struct MintNftFeeOptions : public FeeOptions {
 	{
 	}
 
-	uint64_t CalculateMaxGas() const
+	uint64_t CalculateMaxGas() const override
 	{
-		return gasFeeBase * feeMultiplier;
+		return CalculateMaxGas(1);
+	}
+
+	uint64_t CalculateMaxGas(uint64_t count) const override
+	{
+		return MultiplyGas(gasFeeBase, feeMultiplier, RequirePositiveCount(count, "MintNftFeeOptions::CalculateMaxGas"));
 	}
 };
 
@@ -234,7 +294,7 @@ struct MintNonFungibleTxHelper {
 	    int64_t expiry = 0)
 	{
 		const MintNftFeeOptions fees = feeOptions ? *feeOptions : MintNftFeeOptions();
-		const uint64_t maxGas = fees.CalculateMaxGas();
+		const uint64_t maxGas = fees.CalculateMaxGas(1);
 		const int64_t effectiveExpiry = (expiry == 0) ? GetDefaultExpiry() : expiry;
 
 		TxEnvelope env;
@@ -282,7 +342,7 @@ struct MintPhantasmaNonFungibleTxHelper {
 	    int64_t expiry = 0)
 	{
 		const MintNftFeeOptions fees = feeOptions ? *feeOptions : MintNftFeeOptions();
-		const uint64_t maxGas = fees.CalculateMaxGas();
+		const uint64_t maxGas = fees.CalculateMaxGas(numTokens);
 		const int64_t effectiveExpiry = (expiry == 0) ? GetDefaultExpiry() : expiry;
 		if( numTokens != 0 && tokens == nullptr )
 		{

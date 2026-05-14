@@ -1,15 +1,22 @@
 set shell := ["bash", "-c"]
 
+[private]
+just:
+    just -l
+
 # Build WalletSample (Linux)
+[group('build')]
 b:
 	just c
 	make
 
-# Build WalletSample (Linux)
+# Clean WalletSample (Linux)
+[group('build')]
 c:
 	make clean
 
 # Run built wallet sample
+[group('run')]
 r:
 	just b
 	./wallet

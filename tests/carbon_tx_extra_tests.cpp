@@ -77,21 +77,44 @@ void RunCarbonTxExtraTests(TestContext& ctx)
 		      0,
 		      expiry); });
 
-	ExpectNoThrow(ctx, "MintPhantasmaNonFungibleTxHelper allows zero-count null tokens pointer", [&]()
-	    {
+	ExpectThrowContains(ctx, "MintPhantasmaNonFungibleTxHelper rejects zero-count mint", "count must be positive", [&]()
+	    { (void)MintPhantasmaNonFungibleTxHelper::BuildTx(
+		      42,
+		      senderPub,
+		      receiverPub,
+		      0,
+		      nullptr,
+		      nullptr,
+		      0,
+		      expiry); });
+
+	{
+		FeeOptions baseFees(10, 1000);
+		Report(ctx, baseFees.CalculateMaxGas() == 10000 && baseFees.CalculateMaxGas(3) == 30000, "FeeOptions count scaling");
+
+		CreateSeriesFeeOptions seriesFees(10, 20, 30);
+		Report(ctx, seriesFees.CalculateMaxGas() == 900 && seriesFees.CalculateMaxGas(1) == 900, "CreateSeriesFeeOptions accepts count 1 only");
+		ExpectThrowContains(ctx, "CreateSeriesFeeOptions rejects count > 1", "not count-sensitive", [&]()
+		    { (void)seriesFees.CalculateMaxGas(2); });
+
+		MintNftFeeOptions mintFees(10, 1000);
+		Report(ctx, mintFees.CalculateMaxGas() == 10000 && mintFees.CalculateMaxGas(3) == 30000, "MintNftFeeOptions count scaling");
+
+		PhantasmaNftMintInfo tokens[3]{};
+		tokens[0].phantasmaSeriesId.x() = intx((uint64_t)1);
+		tokens[1].phantasmaSeriesId.x() = intx((uint64_t)2);
+		tokens[2].phantasmaSeriesId.x() = intx((uint64_t)3);
 		const TxEnvelope env = MintPhantasmaNonFungibleTxHelper::BuildTx(
 		    42,
 		    senderPub,
 		    receiverPub,
-		    0,
-		    nullptr,
-		    nullptr,
+		    3,
+		    tokens,
+		    &mintFees,
 		    0,
 		    expiry);
-		if( env.msg.type != Blockchain::TxTypes::Call || env.msg.call.methodId != (uint32_t)TokenContract_Methods::MintPhantasmaNonFungible )
-		{
-			throw std::runtime_error("unexpected safe-mint tx envelope");
-		} });
+		Report(ctx, env.msg.maxGas == 30000, "MintPhantasmaNonFungibleTxHelper scales max gas by token count");
+	}
 
 	ExpectNoThrow(ctx, "MintPhantasmaNonFungibleTxHelper ParseResult preserves exact 32-byte Phantasma ids", [&]()
 	    {
